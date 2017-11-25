@@ -27,7 +27,7 @@
                     var html = '';
                     allRepos.forEach(function(repo) {
                         var folderName = repo.split('\\').slice(-1).pop();
-                        html += '<li class="cloned-repo" data-repo-dir="'+ repo +'" title="'+ repo +'">' + folderName + '</li>'
+                        html += '<li class="cloned-repo" data-repo-dir="'+ repo +'" title="'+ repo +'"><a href="/repo/' + folderName + '" target="_self">' + folderName + '</a></li>'
                     });
     
                     $clonedRepos.html(html);
