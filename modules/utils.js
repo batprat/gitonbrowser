@@ -1,4 +1,4 @@
-const { lstatSync, readdirSync } = require('fs')
+const { lstatSync, readdirSync, existsSync, mkdirSync } = require('fs')
 const { join } = require('path')
 
 var utils = {
@@ -15,8 +15,14 @@ function getBaseDir() {
 }
   
 function getCheckoutsDir() {
-    var baseDir = getBaseDir();
-    return baseDir + '/' + 'git-checkouts';
+    let baseDir = getBaseDir();
+    let checkoutsDir = baseDir + '/' + 'git-checkouts';
+    
+    if (!existsSync(checkoutsDir)){
+        mkdirSync(checkoutsDir);
+    }
+
+    return checkoutsDir;
 }
 
 /**
@@ -26,7 +32,7 @@ function getAllDirectories(sourceDir) {
     const isDirectory = source => lstatSync(source).isDirectory();
     const getDirectories = source => readdirSync(source).map(name => join(source, name)).filter(isDirectory);
     
-    return getDirectories(sourceDir)
+    return getDirectories(sourceDir) || [];
 }
 
 function getRandomSeparator() {
