@@ -1,0 +1,29 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/lib/bootstrap/css/bootstrap.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src='/lib/jquery/jquery-3.2.1.js')
+    script(src='/lib/popper.js')
+    script(src='/lib/bootstrap/js/bootstrap.js')
+    script(src='/bower_components/angular/angular.js')
+    script(src='/bower_components/angular-route/angular-route.js')
+    script(src='/bower_components/angular-timeago/dist/angular-timeago.js')
+    base(href='/')
+  body(ng-app="webgitApp" ng-controller="AppController")
+    block content
+    div(class="modal fade", id="response-modal", tabindex="-1", role="dialog", aria-hidden="true")
+      div(class="modal-dialog", role="document")
+        div(class="modal-content")
+          div(class="modal-header")
+            h5(class="modal-title", id="response-title")
+            button(type="button", class="close", data-dismiss="modal", aria-label="Close")
+              span(aria-hidden="true") &times;
+          div(class="modal-body", id="response-body")
+          div(class="modal-footer")
+            button(type="button", class="btn btn-primary", data-dismiss="modal") Close
+    script(src='/js/app/app.module.js')
+    script(src='/js/app/app.config.js')
+    script(src='/js/app/repositories/repositories.component.js')
+    script(src='/js/app/repositories/repo-detail/repo-detail.component.js')
