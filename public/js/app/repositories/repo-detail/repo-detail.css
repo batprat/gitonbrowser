@@ -80,6 +80,7 @@
 .diff {
     white-space: pre-line;
     font-family: monospace;
+    background: #ffffff;
 }
 
 .line-added {
@@ -112,4 +113,13 @@
 
 .file-status.deleted::after {
     content: 'D'
+}
+
+.staging-action-buttons-container {
+    margin: 20px 0;
+}
+
+#commit-dialog-diff {
+    background: #e2e1e0;
+    padding-bottom: 15px;
 }

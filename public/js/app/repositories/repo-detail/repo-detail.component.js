@@ -5,9 +5,8 @@
     repoDetailModule
         .component('repoDetail', {
             templateUrl: '/js/app/repositories/repo-detail/repo-detail.html',
-            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope',
-              function RepoDetailController($routeParams, repoDetailService, $sce, $scope) {
-                console.log('inside repo details controller');
+            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter',
+              function RepoDetailController($routeParams, repoDetailService, $sce, $scope, $filter) {
     
                 repoName = $routeParams.repoName;
     
@@ -65,8 +64,12 @@
 
                 function showCommitDialog() {
                     // use vm.localStatus
-                    $('#commit-modal').modal('show');
-                    
+                    var $modal = $('#commit-modal');
+                    $modal.modal('show');
+                    $modal.on('shown.bs.modal', function() {
+                        // select the first commit to show the diff.
+                        showDiffForFileOnCommitModal($filter('filter')(vm.localStatus, {tags: 'unstaged'}, true)[0]);
+                    });
                 }
 
                 function refreshLocalChanges() {
