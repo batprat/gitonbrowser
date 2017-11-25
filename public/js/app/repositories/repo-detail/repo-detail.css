@@ -1,0 +1,115 @@
+.repo-detail {
+    background: #e2e1e0;
+    height: 100vh;
+}
+
+.working-directory-details-container {
+    height: 40px;
+}
+
+.commit-hash {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.commit {
+    background: #FFF;
+}
+
+.list-item-selector {
+    transition: all 0.3s ease 0s;
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+.list-item-selector:hover {
+    background: #d3d3d3;
+}
+
+.list-item-selector.selected {
+    background: steelblue !important;
+}
+
+.commit-container {
+    height: calc(65% - 40px);
+    overflow-y: auto;
+}
+
+.details-container {
+    height: 35%;
+    overflow: auto;
+}
+
+.nav-link {
+    cursor: pointer;
+}
+
+.nav-link.active {
+    cursor: default;
+}
+
+.tab-content {
+    height: calc(100% - 42px);
+    background: #FFF;
+}
+
+.tab-pane {
+    max-height: 100%;
+    overflow: auto;
+    height: 100%;
+}
+
+.height100 {
+    height: 100%;
+}
+
+.file {
+    padding: 5px 0;
+}
+
+.selected-file {
+    background: steelblue;
+}
+
+.file-diff-column {
+    border-left: 1px solid #CCC;
+    overflow: auto;
+    max-height: 100%;
+}
+
+.diff {
+    white-space: pre-line;
+    font-family: monospace;
+}
+
+.line-added {
+    background: #90ee90;
+}
+
+.line-removed {
+    background: #f08080; 
+}
+
+.line-special {
+    background: #d3d3d3;
+}
+
+#commit-modal .modal-dialog {
+    max-width: 90%;
+}
+
+.file-status.untracked::after {
+    content: '?'
+}
+
+.file-status.added::after {
+    content: 'A'
+}
+
+.file-status.modified::after {
+    content: 'M'
+}
+
+.file-status.deleted::after {
+    content: 'D'
+}

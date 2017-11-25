@@ -1,0 +1,123 @@
+<div class="repo-detail">
+    <link href="/js/app/repositories/repo-detail/repo-detail.css" rel="stylesheet">
+    <div class="working-directory-details-container">
+        <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
+        <button class="btn btn-primary" id="btn-commit" ng-click="vm.showCommitDialog()">Commit {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
+    </div>
+    <div class="commit-container container-fluid">
+        <div class="row commit list-item-selector" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}">
+            <div class="col-sm-7">{{$index + 1}}. {{commit.subject}}</div>
+            <div class="col-sm-2">{{commit.name}}</div>
+            <div class="col-sm-3">{{commit.date}}</div>
+        </div>
+    </div>
+    <div class="details-container">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <span class="nav-link active" data-target="#commit" data-toggle="tab" role="tab">Commit</span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" data-target="#file-tree" data-toggle="tab" role="tab">File tree</span>
+            </li>
+            <li class="nav-item">
+                <span class="nav-link" data-target="#diff" data-toggle="tab" role="tab">Diff</span>
+            </li>
+        </ul>
+            
+            <!-- Tab panes -->
+        <div class="tab-content">
+            <div class="tab-pane active" id="commit" role="tabpanel">
+                <div ng-if="vm.commitDetails" class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div>Author: {{vm.commitDetails.author}}</div>
+                            <div>Date: <time-ago from-time='{{ vm.commitDetails.date }}'></time-ago> ({{vm.commitDetails.date | date : 'medium'}})</div>
+                            <div>Commit hash: {{vm.commitDetails.hash}}</div>
+                            <div>Parent(s): ???</div>
+                            <div class="commit-message">{{vm.commitDetails.message}}</div>
+                            <div>Contained in branches: ???</div>
+                            <div>Contained in tags: ???</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="file-tree" role="tabpanel">file tree</div>
+            <div class="tab-pane" id="diff" role="tabpanel">
+                <div class="container-fluid height100" ng-if="vm.commitDetails">
+                    <div class="row height100">
+                        <div class="col-sm-4 height100">
+                            <div class="file list-item-selector" ng-repeat="file in vm.commitDetails.diffDetails" ng-click="vm.selectFile(file)" ng-class="{'selected': vm.selectedFileDiffRaw === file.diff}">[{{file.commitType}}]{{file.fileName}}</div>
+                        </div>
+                        <div class="col-sm-8 file-diff-column height100">
+                            <div ng-bind-html="vm.selectedFileDiff" class="diff"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="commit-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Commit to {{vm.branchname}}</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body" id="commit-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="row">
+                                    <div class="col-sm-12" id="commit-dialog-unstaged-files">
+                                        <div>Unstaged Files</div>
+                                        <div class="container-fluid unstaged-files-list">
+                                            <div class="row list-item-selector" ng-repeat="unstagedFile in vm.localStatus | filter: {tags: 'unstaged'}: true" ng-click="vm.showDiffForFileOnCommitModal(unstagedFile)" ng-class="{'selected': vm.diffOnCommitModal.file === unstagedFile }">
+                                                <div class="col-sm-12">
+                                                    <span class="file-status" ng-class="{'untracked': unstagedFile.tags.indexOf('addedunstaged') > -1, 'modified': unstagedFile.tags.indexOf('modifiedunstaged') > -1, 'deleted': unstagedFile.tags.indexOf('deletedunstaged') > -1}"></span>
+                                                    {{unstagedFile.name}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12 staging-actions">
+                                        <button class="btn btn-sm btn-outline-primary float-left">Unstage All</button>
+                                        <button class="btn btn-sm btn-outline-primary float-left">Unstage</button>
+                                        <button class="btn btn-sm btn-outline-primary float-right">Stage</button>
+                                        <button class="btn btn-sm btn-outline-primary float-right">Stage All</button>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12" id="commit-dialog-staged-files">
+                                        <div>Staged Files</div>
+                                        <div class="container-fluid staged-files-list">
+                                            <div class="row list-item-selector" ng-repeat="stagedFile in vm.localStatus | filter: {tags: 'staged'}: true">
+                                                <div class="col-sm-12">
+                                                    <span class="file-status" ng-class="{'added': stagedFile.tags.indexOf('addedstaged') > -1, 'modified': stagedFile.tags.indexOf('modifiedstaged') > -1, 'deleted': stagedFile.tags.indexOf('deletedstaged') > -1}"></span>
+                                                    {{stagedFile.name}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="row">
+                                    <div class="col-sm-12" id="commit-dialog-diff">
+                                        <div>Diff</div>
+                                        <div ng-bind-html="vm.diffOnCommitModal.safeDiff" class="diff"></div>
+                                        
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12" id="commit-dialog-actions"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+{
+  "name": "webgit-client",
+  "authors": [
+    "pratyush <pratyushtamhankar@gmail.com>"
+  ],
+  "description": "Client side of the webgit project",
+  "main": "",
+  "keywords": [
+    "GIT",
+    "Webgit",
+    "Source",
+    "Control"
+  ],
+  "license": "MIT",
+  "homepage": "practicalpraty.com/tech/webgit",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "1.6.6",
+    "angular-route": "^1.6.6",
+    "angular-timeago": "^0.4.6"
+  }
+}
