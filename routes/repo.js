@@ -16,7 +16,6 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/:id', function(req, res) {
-    console.log('inside praty');
     let repo = req.params.id;
     res.render('repo', { title: repo });
 });
@@ -46,7 +45,13 @@ router.get('/:id/refreshlocal', function(req, res) {
 router.get('/:id/getfilediff', function(req, res) {
     let repo = req.params.id;
 
-    git.getFileDiff({repo, req, res})
+    git.getFileDiff({repo, req, res});
+});
+
+router.get('/:id/stagefile', function(req, res) {
+    let repo = req.params.id;
+    
+    git.stageFile({repo, req, res});
 });
 
 module.exports = router;

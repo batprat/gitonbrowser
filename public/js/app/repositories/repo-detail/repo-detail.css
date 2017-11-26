@@ -116,10 +116,22 @@
 }
 
 .staging-action-buttons-container {
-    margin: 20px 0;
+    padding: 15px 0;
+    border-top: 1px solid #CCCCCC;
+    border-bottom: 1px solid #CCCCCC;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 #commit-dialog-diff {
     background: #e2e1e0;
     padding-bottom: 15px;
+}
+
+.panel-name {
+    font-weight: bold;
+}
+
+.btn-commit-dialog-refresh {
+    margin-right: 10px;
 }

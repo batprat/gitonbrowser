@@ -1,6 +1,7 @@
 (function() {
     var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
+    var $commitModal = null;
     
     repoDetailModule
         .component('repoDetail', {
@@ -14,6 +15,7 @@
 
                 var vm = this;
 
+                $commitModal = $('#commit-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
@@ -22,16 +24,21 @@
                 vm.refreshLocalChanges = refreshLocalChanges;
                 vm.showCommitDialog = showCommitDialog;
                 vm.showDiffForFileOnCommitModal = showDiffForFileOnCommitModal;
+                vm.stageFile = stageFile;
 
                 repoDetailService.getCommits().then(function(commits) {
                     vm.commits = commits;
                 });
 
                 $scope.$on('windowfocus', function() {
+                    if(($commitModal.data('bs.modal') || {})._isShown) {
+                        // do not refresh when the modal window is open. use the refresh button instead.
+                        return;
+                    }
                     vm.refreshLocalChanges();
                 });
 
-                $('#commit-modal').on('hide.bs.modal', function (e) {
+                $commitModal.on('hide.bs.modal', function (e) {
                     vm.refreshLocalChanges();
                 });
 
@@ -39,24 +46,25 @@
 
                 return;
 
+                function stageFile() {
+                    vm.fileSelectedOnCommitModal
+                    repoDetailService.stageFile(vm.fileSelectedOnCommitModal.name, vm.fileSelectedOnCommitModal.tags).then(function(res) {
+                        if(res === '') {
+                            vm.refreshLocalChanges();
+                        }
+                    });
+                }
+
                 function showDiffForFileOnCommitModal(file) {
                     vm.diffOnCommitModal = {
                         file: file
                     };
 
-                    var isUntracked = false,
-                        isDeleted = false;
+                    vm.fileSelectedOnCommitModal = file;
 
-                    if(file.tags.indexOf('untracked') > -1) {
-                        isUntracked = true;
-                    }
-
-                    if(file.tags.indexOf('deletedunstaged') > -1) {
-                        isDeleted = true;
-                    }
-
-                    repoDetailService.getFileDiff(file.name, isUntracked, isDeleted).then(function(diff) {
-                        // praty
+                    console.log(file.tags);
+                    repoDetailService.getFileDiff(file.name, file.tags).then(function(diff) {
+                        
                         var commitDetails = parseDiff(diff);
                         vm.diffOnCommitModal.safeDiff = $sce.trustAsHtml(commitDetails[0].diff);
                     });
@@ -64,18 +72,32 @@
 
                 function showCommitDialog() {
                     // use vm.localStatus
-                    var $modal = $('#commit-modal');
-                    $modal.modal('show');
-                    $modal.on('shown.bs.modal', function() {
+                    $commitModal.modal('show');
+                    $commitModal.on('shown.bs.modal', function() {
                         // select the first commit to show the diff.
-                        showDiffForFileOnCommitModal($filter('filter')(vm.localStatus, {tags: 'unstaged'}, true)[0]);
+                        showDefaultFileOnCommitModalDialog();
                     });
+                }
+
+                function showDefaultFileOnCommitModalDialog() {
+                    var fileToSelect = $filter('filter')(vm.localStatus, {tags: 'unstaged'}, true);
+                    if(fileToSelect.length > 0) {
+                        fileToSelect = fileToSelect[0];
+                    }
+                    else {
+                        fileToSelect = $filter('filter')(vm.localStatus, {tags: 'staged'}, true)[0];
+                    }
+                    showDiffForFileOnCommitModal(fileToSelect);
                 }
 
                 function refreshLocalChanges() {
                     console.log('checking for local updates...');
                     return repoDetailService.refreshLocalChanges().then(function(data) {
                         vm.localStatus = parseLocalStatus(data);
+
+                        if(($commitModal.data('bs.modal') || {})._isShown) {
+                            showDefaultFileOnCommitModalDialog();
+                        }
                     });
                 }
 
@@ -120,8 +142,15 @@
         }); 
         
     repoDetailModule.service('repoDetailService', ['$http', function($http) {
-        this.getFileDiff = function(file, isUntracked, isDeleted) {
-            return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&isUntracked=' + isUntracked + '&isDeleted=' + isDeleted).then(function(res) {
+        this.stageFile = function(file, tags) {
+            console.log(tags);
+            return $http.get('/repo/' + repoName + '/stagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
+                return res.data;
+            });
+        };
+
+        this.getFileDiff = function(file, tags) {
+            return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
                 return res.data;
             });
         };
