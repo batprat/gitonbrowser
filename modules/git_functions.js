@@ -11,8 +11,14 @@ let git = {
     getFileDiff: getFileDiff,
     stageFile: stageFile,
     unstageFile: unstageFile,
-    stageAllFiles: stageAllFiles
+    stageAllFiles: stageAllFiles,
+    unstageAllFiles: unstageAllFiles
 };
+
+function unstageAllFiles({req, res, repo}) {
+  const child = spawnGitProcess(repo, ['reset', '--quiet']);
+  redirectIO(child, req, res);
+}
 
 function stageAllFiles({req, res, repo}) {
   const child = spawnGitProcess(repo, ['add', '-A']);

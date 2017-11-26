@@ -27,6 +27,7 @@
                 vm.stageFile = stageFile;
                 vm.unstageFile = unstageFile;
                 vm.stageAllFiles = stageAllFiles;
+                vm.unstageAllFiles = unstageAllFiles;
 
                 repoDetailService.getCommits().then(function(commits) {
                     vm.commits = commits;
@@ -47,6 +48,14 @@
                 vm.refreshLocalChanges();
 
                 return;
+
+                function unstageAllFiles() {
+                    repoDetailService.unstageAllFiles().then(function(res) {
+                        if(res === '') {
+                            vm.refreshLocalChanges();
+                        }
+                    });
+                }
 
                 function stageAllFiles() {
                     repoDetailService.stageAllFiles().then(function(res) {
@@ -168,7 +177,15 @@
 
         this.stageAllFiles = stageAllFiles;
 
+        this.unstageAllFiles = unstageAllFiles;
+
         return;
+
+        function unstageAllFiles() {
+            return $http.get('/repo/' + repoName + '/unstageallfiles').then(function(res) {
+                return res.data;
+            });
+        }
 
         function stageAllFiles() {
             return $http.get('/repo/' + repoName + '/stageallfiles').then(function(res) {
