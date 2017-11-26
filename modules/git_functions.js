@@ -10,8 +10,14 @@ let git = {
     getStatus: getStatus,
     getFileDiff: getFileDiff,
     stageFile: stageFile,
-    unstageFile: unstageFile
+    unstageFile: unstageFile,
+    stageAllFiles: stageAllFiles
 };
+
+function stageAllFiles({req, res, repo}) {
+  const child = spawnGitProcess(repo, ['add', '-A']);
+  redirectIO(child, req, res);
+}
 
 function unstageFile({req, res, repo}) {
   let gitOptions = ['reset', '--quiet'];
