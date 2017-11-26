@@ -9,8 +9,30 @@ let git = {
     getCommit: getCommit,
     getStatus: getStatus,
     getFileDiff: getFileDiff,
-    stageFile: stageFile
+    stageFile: stageFile,
+    unstageFile: unstageFile
 };
+
+function unstageFile({req, res, repo}) {
+  let gitOptions = ['reset', '--quiet'];
+  let tags = req.query.tags.split(',');
+  let fileName = req.query.filename;
+
+  if(tags.indexOf('deletedstaged') > -1) {
+    gitOptions.push('--');
+  }
+
+  if(fileName.indexOf('"') > -1) {
+    fileName = fileName.replace(/\"/g, '');
+  }
+
+  gitOptions.push(fileName);
+
+  console.log(gitOptions);
+
+  const child = spawnGitProcess(repo, gitOptions);
+  redirectIO(child, req, res);
+}
 
 function stageFile({req, res, repo}) {
   let gitOptions = ['add'];

@@ -25,6 +25,7 @@
                 vm.showCommitDialog = showCommitDialog;
                 vm.showDiffForFileOnCommitModal = showDiffForFileOnCommitModal;
                 vm.stageFile = stageFile;
+                vm.unstageFile = unstageFile;
 
                 repoDetailService.getCommits().then(function(commits) {
                     vm.commits = commits;
@@ -46,8 +47,15 @@
 
                 return;
 
+                function unstageFile() {
+                    repoDetailService.unstageFile(vm.fileSelectedOnCommitModal.name, vm.fileSelectedOnCommitModal.tags).then(function(res) {
+                        if(res === '') {
+                            vm.refreshLocalChanges();
+                        }
+                    });
+                }
+
                 function stageFile() {
-                    vm.fileSelectedOnCommitModal
                     repoDetailService.stageFile(vm.fileSelectedOnCommitModal.name, vm.fileSelectedOnCommitModal.tags).then(function(res) {
                         if(res === '') {
                             vm.refreshLocalChanges();
@@ -142,35 +150,55 @@
         }); 
         
     repoDetailModule.service('repoDetailService', ['$http', function($http) {
-        this.stageFile = function(file, tags) {
+        this.unstageFile = unstageFile;
+
+        this.stageFile = stageFile;
+
+        this.getFileDiff = getFileDiff;
+
+        this.refreshLocalChanges = refreshLocalChanges;
+        this.getCommits = getCommits;
+
+        this.getCommit = getCommit;
+
+        return;
+
+        function getCommit(hash) {
+            return $http.get('/repo/' + repoName + '/getcommit/' + hash).then(function(res) {
+                return res.data;
+            });
+        }
+
+        function getCommits() {
+            return $http.get('/repo/' + repoName + '/getrepolog').then(function(res) {
+                return res.data;
+            });
+        }
+
+        function refreshLocalChanges() {
+            return $http.get('/repo/' + repoName + '/refreshlocal').then(function(res) {
+                return res.data;
+            });
+        }
+
+        function getFileDiff(file, tags) {
+            return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
+                return res.data;
+            });
+        }
+
+        function stageFile(file, tags) {
             console.log(tags);
             return $http.get('/repo/' + repoName + '/stagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
                 return res.data;
             });
-        };
+        }
 
-        this.getFileDiff = function(file, tags) {
-            return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
+        function unstageFile(file, tags) {
+            return $http.get('/repo/' + repoName + '/unstagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
                 return res.data;
             });
-        };
-
-        this.refreshLocalChanges = function() {
-            return $http.get('/repo/' + repoName + '/refreshlocal').then(function(res) {
-                return res.data;
-            });
-        };
-        this.getCommits = function() {
-            return $http.get('/repo/' + repoName + '/getrepolog').then(function(res) {
-                return res.data;
-            });
-        };
-
-        this.getCommit = function(hash) {
-            return $http.get('/repo/' + repoName + '/getcommit/' + hash).then(function(res) {
-                return res.data;
-            });
-        };
+        }
     }]);
 
     function parseLocalStatus(data) {
