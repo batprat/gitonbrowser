@@ -8,19 +8,49 @@ let git = {
     logRepo: logRepo,
     getCommit: getCommit,
     getStatus: getStatus,
-    getFileDiff: getFileDiff
+    getFileDiff: getFileDiff,
+    stageFile: stageFile
 };
+
+function stageFile({req, res, repo}) {
+  let gitOptions = ['add'];
+  let tags = req.query.tags.split(',');
+  let fileName = req.query.filename;
+
+  if(tags.indexOf('deletedunstaged') > -1) {
+    gitOptions.push('-u');
+  }
+
+  if(fileName.indexOf('"') > -1) {
+    fileName = fileName.replace(/\"/g, '');
+  }
+
+  gitOptions.push(fileName);
+
+  console.log(gitOptions);
+
+  const child = spawnGitProcess(repo, gitOptions);
+  redirectIO(child, req, res);
+}
 
 function getFileDiff(options) {
     let req = options.req;
     let res = options.res;
     let repo = options.repo;
 
-    var fileName = req.query.filename;
-    var isUntracked = req.query.isUntracked === 'true';
-    var isDeleted = req.query.isDeleted === 'true';
+    let fileName = req.query.filename;
+    let tags = req.query.tags.split(',');
+
+    let isUntracked = tags.indexOf('untracked') > -1;
+    let isDeleted = tags.indexOf('deletedunstaged') > -1;
+
+    let isStaged = tags.indexOf('staged') > -1;
 
     var gitOptions = ['diff'];
+
+    if(isStaged) {
+      gitOptions.push('--cached');
+    }
 
     if(isUntracked) {
       gitOptions.push('--no-index', '/dev/null');
