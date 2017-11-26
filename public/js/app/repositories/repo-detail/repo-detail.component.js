@@ -26,6 +26,7 @@
                 vm.showDiffForFileOnCommitModal = showDiffForFileOnCommitModal;
                 vm.stageFile = stageFile;
                 vm.unstageFile = unstageFile;
+                vm.stageAllFiles = stageAllFiles;
 
                 repoDetailService.getCommits().then(function(commits) {
                     vm.commits = commits;
@@ -46,6 +47,14 @@
                 vm.refreshLocalChanges();
 
                 return;
+
+                function stageAllFiles() {
+                    repoDetailService.stageAllFiles().then(function(res) {
+                        if(res === '') {
+                            vm.refreshLocalChanges();
+                        }
+                    });
+                }
 
                 function unstageFile() {
                     repoDetailService.unstageFile(vm.fileSelectedOnCommitModal.name, vm.fileSelectedOnCommitModal.tags).then(function(res) {
@@ -88,13 +97,7 @@
                 }
 
                 function showDefaultFileOnCommitModalDialog() {
-                    var fileToSelect = $filter('filter')(vm.localStatus, {tags: 'unstaged'}, true);
-                    if(fileToSelect.length > 0) {
-                        fileToSelect = fileToSelect[0];
-                    }
-                    else {
-                        fileToSelect = $filter('filter')(vm.localStatus, {tags: 'staged'}, true)[0];
-                    }
+                    var fileToSelect = vm.unstagedFiles.length > 0 ? vm.unstagedFiles[0] : vm.stagedFiles[0];
                     showDiffForFileOnCommitModal(fileToSelect);
                 }
 
@@ -102,6 +105,8 @@
                     console.log('checking for local updates...');
                     return repoDetailService.refreshLocalChanges().then(function(data) {
                         vm.localStatus = parseLocalStatus(data);
+                        vm.stagedFiles = $filter('filter')(vm.localStatus, {tags: 'staged'}, true);
+                        vm.unstagedFiles = $filter('filter')(vm.localStatus, {tags: 'unstaged'}, true);
 
                         if(($commitModal.data('bs.modal') || {})._isShown) {
                             showDefaultFileOnCommitModalDialog();
@@ -161,7 +166,15 @@
 
         this.getCommit = getCommit;
 
+        this.stageAllFiles = stageAllFiles;
+
         return;
+
+        function stageAllFiles() {
+            return $http.get('/repo/' + repoName + '/stageallfiles').then(function(res) {
+                return res.data;
+            });
+        }
 
         function getCommit(hash) {
             return $http.get('/repo/' + repoName + '/getcommit/' + hash).then(function(res) {

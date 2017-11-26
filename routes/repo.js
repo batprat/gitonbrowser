@@ -60,4 +60,10 @@ router.get('/:id/unstagefile', function(req, res) {
     git.unstageFile({repo, req, res});
 });
 
+router.get('/:id/stageallfiles', function(req, res) {
+    let repo = req.params.id;
+    
+    git.stageAllFiles({repo, req, res});
+});
+
 module.exports = router;
