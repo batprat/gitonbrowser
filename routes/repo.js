@@ -72,4 +72,10 @@ router.get('/:id/unstageallfiles', function(req, res) {
     git.unstageAllFiles({repo, req, res});
 });
 
+router.get('/:id/diffbetweencommits', function(req, res) {
+    let repo = req.params.id;
+
+    git.getDiffBetweenCommits({repo, req, res});
+});
+
 module.exports = router;

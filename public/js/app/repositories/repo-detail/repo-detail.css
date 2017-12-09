@@ -5,6 +5,7 @@
 
 .working-directory-details-container {
     height: 40px;
+    background: #FFF;
 }
 
 .commit-hash {
@@ -17,7 +18,7 @@
 }
 
 .list-item-selector {
-    transition: all 0.3s ease 0s;
+    transition: all 0.2s ease 0s;
     cursor: pointer;
     padding: 5px 0;
 }
@@ -31,13 +32,17 @@
 }
 
 .commit-container {
-    height: calc(65% - 40px);
     overflow-y: auto;
+    height: calc(100% - 40px - 250px);
 }
 
 .details-container {
-    height: 35%;
+    height: 250px;
     overflow: auto;
+}
+
+.details-tabs {
+    background: #FFF;
 }
 
 .nav-link {
@@ -48,8 +53,8 @@
     cursor: default;
 }
 
-.tab-content {
-    height: calc(100% - 42px);
+.tab-content-details {
+    height: calc(100% - 36px);
     background: #FFF;
 }
 
@@ -134,4 +139,12 @@
 
 .btn-commit-dialog-refresh {
     margin-right: 10px;
+}
+
+.diff-files-list {
+    overflow: auto;
+}
+
+.parent-hash {
+    cursor: pointer;
 }
