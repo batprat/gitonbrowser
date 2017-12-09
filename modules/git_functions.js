@@ -12,8 +12,14 @@ let git = {
     stageFile: stageFile,
     unstageFile: unstageFile,
     stageAllFiles: stageAllFiles,
-    unstageAllFiles: unstageAllFiles
+    unstageAllFiles: unstageAllFiles,
+    getDiffBetweenCommits: getDiffBetweenCommits 
 };
+
+function getDiffBetweenCommits({req, res, repo}) {
+  const child = spawnGitProcess(repo, ['diff', req.query.commit1, req.query.commit2]);
+  redirectIO(child, req, res);
+}
 
 function unstageAllFiles({req, res, repo}) {
   const child = spawnGitProcess(repo, ['reset', '--quiet']);
@@ -113,7 +119,7 @@ function getStatus(options) {
     let res = options.res;
     let repo = options.repo;
 
-    const child = spawnGitProcess(repo, ['status', '--porcelain']);
+    const child = spawnGitProcess(repo, ['status', '-uall', '--porcelain']);
     redirectIO(child, req, res);
 }
 
@@ -135,6 +141,31 @@ function spawnGitProcess(repo, processOptions) {
     });
 }
 
+function logRepoNew(repo, req, res) {
+  
+    //string formatString =
+    ///* <COMMIT>       */ CommitBegin + "%n" +
+    ///* Hash           */ "%H%n" +
+    ///* Parents        */ "%P%n";
+    // if (!ShaOnly)
+    // {
+    //     formatString +=
+    //         /* Tree                    */ "%T%n" +
+    //         /* Author Name             */ "%aN%n" +
+    //         /* Author Email            */ "%aE%n" +
+    //         /* Author Date             */ "%at%n" +
+    //         /* Committer Name          */ "%cN%n" +
+    //         /* Committer Email         */ "%cE%n" +
+    //         /* Committer Date          */ "%ct%n" +
+    //         /* Commit message encoding */ "%e%x00" + //there is a bug: git does not recode commit message when format is given
+    //         /* Commit Subject          */ "%s%x00" +
+    //         /* Commit Body             */ "%B%x00";
+    // }
+  
+
+    // log -z --pretty=format:\"{formatString}\" --branches --date-order --all --
+}
+
 function logRepo(repo, req, res) {
 /*
 C:\E\projects\webgit-server\git-checkouts\d3>git log --all --graph --decorate --pretty=oneline --abbrev-commit
@@ -146,6 +177,7 @@ C:\E\projects\webgit-server\git-checkouts\d3>git log --all --graph --decorate --
     <author_name>%an</author_name>
     <author_email>%ae</author_email>
     <author_date>%%aD</author_date>
+    <parent_hashes>%P</parent_hashes>
 </commit>'
 
 git log -n 50 --format=format:'<commit><hash>%H</hash><author_name>%an</author_name><author_email>%ae</author_email><author_date>%%aD</author_date></commit>'
@@ -154,9 +186,9 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
 */
 
     let randomSeperator = utils.getRandomSeparator();
-    let logFormat = `--format=format:%H${randomSeperator}%an${randomSeperator}%ae${randomSeperator}%aD${randomSeperator}%s`;
+    let logFormat = `--format=format:%H${randomSeperator}%an${randomSeperator}%ae${randomSeperator}%aD${randomSeperator}%s${randomSeperator}%P`;
 
-    let logArgs = ['log', '-n 50', logFormat];
+    let logArgs = ['log', '-n 100', logFormat, '--branches'];
 
     const child = spawn('git', logArgs, {
         cwd: utils.getCheckoutsDir() + '/' + repo,
@@ -263,7 +295,7 @@ function redirectIOForLog(child, req, res, splitter) {
         let aCommit = null;
         logCommits.forEach(function(commit, idx) {
             aCommit = commit.split(splitter);
-            if(aCommit.length != 5) {
+            if(aCommit.length != 6) {
                 return;
             }
             commitData = {
@@ -271,7 +303,8 @@ function redirectIOForLog(child, req, res, splitter) {
                 name: aCommit[1],
                 email: aCommit[2],
                 date: aCommit[3],
-                subject: aCommit[4]
+                subject: aCommit[4],
+                parentHashes: aCommit[5]
             };
             log.push(commitData);
         });

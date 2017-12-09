@@ -29,7 +29,10 @@
                 vm.stageAllFiles = stageAllFiles;
                 vm.unstageAllFiles = unstageAllFiles;
 
+                vm.commitMap = {};
+
                 repoDetailService.getCommits().then(function(commits) {
+                    parseCommits(commits);
                     vm.commits = commits;
                 });
 
@@ -48,6 +51,49 @@
                 vm.refreshLocalChanges();
 
                 return;
+
+                function parseCommits(commits) {
+                    commits = commits.map(function(c) {
+                        c.parentHashes = c.parentHashes.split(' ');
+                        c.branches = [];
+                        c.fromNow = moment(c.date).fromNow();
+
+                        vm.commitMap[c.hash] = c;
+                        return c;
+                    });
+
+
+
+                    // TODO: Add code here to draw branches.
+                    return;
+
+                    var branches = {};
+                    var commitBranchMap = {};
+                    var commitMap = {};
+
+                    var branchNum = 0;
+
+                    commits.forEach(function(c) { commitMap[c.hash] = c; });
+
+                    commits.forEach(function(commit, idx) {
+                        if(!commit.branches[0]) {
+                            commit.branches.push(++branchNum);
+                        }
+                        commit.parentHashes.forEach(function(parentHash, idx) {
+                            if(idx == 1) {
+                                // for 2nd parent hash, the current commit is also present on the (new, so + 1) branch of the new commit.
+                                commit.branches.push(branchNum + 1);
+                                commit.branches = commit.branches.sort();
+                            }
+                            var parentCommit = commitMap[parentHash];
+                            if(parentCommit) {
+                                // first parent commit will have branch same as that of current commit.
+                                // second parent commit will have new branch.
+                                parentCommit.branches.push(idx == 0 ? commit.branches[0] : ++branchNum);
+                            }
+                        });
+                    });
+                }
 
                 function unstageAllFiles() {
                     repoDetailService.unstageAllFiles().then(function(res) {
@@ -129,33 +175,67 @@
                 }
 
                 function selectCommit(commit) {
+                    if(typeof commit === 'string') {
+                        commit = vm.commitMap[commit];
+                    }
                     var hash = commit.hash;
                     vm.selectedCommit = hash;
 
                     repoDetailService.getCommit(hash).then(function(data) {
                         var d = data.split('\n');
 
-                        vm.commitDetails = {
-                            hash: d[0].substring('commit '.length),
-                            author: d[1].substring('Author: '.length),
-                            date: new Date(d[2].substring('Date:   '.length))
-                        };
+                        var isMergeCommit = false;
 
-                        var i = 3,
+                        if(d[1].indexOf('Merge') == 0) {
+                            isMergeCommit = true;
+                        }
+
+                        if(!isMergeCommit) {
+                            vm.commitDetails = {
+                                hash: d[0].substring('commit '.length),
+                                author: d[1].substring('Author: '.length),
+                                date: new Date(d[2].substring('Date:   '.length))
+                            };
+                        }
+                        else {
+                            vm.commitDetails = {
+                                hash: d[0].substring('commit '.length),
+                                author: d[2].substring('Author: '.length),
+                                date: new Date(d[3].substring('Date:   '.length)),
+                                merges: d[1].substring('Merge: '.length).split(' ')
+                            }
+                        }
+
+                        vm.commitDetails.parentHashes = commit.parentHashes;
+
+                        var i = isMergeCommit ? 4 : 3,
                             str = d[i],
                             message = '';
-                        while(str.indexOf('diff') !== 0) {
+                        while(str.indexOf('diff') !== 0 && d[i + 1] != undefined) {
                             message += str + '\n';
                             str = d[++i];
                         }
 
                         vm.commitDetails.message = message;
-                        var diff = d.slice(i);
-                        vm.commitDetails.diff = diff.join('\n');
 
-                        vm.commitDetails.diffDetails = parseDiff(vm.commitDetails.diff);
-                        // pre select the first file of the commit.
-                        vm.selectFile(vm.commitDetails.diffDetails[0]);
+                        if(!isMergeCommit) {
+                            var diff = d.slice(i);
+                            vm.commitDetails.diff = diff.join('\n');
+    
+                            vm.commitDetails.diffDetails = parseDiff(vm.commitDetails.diff);
+                            // pre select the first file of the commit.
+                            vm.selectFile(vm.commitDetails.diffDetails[0]);
+                        }
+
+                        if(isMergeCommit) {
+                            repoDetailService.getDiff(vm.commitDetails.merges).then(function(diff) {
+                                vm.commitDetails.diff = diff;
+
+                                vm.commitDetails.diffDetails = parseDiff(vm.commitDetails.diff);
+                                // pre select the first file of the commit.
+                                vm.selectFile(vm.commitDetails.diffDetails[0]);
+                            });
+                        }
                     });
                 }
               }
@@ -179,7 +259,15 @@
 
         this.unstageAllFiles = unstageAllFiles;
 
+        this.getDiff = getDiffBetweenCommits;
+
         return;
+
+        function getDiffBetweenCommits(commits) {
+            return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function(res) {
+                return res.data;
+            });
+        }
 
         function unstageAllFiles() {
             return $http.get('/repo/' + repoName + '/unstageallfiles').then(function(res) {
@@ -288,7 +376,7 @@
             if(line.indexOf('diff') === 0) {
                 currDiff = {
                     fileName: line.substring(line.indexOf('b/') + 2),
-                    commitType: diff[i + 1].indexOf('new') === 0 ? 'new' : (diff[i + 1].indexOf('similarity') === 0 ? 'rename' : 'edit')
+                    commitType: diff[i + 1].indexOf('new') === 0 ? 'new' : (diff[i + 1].indexOf('similarity') === 0 ? 'rename' : ( diff[i + 1].indexOf('deleted') === 0 ? 'deleted' : 'edit'))
                 };
 
                 currDiff.diff = line;
