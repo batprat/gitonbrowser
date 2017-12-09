@@ -166,6 +166,18 @@ function logRepoNew(repo, req, res) {
     // log -z --pretty=format:\"{formatString}\" --branches --date-order --all --
 }
 
+function logRepo3({repo, req, res}) {
+  let logFormat = `--format=format:%H%n%an%n%ae%n%aD%n%s%n%P`;
+  let logArgs = ['log', '-n 100', logFormat, '--branches'];
+
+  const child = spawn('git', logArgs, {
+      cwd: utils.getCheckoutsDir() + '/' + repo,
+      stdio: [0, 'pipe', 'pipe']
+  });
+
+  redirectIO(child, req, res);
+}
+
 function logRepo(repo, req, res) {
 /*
 C:\E\projects\webgit-server\git-checkouts\d3>git log --all --graph --decorate --pretty=oneline --abbrev-commit
@@ -173,11 +185,13 @@ C:\E\projects\webgit-server\git-checkouts\d3>git log --all --graph --decorate --
 
 /* git log -50 --format:'
 <commit>
+    <ref_names>%d</ref_names>
     <hash>%H</hash>
     <author_name>%an</author_name>
     <author_email>%ae</author_email>
     <author_date>%%aD</author_date>
     <parent_hashes>%P</parent_hashes>
+    <subject>%s</subject>    
 </commit>'
 
 git log -n 50 --format=format:'<commit><hash>%H</hash><author_name>%an</author_name><author_email>%ae</author_email><author_date>%%aD</author_date></commit>'
@@ -186,7 +200,9 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
 */
 
     let randomSeperator = utils.getRandomSeparator();
-    let logFormat = `--format=format:%H${randomSeperator}%an${randomSeperator}%ae${randomSeperator}%aD${randomSeperator}%s${randomSeperator}%P`;
+    // let logFormat = `--format=format:%H${randomSeperator}%an${randomSeperator}%ae${randomSeperator}%aD${randomSeperator}%s${randomSeperator}%P`;
+
+    let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s${randomSeperator}`;
 
     let logArgs = ['log', '-n 100', logFormat, '--branches'];
 
@@ -263,9 +279,12 @@ let logCommits = [];
 function redirectIOForLog(child, req, res, splitter) {
     child.stdout.on('data', function(data) {
         console.log( `stdout===========================: ${data}` );
-        let commits = data.toString().split('\n');
+        // let commits = data.toString().split('\n');
 
-        Array.prototype.push.apply(logCommits, commits);
+        let commits = data.toString();
+
+        // Array.prototype.push.apply(logCommits, commits);
+        logCommits.push(commits);
         console.log( `stdout: ${data}` );
     });
   
@@ -293,19 +312,41 @@ function redirectIOForLog(child, req, res, splitter) {
         let commitData = {};
         let log = [];
         let aCommit = null;
+        logCommits = logCommits.join('');
+
+        logCommits = logCommits.split(splitter);
+
         logCommits.forEach(function(commit, idx) {
-            aCommit = commit.split(splitter);
-            if(aCommit.length != 6) {
-                return;
+            // aCommit = commit.split(splitter);
+            aCommit = commit.trim().split('\n');
+
+            if(aCommit.length < 6) {
+              return;
+            }
+            
+            var i = aCommit[0].indexOf('(') == 0 ? 1 : 0;
+
+            var refs = '';
+            var hasRefs = false;
+            if(i == 1) {
+              hasRefs = true;
             }
             commitData = {
-                hash: aCommit[0],
-                name: aCommit[1],
-                email: aCommit[2],
-                date: aCommit[3],
-                subject: aCommit[4],
-                parentHashes: aCommit[5]
+                hash: aCommit[i++],
+                name: aCommit[i++],
+                email: aCommit[i++],
+                date: aCommit[i++],
+                parentHashes: aCommit[i++]
             };
+
+            if(hasRefs) {
+              var match = aCommit[0].match(/\(([A-Za-z0-9\/]+)\s\-\>\s([A-Za-z0-9\/]+)\)/);
+              if(match && match[1] === 'HEAD') {
+                commitData.localHead = 'master';
+              }
+            }
+
+            commitData.subject = aCommit.slice(i).join('\n');
             log.push(commitData);
         });
 

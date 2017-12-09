@@ -6,7 +6,7 @@
     </div>
     <div class="commit-container container-fluid">
         <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}">
-            <div class="col-sm-7">{{commit.subject}}</div>
+            <div class="col-sm-7"><span ng-if="commit.localHead">[local {{commit.localHead}}]</span>{{commit.subject}}</div>
             <div class="col-sm-2">{{commit.name}}</div>
             <div class="col-sm-3">{{commit.fromNow}}</div>
         </div>
