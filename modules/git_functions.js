@@ -1,7 +1,7 @@
 const utils = require('./utils');
 const { spawn } = require('child_process');
 
-let showAllLogs = true;
+let showAllLogs = false;
 
 let git = {
     clone: clone,
@@ -13,8 +13,14 @@ let git = {
     unstageFile: unstageFile,
     stageAllFiles: stageAllFiles,
     unstageAllFiles: unstageAllFiles,
-    getDiffBetweenCommits: getDiffBetweenCommits 
+    getDiffBetweenCommits: getDiffBetweenCommits,
+    commit: commit
 };
+
+function commit({req, res, repo}) {
+  const child = spawnGitProcess(repo, ['commit', '-m', req.query.message]);
+  redirectIO(child, req, res);
+}
 
 function getDiffBetweenCommits({req, res, repo}) {
   const child = spawnGitProcess(repo, ['diff', req.query.commit1, req.query.commit2]);
@@ -202,7 +208,7 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
     let randomSeperator = utils.getRandomSeparator();
     // let logFormat = `--format=format:%H${randomSeperator}%an${randomSeperator}%ae${randomSeperator}%aD${randomSeperator}%s${randomSeperator}%P`;
 
-    let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s${randomSeperator}`;
+    let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s%n${randomSeperator}`;
 
     let logArgs = ['log', '-n 100', logFormat, '--branches'];
 
@@ -278,6 +284,7 @@ let logCommits = [];
 
 function redirectIOForLog(child, req, res, splitter) {
     child.stdout.on('data', function(data) {
+        if(showAllLogs)
         console.log( `stdout===========================: ${data}` );
         // let commits = data.toString().split('\n');
 
@@ -285,29 +292,37 @@ function redirectIOForLog(child, req, res, splitter) {
 
         // Array.prototype.push.apply(logCommits, commits);
         logCommits.push(commits);
+        if(showAllLogs)
         console.log( `stdout: ${data}` );
     });
   
       child.stderr.on('data', function(data) {
         //res.write(data);
+        if(showAllLogs)
         console.log( `stderr: ${data}` );
       });
     
       child.on('error', function(err) {
         res.write(err);
+        if(showAllLogs) {
         console.log('error event output');
         console.log(err);
+        }
       });
     
       child.on('exit', function(code, signal) {
+        if(showAllLogs) {
         console.log('code = ' + code);
         console.log('signal = ' + signal);
+        }
       });
     
       child.on('close', function(code, signal) {
+        if(showAllLogs) {
         console.log('event -- close');
         console.log('code = ' + code);
         console.log('signal = ' + signal);
+        }
 
         let commitData = {};
         let log = [];
@@ -340,9 +355,38 @@ function redirectIOForLog(child, req, res, splitter) {
             };
 
             if(hasRefs) {
-              var match = aCommit[0].match(/\(([A-Za-z0-9\/]+)\s\-\>\s([A-Za-z0-9\/]+)\)/);
-              if(match && match[1] === 'HEAD') {
-                commitData.localHead = 'master';
+              let match = aCommit[0].match(/^\((.+)\)$/);
+              // var match = aCommit[0].match(/\(([A-Za-z0-9\/]+)\s\-\>\s([A-Za-z0-9\/]+)\)/);
+              let refs = match[1];    // brackets removed.
+              
+              refs = refs.split(', ');
+              let localHead = refs.filter(function(s) {
+                return s.indexOf('HEAD -> ') === 0;
+              });
+              console.log(refs);
+              if(localHead && localHead.length > 0) {
+                commitData.localHead = localHead[0].substring('HEAD -> '.length);
+                refs.splice(refs.indexOf(localHead[0]), 1);
+              }
+              console.log(refs);
+              
+
+              
+
+              let localBranches = refs.filter(function(s) {
+                return s.indexOf('/') === -1;
+              });
+
+              if(localBranches && localBranches.length > 0) {
+                commitData.localBranches = localBranches;
+              }
+
+              let remoteBranches = refs.filter(function(s) {
+                return s.indexOf('/') > -1 && s !== 'origin/HEAD';
+              });
+
+              if(remoteBranches && remoteBranches.length > 0) {
+                commitData.remoteBranches = remoteBranches;
               }
             }
 
