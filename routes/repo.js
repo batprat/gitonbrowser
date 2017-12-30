@@ -78,4 +78,10 @@ router.get('/:id/diffbetweencommits', function(req, res) {
     git.getDiffBetweenCommits({repo, req, res});
 });
 
+router.get('/:id/commit', function(req, res) {
+    let repo = req.params.id;
+
+    git.commit({repo, req, res});
+});
+
 module.exports = router;

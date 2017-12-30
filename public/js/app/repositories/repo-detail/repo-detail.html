@@ -6,7 +6,16 @@
     </div>
     <div class="commit-container container-fluid">
         <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}">
-            <div class="col-sm-7"><span ng-if="commit.localHead">[local {{commit.localHead}}]</span>{{commit.subject}}</div>
+            <div class="col-sm-7">
+                <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
+                <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
+                    {{localBranch}}
+                </span>
+                <span class="remote-branch tags-refs" ng-if="commit.remoteBranches" ng-repeat="remoteBranch in commit.remoteBranches">
+                    {{remoteBranch}}
+                </span>
+                {{commit.subject}}
+            </div>
             <div class="col-sm-2">{{commit.name}}</div>
             <div class="col-sm-3">{{commit.fromNow}}</div>
         </div>
@@ -112,7 +121,15 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-sm-12" id="commit-dialog-actions"></div>
+                                    <div class="col-sm-3" id="commit-dialog-actions">
+                                        <button class="btn btn-sm btn-outline-info" ng-click="vm.commit()">Commit</button>
+                                        <button class="btn btn-sm btn-outline-success">Commit &amp; Push</button>
+                                        <button class="btn btn-sm btn-outline-danger">Reset all changes</button>
+                                        <button class="btn btn-sm btn-outline-warning">Reset unstaged changes</button>
+                                    </div>
+                                    <div class="col-sm-9" id="commit-dialog-message">
+                                        <textarea class="form-control" palceholder="Enter commit message here." ng-model="vm.commitMessage"></textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>

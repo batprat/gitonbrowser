@@ -28,6 +28,8 @@
                 vm.unstageFile = unstageFile;
                 vm.stageAllFiles = stageAllFiles;
                 vm.unstageAllFiles = unstageAllFiles;
+                vm.commit = commit;
+                vm.commitMessage = '';
 
                 vm.commitMap = {};
 
@@ -51,6 +53,13 @@
                 vm.refreshLocalChanges();
 
                 return;
+
+                function commit() {
+                    repoDetailService.commit(vm.commitMessage).then(function(res) {
+                        vm.commitMessage = '';      // reset the commit message.
+                        
+                    });
+                }
 
                 function parseCommits(commits) {
                     commits = commits.map(function(c) {
@@ -261,7 +270,15 @@
 
         this.getDiff = getDiffBetweenCommits;
 
+        this.commit = commit;
+
         return;
+
+        function commit(message) {
+            return $http.get('/repo' + repoName + '/commit?message=' + window.encodeURIComponent(message)).then(function(res) {
+                return res.data;
+            });
+        }
 
         function getDiffBetweenCommits(commits) {
             return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function(res) {
