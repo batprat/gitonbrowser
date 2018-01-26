@@ -1,7 +1,7 @@
 const utils = require('./utils');
 const { spawn } = require('child_process');
 
-let showAllLogs = false;
+let showAllLogs = true;
 
 let git = {
     clone: clone,
@@ -241,43 +241,55 @@ function clone(options) {
 }
 
 function redirectIO(child, req, res) {
+    var errors = [];
+    var output = [];
     child.stdout.on('data', function(data) {
-        res.write(data.toString());
+        //res.write(data.toString());
+        output.push(data.toString());
         if(showAllLogs) {
           console.log( `stdout: ${data}` );
         }
     });
   
-      child.stderr.on('data', function(data) {
-        res.write(data.toString());
-        if(showAllLogs) {
-          console.log( `stderr: ${data}` );
-        }
-      });
-    
-      child.on('error', function(err) {
-        res.write(err.toString());
-        if(showAllLogs) {
-          console.log('error event output');
-          console.log(err);
-        }
-      });
-    
+    child.stderr.on('data', function(data) {
+      //res.write(data.toString());
+      errors.push(data.toString());
       if(showAllLogs) {
-        child.on('exit', function(code, signal) {
-          console.log('code = ' + code);
-          console.log('signal = ' + signal);
-        });
+        console.log( `stderr: ${data}` );
       }
-    
-      child.on('close', function(code, signal) {
-        if(showAllLogs) {
-          console.log('event -- close');
-          console.log('code = ' + code);
-          console.log('signal = ' + signal);
-        }
-        res.end();
+    });
+  
+    child.on('error', function(err) {
+      //res.write(err.toString());
+      errors.push(err.toString());
+      if(showAllLogs) {
+        console.log('error event output');
+        console.log(err);
+      }
+    });
+  
+    if(showAllLogs) {
+      child.on('exit', function(code, signal) {
+        console.log('code = ' + code);
+        console.log('signal = ' + signal);
       });
+    }
+  
+    child.on('close', function(code, signal) {
+      if(showAllLogs) {
+        console.log('event -- close');
+        console.log('code = ' + code);
+        console.log('signal = ' + signal);
+      }
+
+      res.setHeader('Content-Type', 'application/json');
+      res.write(JSON.stringify({
+        errorCode: errors.length > 0 ? 1 : 0,
+        errors,
+        output
+      }));
+      res.end();
+    });
 }
 
 let logCommits = [];

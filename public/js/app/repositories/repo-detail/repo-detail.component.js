@@ -33,11 +33,6 @@
 
                 vm.commitMap = {};
 
-                repoDetailService.getCommits().then(function(commits) {
-                    parseCommits(commits);
-                    vm.commits = commits;
-                });
-
                 $scope.$on('windowfocus', function() {
                     if(($commitModal.data('bs.modal') || {})._isShown) {
                         // do not refresh when the modal window is open. use the refresh button instead.
@@ -47,17 +42,33 @@
                 });
 
                 $commitModal.on('hide.bs.modal', function (e) {
-                    vm.refreshLocalChanges();
+                    
                 });
 
+                refreshLog();
                 vm.refreshLocalChanges();
 
                 return;
 
+                function refreshLog() {
+                  return repoDetailService.getCommits().then(function(commits) {
+                    parseCommits(commits);
+                    vm.commits = commits;
+                  });
+                }
+
                 function commit() {
                     repoDetailService.commit(vm.commitMessage).then(function(res) {
                         vm.commitMessage = '';      // reset the commit message.
+                        // close the modal.
+                        // TODO: An error must throw an exception and be handled in the catch statement.
+                        $commitModal.modal('hide');
                         
+                        // refresh the log so that new commits now appear in it.
+                        refreshLog().then(function() {
+                          // refresh local to remove committed files from modified files' list.
+                          vm.refreshLocalChanges();
+                        });
                     });
                 }
 
@@ -275,31 +286,49 @@
         return;
 
         function commit(message) {
-            return $http.get('/repo' + repoName + '/commit?message=' + window.encodeURIComponent(message)).then(function(res) {
-                return res.data;
+            return $http.get('/repo/' + repoName + '/commit?message=' + window.encodeURIComponent(message)).then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
+                else {
+                    alert('there was an error');
+                }
+                console.log(res.data);
             });
         }
 
         function getDiffBetweenCommits(commits) {
             return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
 
         function unstageAllFiles() {
             return $http.get('/repo/' + repoName + '/unstageallfiles').then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
 
         function stageAllFiles() {
             return $http.get('/repo/' + repoName + '/stageallfiles').then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
 
         function getCommit(hash) {
             return $http.get('/repo/' + repoName + '/getcommit/' + hash).then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
@@ -312,12 +341,18 @@
 
         function refreshLocalChanges() {
             return $http.get('/repo/' + repoName + '/refreshlocal').then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
 
         function getFileDiff(file, tags) {
             return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
@@ -325,12 +360,18 @@
         function stageFile(file, tags) {
             console.log(tags);
             return $http.get('/repo/' + repoName + '/stagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
 
         function unstageFile(file, tags) {
             return $http.get('/repo/' + repoName + '/unstagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
