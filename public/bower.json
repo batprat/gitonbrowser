@@ -22,8 +22,12 @@
     "tests"
   ],
   "dependencies": {
+    "jquery": "3.2.1",
     "angular": "1.6.6",
     "angular-route": "^1.6.6",
-    "moment": "latest"
+    "moment": "latest",
+    "bootstrap": "^4",
+    "font-awesome": "4.7.0",
+    "popper.js": "1"
   }
 }
