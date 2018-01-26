@@ -120,14 +120,14 @@
                                         
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-sm-3" id="commit-dialog-actions">
-                                        <button class="btn btn-sm btn-outline-info" ng-click="vm.commit()">Commit</button>
-                                        <button class="btn btn-sm btn-outline-success">Commit &amp; Push</button>
-                                        <button class="btn btn-sm btn-outline-danger">Reset all changes</button>
-                                        <button class="btn btn-sm btn-outline-warning">Reset unstaged changes</button>
+                                <div class="row commit-dialog-action-container">
+                                    <div class="col-sm-4" id="commit-dialog-actions">
+                                        <button class="btn btn-sm commit-dialog-btn btn-outline-info" ng-click="vm.commit()">Commit</button>
+                                        <button class="btn btn-sm commit-dialog-btn btn-outline-success">Commit &amp; Push</button>
+                                        <button class="btn btn-sm commit-dialog-btn btn-outline-danger">Reset all changes</button>
+                                        <button class="btn btn-sm commit-dialog-btn btn-outline-warning">Reset unstaged changes</button>
                                     </div>
-                                    <div class="col-sm-9" id="commit-dialog-message">
+                                    <div class="col-sm-8" id="commit-dialog-message">
                                         <textarea class="form-control" palceholder="Enter commit message here." ng-model="vm.commitMessage"></textarea>
                                     </div>
                                 </div>

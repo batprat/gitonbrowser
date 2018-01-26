@@ -1,2 +1,15 @@
-1. Clone Repository
-2. Open cloned Repository
+1. Clone Repository - done
+. Specify ANY folder while cloning repository.
+2. Open cloned Repository - done
+3. Show git log - first 100 commits - done
+4. Lazy load commits
+5. Show local changes. - done
+6. Show Diff - done
+7. Toggle whitespace while showing diff
+6. Stage files - done
+7. Unstage files - done
+8. Show branches graph
+. Show local and remote branches - done
+. Show tags
+. Commit files
+. Push files

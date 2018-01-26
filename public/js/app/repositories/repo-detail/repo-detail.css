@@ -185,3 +185,12 @@
     overflow-y: auto;
 }
 
+.commit-dialog-btn {
+    width: 100%;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.commit-dialog-action-container {
+    margin-top: 15px;
+}
