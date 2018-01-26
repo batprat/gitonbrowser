@@ -11,5 +11,9 @@
 8. Show branches graph
 . Show local and remote branches - done
 . Show tags
-. Commit files
+. Commit files - done
 . Push files
+. Pull
+. Stage selected lines
+. unstage selected lines
+. revert selected lines
