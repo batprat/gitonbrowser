@@ -4,7 +4,7 @@
         <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
         <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">Commit {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
     </div>
-    <div class="commit-container container-fluid">
+    <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
         <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}">
             <div class="col-sm-7">
                 <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
@@ -19,6 +19,7 @@
             <div class="col-sm-2">{{commit.name}}</div>
             <div class="col-sm-3">{{commit.fromNow}}</div>
         </div>
+        <div id="main-log-loading-indicator">Loading next batch of commits...</div>
     </div>
     <div class="details-container">
         <ul class="nav nav-tabs details-tabs" role="tablist">

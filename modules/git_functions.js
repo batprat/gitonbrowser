@@ -200,7 +200,7 @@ C:\E\projects\webgit-server\git-checkouts\d3>git log --all --graph --decorate --
     <subject>%s</subject>    
 </commit>'
 
-git log -n 50 --format=format:'<commit><hash>%H</hash><author_name>%an</author_name><author_email>%ae</author_email><author_date>%%aD</author_date></commit>'
+git log -n 100 --format=format:'<commit><hash>%H</hash><author_name>%an</author_name><author_email>%ae</author_email><author_date>%%aD</author_date></commit>'
 log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
 
 */
@@ -211,6 +211,12 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
     let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s%n${randomSeperator}`;
 
     let logArgs = ['log', '-n 100', logFormat, '--branches'];
+
+    let page = req.query.page || 1;
+
+    if(page > 1) {
+      logArgs.push('--skip=' + ((page - 1) * 100));
+    }
 
     const child = spawn('git', logArgs, {
         cwd: utils.getCheckoutsDir() + '/' + repo,

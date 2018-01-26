@@ -1,3 +1,4 @@
+// TODO: Handle error codes.
 (function() {
     var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
@@ -14,6 +15,8 @@
                 this.repoName = repoName;
 
                 var vm = this;
+                var $mainLogContainer = $('#main-log-container');
+                var $mainLogLoadingIndicator = $('#main-log-loading-indicator');
 
                 $commitModal = $('#commit-modal');
                 vm.selectedCommit = null;
@@ -47,13 +50,49 @@
 
                 refreshLog();
                 vm.refreshLocalChanges();
+                bindLazyLoadingCommits();
 
                 return;
 
-                function refreshLog() {
-                  return repoDetailService.getCommits().then(function(commits) {
+                function bindLazyLoadingCommits() {
+                  var lazyLoadingInProgress = false;
+                  var noMoreCommits = false;
+                  $mainLogContainer.on('scroll', function() {
+                    if(lazyLoadingInProgress || noMoreCommits) {
+                      return;
+                    }
+                    if($mainLogContainer.scrollTop() + $mainLogContainer.innerHeight() + 50 >= $mainLogContainer[0].scrollHeight) {   // start loading before 50px from the bottom.
+                      lazyLoadingInProgress = true;
+                      // load next batch of commits.
+                      var page = +$mainLogContainer.data('pageNum');
+                      page++;
+                      $mainLogContainer.data('pageNum', page);
+                      $mainLogLoadingIndicator.show();
+                      refreshLog(page).then(function(commits) {
+                        $mainLogLoadingIndicator.hide();
+                        lazyLoadingInProgress = false;
+
+                        // no commits returned; reached the bottom.
+                        if(commits === false) {
+                          noMoreCommits = true;
+                        }
+                      });
+                    }
+                  });
+                }
+
+                function refreshLog(page) {
+                  if(!page) {
+                    page = +$mainLogContainer.data('pageNum');
+                  }
+                  return repoDetailService.getCommits(page).then(function(commits) {
+                    if(commits.length == 0) {
+                      return false;
+                    }
                     parseCommits(commits);
-                    vm.commits = commits;
+                    vm.commits = vm.commits || [];
+                    Array.prototype.push.apply(vm.commits, commits);
+                    return vm.commits;
                   });
                 }
 
@@ -65,9 +104,9 @@
                         $commitModal.modal('hide');
                         
                         // refresh the log so that new commits now appear in it.
-                        refreshLog().then(function() {
+                        return refreshLog().then(function() {
                           // refresh local to remove committed files from modified files' list.
-                          vm.refreshLocalChanges();
+                          return vm.refreshLocalChanges();
                         });
                     });
                 }
@@ -153,10 +192,7 @@
                     };
 
                     vm.fileSelectedOnCommitModal = file;
-
-                    console.log(file.tags);
                     repoDetailService.getFileDiff(file.name, file.tags).then(function(diff) {
-                        
                         var commitDetails = parseDiff(diff);
                         vm.diffOnCommitModal.safeDiff = $sce.trustAsHtml(commitDetails[0].diff);
                     });
@@ -177,7 +213,6 @@
                 }
 
                 function refreshLocalChanges() {
-                    console.log('checking for local updates...');
                     return repoDetailService.refreshLocalChanges().then(function(data) {
                         vm.localStatus = parseLocalStatus(data);
                         vm.stagedFiles = $filter('filter')(vm.localStatus, {tags: 'staged'}, true);
@@ -333,8 +368,9 @@
             });
         }
 
-        function getCommits() {
-            return $http.get('/repo/' + repoName + '/getrepolog').then(function(res) {
+        function getCommits(page) {
+            page = page || 1;
+            return $http.get('/repo/' + repoName + '/getrepolog?page=' + page).then(function(res) {
                 return res.data;
             });
         }
