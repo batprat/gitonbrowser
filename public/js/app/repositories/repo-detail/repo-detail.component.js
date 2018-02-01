@@ -3,6 +3,9 @@
     var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
     var $commitModal = null;
+    var $responseModal = $('#response-modal');
+    var $responseModalTitle = $responseModal.find('#response-title');
+    var $responseModalBody = $responseModal.find('#response-body');
     
     repoDetailModule
         .component('repoDetail', {
@@ -19,6 +22,7 @@
                 var $mainLogLoadingIndicator = $('#main-log-loading-indicator');
 
                 $commitModal = $('#commit-modal');
+                $pullModal = $('#pull-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
@@ -31,8 +35,18 @@
                 vm.unstageFile = unstageFile;
                 vm.stageAllFiles = stageAllFiles;
                 vm.unstageAllFiles = unstageAllFiles;
+                vm.showPullDialog = showPullDialog;
                 vm.commit = commit;
+                vm.pull = pull;
+
                 vm.commitMessage = '';
+                vm.remote = null;
+                vm.remoteBranches = [];
+                vm.currentLocalBranch = null;
+                vm.localBranches = [];
+                vm.pullOptions = {
+                  mergeOption: 'merge'
+                };
 
                 vm.commitMap = {};
 
@@ -48,11 +62,44 @@
                     
                 });
 
+                $responseModal.on('hide.bs.modal', function(e) {
+                  $responseModalBody.html('');
+                });
+
+                initialize();
                 refreshLog();
                 vm.refreshLocalChanges();
                 bindLazyLoadingCommits();
 
                 return;
+
+                function pull() {
+                  $responseModalTitle.text('Pulling');
+                  $responseModal.modal('show');
+                  return repoDetailService.pull({
+                    remoteBranch: vm.pullOptions.remoteBranch,
+                    mergeOption: vm.pullOptions.mergeOption
+                  }).then(function(response) {
+                    $responseModalBody.html(response.errors.join('').replace(/\n/g, '<br />') + response.output.join('').replace(/\n/g, '<br />'));
+                    // TODO: refresh the main log.
+                  });
+                }
+
+                function initialize() {
+                  return repoDetailService.initRepo().then(function(d) {
+                    vm.remote = d.remote;
+                    vm.remoteBranches = d.remoteBranches.slice(1).map(function(b) {
+                      // remove `origin/` from the branch names.
+                      return b.substring('origin/'.length);
+                    });    // first is the reference to origin/HEAD
+                    vm.currentLocalBranch = d.currentBranch;
+                    vm.localBranches = d.localBranches;
+                  });
+                }
+
+                function showPullDialog() {
+                  $pullModal.modal('show');
+                }
 
                 function bindLazyLoadingCommits() {
                   var lazyLoadingInProgress = false;
@@ -318,7 +365,29 @@
 
         this.commit = commit;
 
+        this.initRepo = initRepo;
+
+        this.pull = pull;
+
         return;
+
+        function pull(options) {
+          var remoteBranch = options.remoteBranch,
+              mergeOption = options.mergeOption;
+
+          return $http.get('/repo/' + repoName + '/pull?remotebranch=' + remoteBranch + '&mergeoption=' + mergeOption).then(function(res) {
+            return res.data;
+          });
+        }
+
+        /**
+          Initializes stuff like remote name, local and remote branches, etc. One time stuff.
+        */
+        function initRepo() {
+          return $http.get('/repo/' + repoName + '/initrepo').then(function(res) {
+            return res.data.output;
+          });
+        }
 
         function commit(message) {
             return $http.get('/repo/' + repoName + '/commit?message=' + window.encodeURIComponent(message)).then(function(res) {

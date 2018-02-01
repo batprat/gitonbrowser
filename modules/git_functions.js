@@ -14,8 +14,121 @@ let git = {
     stageAllFiles: stageAllFiles,
     unstageAllFiles: unstageAllFiles,
     getDiffBetweenCommits: getDiffBetweenCommits,
-    commit: commit
+    commit: commit,
+    initRepo: initRepo,
+    pull: pull
 };
+
+function pull({req, res, repo}) {
+  let remoteBranch = req.query.remotebranch,
+      mergeOption = req.query.mergeoption;
+
+  let pullOptions = [];
+
+  if(mergeOption == 'fetch') {
+    pullOptions.push('fetch', '--all');
+  }
+  else {
+    pullOptions.push('pull', 'origin', remoteBranch);
+  }
+
+  if(mergeOption == 'rebase') {
+    pullOptions.splice(1, 0, '--rebase');
+  }
+
+  const child = spawnGitProcess(repo, pullOptions);
+  redirectIO(child, req, res);
+}
+
+function initRepo({req, res, repo}) {
+  // do multiple things.
+  // get remote name      // git remote
+  // get remoteBranches   // git branch -r
+  // get local branches   // git branch
+  // get current branch
+
+  let remotePromise = getRemote(repo);
+  let remoteBranchesPromise = getRemoteBranches(repo);
+  let localBranchesInfoPromise = getLocalBranches(repo);
+
+  Promise.all([remotePromise, remoteBranchesPromise, localBranchesInfoPromise]).then(function(op) {
+    let remote = op[0];
+    let remoteBranches = op[1];
+    let localBranchesInfo = op[2];
+
+    sendResponse(res, {
+      output: {
+        remote,
+        remoteBranches,
+        localBranches: localBranchesInfo.locals,
+        currentBranch: localBranchesInfo.current
+      },
+      errorCode: 0
+    });
+  }).catch(function(ex) {
+    sendResponse(res, {
+      errorCode: 1,
+      errors: ex
+    });
+  });
+}
+
+/**
+  Gets a list of local branches and the current branch.
+  NOTE: seperate functions for local and remote branches to handle branches named like `remotes/origin/test-branch-4` (that start with `remotes/origin`)
+*/
+function getLocalBranches(repo) {
+  const child = spawnGitProcess(repo, ['branch']);
+  let localBranchesPromise = redirectIO(child, null, null);
+  return localBranchesPromise.then(function(res) {
+    if(!res.errorCode) {
+      let localBranches = res.output[0].trim().split('\n');
+      let branchInfo = {
+        locals: [],
+        current: ''
+      };
+
+      localBranches.forEach((b) => {
+        if(b.indexOf('* ') == 0) {
+          branchInfo.current = b.substring('* '.length);
+          b = branchInfo.current;
+        }
+        branchInfo.locals.push(b.trim());
+      });
+
+      return branchInfo;
+    }
+    // TODO: handle error here.
+  });
+}
+
+function getRemote(repo) {
+  const child = spawnGitProcess(repo, ['remote']);
+  let remotePromise = redirectIO(child, null, null);
+  return remotePromise.then(function(res) {
+    if(!res.errorCode) {
+      return res.output[0].trim();
+    }
+    // TODO: handle error here.
+  });
+}
+
+/**
+  Gets a list of remote branches
+  NOTE: seperate functions for local and remote branches to handle branches named like `remotes/origin/test-branch-4` (that start with `remotes/origin`)
+*/
+function getRemoteBranches(repo) {
+  const child = spawnGitProcess(repo, ['branch', '-r']);
+  let remoteBranchesPromise = redirectIO(child, null, null);
+  return remoteBranchesPromise.then(function(res) {
+    if(!res.errorCode) {
+      return res.output[0].trim().split('\n').map(branch => branch.trim());
+    }
+    // TODO: handle error here.
+  });
+}
+
+
 
 function commit({req, res, repo}) {
   const child = spawnGitProcess(repo, ['commit', '-m', req.query.message]);
@@ -210,7 +323,7 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
 
     let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s%n${randomSeperator}`;
 
-    let logArgs = ['log', '-n 100', logFormat, '--branches'];
+    let logArgs = ['log', '-n 100', logFormat, '--branches', '--all'];
 
     let page = req.query.page || 1;
 
@@ -247,55 +360,73 @@ function clone(options) {
 }
 
 function redirectIO(child, req, res) {
-    var errors = [];
-    var output = [];
-    child.stdout.on('data', function(data) {
-        //res.write(data.toString());
-        output.push(data.toString());
-        if(showAllLogs) {
-          console.log( `stdout: ${data}` );
-        }
-    });
-  
-    child.stderr.on('data', function(data) {
-      //res.write(data.toString());
-      errors.push(data.toString());
-      if(showAllLogs) {
-        console.log( `stderr: ${data}` );
-      }
-    });
-  
-    child.on('error', function(err) {
-      //res.write(err.toString());
-      errors.push(err.toString());
-      if(showAllLogs) {
-        console.log('error event output');
-        console.log(err);
-      }
-    });
-  
-    if(showAllLogs) {
-      child.on('exit', function(code, signal) {
-        console.log('code = ' + code);
-        console.log('signal = ' + signal);
+    return new Promise((resolve, reject) => {
+      var errors = [];
+      var output = [];
+      child.stdout.on('data', function(data) {
+          //res.write(data.toString());
+          output.push(data.toString());
+          if(showAllLogs) {
+            console.log( `stdout: ${data}` );
+          }
       });
-    }
   
-    child.on('close', function(code, signal) {
+      child.stderr.on('data', function(data) {
+        //res.write(data.toString());
+        errors.push(data.toString());
+        if(showAllLogs) {
+          console.log( `stderr: ${data}` );
+        }
+      });
+  
+      child.on('error', function(err) {
+        //res.write(err.toString());
+        errors.push(err.toString());
+        if(showAllLogs) {
+          console.log('error event output');
+          console.log(err);
+        }
+      });
+  
       if(showAllLogs) {
-        console.log('event -- close');
-        console.log('code = ' + code);
-        console.log('signal = ' + signal);
+        child.on('exit', function(code, signal) {
+          console.log('code = ' + code);
+          console.log('signal = ' + signal);
+        });
       }
+  
+      child.on('close', function(code, signal) {
+        if(showAllLogs) {
+          console.log('event -- close');
+          console.log('code = ' + code);
+          console.log('signal = ' + signal);
+        }
 
-      res.setHeader('Content-Type', 'application/json');
-      res.write(JSON.stringify({
-        errorCode: errors.length > 0 ? 1 : 0,
-        errors,
-        output
-      }));
-      res.end();
+        let op = {
+          errorCode: errors.length > 0 ? 1 : 0,
+          errors,
+          output
+        };
+
+        if(res) {
+          sendResponse(res, op);
+        }
+
+        if(op.errorCode) {
+          reject(op);
+        }
+        else {
+          resolve(op);
+        }
+      });
     });
+    
+}
+
+function sendResponse(res, op) {
+  res.setHeader('Content-Type', 'application/json');
+  res.write(JSON.stringify(op));
+  res.end();
 }
 
 let logCommits = [];
@@ -373,7 +504,7 @@ function redirectIOForLog(child, req, res, splitter) {
             };
 
             if(hasRefs) {
-              let match = aCommit[0].match(/^\((.+)\)$/);
+              let match = aCommit[0].match(/^\((.+)\)$/);   // has brackets
               // var match = aCommit[0].match(/\(([A-Za-z0-9\/]+)\s\-\>\s([A-Za-z0-9\/]+)\)/);
               let refs = match[1];    // brackets removed.
               
@@ -381,18 +512,14 @@ function redirectIOForLog(child, req, res, splitter) {
               let localHead = refs.filter(function(s) {
                 return s.indexOf('HEAD -> ') === 0;
               });
-              console.log(refs);
+              
               if(localHead && localHead.length > 0) {
                 commitData.localHead = localHead[0].substring('HEAD -> '.length);
-                refs.splice(refs.indexOf(localHead[0]), 1);
+                refs.splice(refs.indexOf(localHead[0]), 1);   // remove local head from the refs.
               }
-              console.log(refs);
               
-
-              
-
               let localBranches = refs.filter(function(s) {
-                return s.indexOf('/') === -1;
+                return s.indexOf('origin/') !== 0;      // remote branches' names in tags/refs start with `origin/`. This will fail for those who name their local branches `origin/mybranch` :|
               });
 
               if(localBranches && localBranches.length > 0) {
@@ -400,7 +527,7 @@ function redirectIOForLog(child, req, res, splitter) {
               }
 
               let remoteBranches = refs.filter(function(s) {
-                return s.indexOf('/') > -1 && s !== 'origin/HEAD';
+                return s.indexOf('origin/') == 0 && s !== 'origin/HEAD';
               });
 
               if(remoteBranches && remoteBranches.length > 0) {

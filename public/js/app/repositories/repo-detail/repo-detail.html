@@ -3,6 +3,7 @@
     <div class="working-directory-details-container">
         <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
         <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">Commit {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
+        <button class="btn btn-secondary" title="Open Pull Dialog" ng-click="vm.showPullDialog()"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
     </div>
     <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
         <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}">
@@ -138,5 +139,70 @@
                 </div>
             </div>
         </div>
+    </div>
+    <div class="modal fade" id="pull-modal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Pull</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              </div>
+              <div class="modal-body">
+                <div class="container-fluid">
+                  <div class="row">
+                    <div class="col-sm-12">
+                      <div class="panel">
+                        <h6>Branch</h6>
+                        <div class="form-group row">
+                          <label for="pull-dialog-local-branch" class="col-2 col-form-label">
+                            Local branch
+                          </label>
+                          <div class="col-10">
+                            <input id="pull-dialog-local-branch" type="text" class="form-control" value="{{vm.currentLocalBranch}}" disabled="disabled" />
+                          </div>
+                        </div>
+                        <div class="form-group row">
+                          <label for="pull-dialog-branch-select" class="col-2 col-form-label">
+                            Remote branch
+                          </label>
+                          <div class="col-10">
+                            <select class="form-control" id="pull-dialog-branch-select" ng-model="vm.pullOptions.remoteBranch">
+                              <option ng-repeat="branch in vm.remoteBranches" value="{{branch}}">{{branch}}</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="panel">
+                        <h6>Merge Options</h6>
+                        <div class="form-group row">
+                          <div class="col-12">
+                            <div class="form-check merge-option">
+                              <label class="form-check-label">
+                                <input class="form-check-input" type="radio" name="merge-options" id="merge-options-merge" value="merge" checked ng-model="vm.pullOptions.mergeOption">
+                                Merge remote branch into current branch
+                              </label>
+                            </div>
+                            <div class="form-check merge-option">
+                              <label class="form-check-label">
+                                <input class="form-check-input" type="radio" name="merge-options" id="merge-options-merge" value="rebase" ng-model="vm.pullOptions.mergeOption">
+                                Rebase current branch on top of remote branch
+                              </label>
+                            </div>
+                            <div class="form-check merge-option">
+                              <label class="form-check-label">
+                                <input class="form-check-input" type="radio" name="merge-options" id="merge-options-fetch" value="fetch" ng-model="vm.pullOptions.mergeOption">
+                                Do not merge, only fetch remote changes
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button class="btn btn-primary pull-right" ng-click="vm.pull()" ng-disabled="((!vm.pullOptions.mergeOption || !vm.pullOptions.remoteBranch) && (vm.pullOptions.mergeOption != 'fetch'))">Pull</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+      </div>
     </div>
 </div>

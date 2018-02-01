@@ -84,4 +84,17 @@ router.get('/:id/commit', function(req, res) {
     git.commit({repo, req, res});
 });
 
+
+router.get('/:id/initrepo', function(req, res) {
+  let repo = req.params.id;
+
+  git.initRepo({repo, req, res});
+});
+
+router.get('/:id/pull', function(req, res) {
+  let repo = req.params.id;
+
+  git.pull({repo, req, res});
+});
+
 module.exports = router;
