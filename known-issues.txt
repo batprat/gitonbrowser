@@ -1,0 +1,1 @@
+1. If you name your branches like origin/mybranch, the main log will consider it as a remote branch. The pull dialog will show the proper remote branches though.
