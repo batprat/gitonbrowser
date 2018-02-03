@@ -1,6 +1,6 @@
 . Continuous output for clone, pull
 1. Clone Repository - done
-. Specify ANY folder while cloning repository.
+. Specify ANY folder while cloning repository. - done
 2. Open cloned Repository - done
 .Open repository cloned in any folder
 3. Show git log - first 100 commits - done
@@ -22,3 +22,4 @@
 . Add loaders to all git operations
 . Implement Stash
 . Implement Auto Stash in pulling
+. Handle tags
