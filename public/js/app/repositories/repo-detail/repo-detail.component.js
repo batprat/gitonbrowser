@@ -10,9 +10,9 @@
     repoDetailModule
         .component('repoDetail', {
             templateUrl: '/js/app/repositories/repo-detail/repo-detail.html',
-            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter',
-              function RepoDetailController($routeParams, repoDetailService, $sce, $scope, $filter) {
-    
+            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService',
+              function RepoDetailController($routeParams, repoDetailService, $sce, $scope, $filter, UtilsService) {
+                // repoName = UtilsService.decodePath($routeParams.repoName);
                 repoName = $routeParams.repoName;
     
                 this.repoName = repoName;

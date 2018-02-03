@@ -254,8 +254,9 @@ function getCommit(options) {
 }
 
 function spawnGitProcess(repo, processOptions) {
+    console.log('path = ' + utils.decodePath(repo));
     return spawn('git', processOptions, {
-        cwd: utils.getCheckoutsDir() + '/' + repo,
+        cwd: _getCwd(repo),
         stdio: [0, 'pipe', 'pipe']
     });
 }
@@ -323,7 +324,7 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
 
     let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s%n${randomSeperator}`;
 
-    let logArgs = ['log', '-n 100', logFormat, '--branches', '--all'];
+    let logArgs = ['log', '-n 100', logFormat, '--branches', '--remotes', '--tags'];
 
     let page = req.query.page || 1;
 
@@ -332,7 +333,7 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
     }
 
     const child = spawn('git', logArgs, {
-        cwd: utils.getCheckoutsDir() + '/' + repo,
+        cwd: _getCwd(repo),
         stdio: [0, 'pipe', 'pipe']
     });
 
@@ -364,7 +365,6 @@ function redirectIO(child, req, res) {
       var errors = [];
       var output = [];
       child.stdout.on('data', function(data) {
-          //res.write(data.toString());
           output.push(data.toString());
           if(showAllLogs) {
             console.log( `stdout: ${data}` );
@@ -372,7 +372,6 @@ function redirectIO(child, req, res) {
       });
   
       child.stderr.on('data', function(data) {
-        //res.write(data.toString());
         errors.push(data.toString());
         if(showAllLogs) {
           console.log( `stderr: ${data}` );
@@ -380,7 +379,6 @@ function redirectIO(child, req, res) {
       });
   
       child.on('error', function(err) {
-        //res.write(err.toString());
         errors.push(err.toString());
         if(showAllLogs) {
           console.log('error event output');
@@ -446,17 +444,17 @@ function redirectIOForLog(child, req, res, splitter) {
     });
   
       child.stderr.on('data', function(data) {
-        //res.write(data);
-        if(showAllLogs)
-        console.log( `stderr: ${data}` );
+        if(showAllLogs) {
+          console.log( `stderr: ${data}` );
+        }
       });
     
       child.on('error', function(err) {
-        res.write(err);
         if(showAllLogs) {
-        console.log('error event output');
-        console.log(err);
+          console.log('error event output');
+          console.log(err);
         }
+        res.write(JSON.stringify(err));
       });
     
       child.on('exit', function(code, signal) {
@@ -481,7 +479,6 @@ function redirectIOForLog(child, req, res, splitter) {
         logCommits = logCommits.split(splitter);
 
         logCommits.forEach(function(commit, idx) {
-            // aCommit = commit.split(splitter);
             aCommit = commit.trim().split('\n');
 
             if(aCommit.length < 6) {
@@ -544,6 +541,11 @@ function redirectIOForLog(child, req, res, splitter) {
         logCommits = [];       // reset the log data.
         res.end();
       });
+}
+
+function _getCwd(repo) {
+  return utils.decodePath(repo);
+  return utils.getCheckoutsDir() + '/' + repo;
 }
 
 module.exports = git;
