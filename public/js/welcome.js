@@ -43,7 +43,7 @@
                     }
                     var html = '';
                     allRepos.forEach(function(repo) {
-                        html += '<li class="cloned-repo" title="'+ repo.path +'"><a href="/repo/' + repo.name + '" target="_self">' + repo.name + '</a></li>'
+                        html += '<li class="cloned-repo" title="'+ repo.path +'"><a href="/repo/' + repo.path + '" target="_self">' + repo.name + '</a></li>'
                     });
     
                     $clonedRepos.html(html);

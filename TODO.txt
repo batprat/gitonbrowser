@@ -1,25 +1,25 @@
 . Continuous output for clone, pull
-1. Clone Repository - done
-. Specify ANY folder while cloning repository. - done
-2. Open cloned Repository - done
-.Open repository cloned in any folder
-3. Show git log - first 100 commits - done
-4. Lazy load commits - done
-5. Show local changes. - done
-6. Show Diff - done
+-1. Clone Repository - done
+. Specify ANY folder while cloning repository.
+-2. Open cloned Repository - done
+-.Open repository cloned in any folder - done
+-3. Show git log - first 100 commits - done
+-4. Lazy load commits - done
+-5. Show local changes. - done
+-6. Show Diff - done
 7. Toggle whitespace while showing diff
-6. Stage files - done
-7. Unstage files - done
+-6. Stage files - done
+-7. Unstage files - done
 8. Show branches graph
-. Show local and remote branches - done
+-. Show local and remote branches - done
 . Show tags
-. Commit files - done
-. Push files
-. Pull
+-. Commit files - done
+. Push changes
+-. Pull - done
 . Stage selected lines
 . unstage selected lines
 . revert selected lines
 . Add loaders to all git operations
 . Implement Stash
 . Implement Auto Stash in pulling
-. Handle tags
+. Handle binary files.
