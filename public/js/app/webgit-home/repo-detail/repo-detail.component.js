@@ -9,7 +9,7 @@
     
     repoDetailModule
         .component('repoDetail', {
-            templateUrl: '/js/app/repositories/repo-detail/repo-detail.html',
+            templateUrl: '/js/app/webgit-home/repo-detail/repo-detail.html',
             controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService',
               function RepoDetailController($routeParams, repoDetailService, $sce, $scope, $filter, UtilsService) {
                 // repoName = UtilsService.decodePath($routeParams.repoName);
@@ -23,6 +23,7 @@
 
                 $commitModal = $('#commit-modal');
                 $pullModal = $('#pull-modal');
+                $pushModal = $('#push-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
@@ -36,8 +37,11 @@
                 vm.stageAllFiles = stageAllFiles;
                 vm.unstageAllFiles = unstageAllFiles;
                 vm.showPullDialog = showPullDialog;
+                vm.showPushDialog = showPushDialog;
                 vm.commit = commit;
+                vm.commitAndPush = commitAndPush;
                 vm.pull = pull;
+                vm.push = push;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -64,6 +68,7 @@
 
                 $responseModal.on('hide.bs.modal', function(e) {
                   $responseModalBody.html('');
+                  $responseModalTitle.html('');
                 });
 
                 initialize();
@@ -72,6 +77,26 @@
                 bindLazyLoadingCommits();
 
                 return;
+
+                function commitAndPush() {
+                  commit().then(function() {
+                    // push
+                  });
+                }
+
+                function showPushDialog() {
+                  $pushModal.modal('show');
+                }
+
+                function push() {
+                  // open the push modal.
+
+
+                  return repoDetailService.push().then(function() {
+                    // praty
+
+                  });
+                }
 
                 function pull() {
                   $responseModalTitle.text('Pulling');
@@ -144,7 +169,7 @@
                 }
 
                 function commit() {
-                    repoDetailService.commit(vm.commitMessage).then(function(res) {
+                    return repoDetailService.commit(vm.commitMessage).then(function(res) {
                         vm.commitMessage = '';      // reset the commit message.
                         // close the modal.
                         // TODO: An error must throw an exception and be handled in the catch statement.
@@ -155,6 +180,10 @@
                           // refresh local to remove committed files from modified files' list.
                           return vm.refreshLocalChanges();
                         });
+                    }).catch(function(err) {
+                      $responseModalTitle.text('Error!');
+                      $responseModalBody.html(err.join('<br />'));
+                      $responseModal.modal('show');
                     });
                 }
 
@@ -369,7 +398,15 @@
 
         this.pull = pull;
 
+        this.push = push;
+
         return;
+
+        function push() {
+          return $http.get('/repo/' + repoName + '/push').then(function(res) {
+            return res.data;
+          });
+        }
 
         function pull(options) {
           var remoteBranch = options.remoteBranch,
@@ -395,9 +432,9 @@
                     return res.data.output.join('\n');
                 }
                 else {
-                    alert('there was an error');
+                    // alert('there was an error');
+                    return Promise.reject(res.data.errors);
                 }
-                console.log(res.data);
             });
         }
 
@@ -405,7 +442,7 @@
             return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function(res) {
                 if(!res.data.errorCode) {
                     return res.data.output.join('\n');
-                }
+                }y
                 return res.data;
             });
         }

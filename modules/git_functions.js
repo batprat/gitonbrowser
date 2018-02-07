@@ -454,7 +454,8 @@ function redirectIOForLog(child, req, res, splitter) {
           console.log('error event output');
           console.log(err);
         }
-        res.write(JSON.stringify(err));
+        // res.write(JSON.stringify(err));
+        errors.push(JSON.stringify(err));
       });
     
       child.on('exit', function(code, signal) {
