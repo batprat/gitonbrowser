@@ -191,6 +191,10 @@
     cursor: pointer;
 }
 
+.commit-dialog-btn:first-child {
+  margin-top: 0;
+}
+
 .commit-dialog-action-container {
     margin-top: 15px;
 }
@@ -220,4 +224,9 @@
 
 .merge-option .form-check-input {
   margin-top: 4px;
+}
+
+#commit-message-textarea {
+  min-height: 161px;
+  overflow-y: auto;
 }

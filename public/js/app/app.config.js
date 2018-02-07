@@ -3,6 +3,9 @@ angular.module('webgitApp')
     function config($locationProvider, $routeProvider) {
         $locationProvider.html5Mode(true);
         $routeProvider.
+            when('/', {
+                template: '<webgit-home></webgit-home>'
+            }).
             when('/repo/:repoName', {
                 template: '<repo-detail></repo-detail>'
             })

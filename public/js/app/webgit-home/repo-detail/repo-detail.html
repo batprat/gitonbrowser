@@ -4,6 +4,7 @@
         <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
         <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">Commit {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
         <button class="btn btn-secondary" title="Open Pull Dialog" ng-click="vm.showPullDialog()"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
+        <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
     </div>
     <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
         <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}">
@@ -72,7 +73,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button ng-click="vm.refreshLocalChanges()" class="btn-outline-success btn btn-sm btn-commit-dialog-refresh"><i class="fa fa-refresh" title="refresh"></i></button>
-                    <h5 class="modal-title">Commit to {{vm.branchname}}</h5>
+                    <h5 class="modal-title">Commit to {{vm.currentLocalBranch}}</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body" id="commit-body">
@@ -125,12 +126,12 @@
                                 <div class="row commit-dialog-action-container">
                                     <div class="col-sm-4" id="commit-dialog-actions">
                                         <button class="btn btn-sm commit-dialog-btn btn-outline-info" ng-click="vm.commit()">Commit</button>
-                                        <button class="btn btn-sm commit-dialog-btn btn-outline-success">Commit &amp; Push</button>
-                                        <button class="btn btn-sm commit-dialog-btn btn-outline-danger">Reset all changes</button>
-                                        <button class="btn btn-sm commit-dialog-btn btn-outline-warning">Reset unstaged changes</button>
+                                        <button class="btn btn-sm commit-dialog-btn btn-outline-success" ng-click="vm.commitAndPush()">Commit &amp; Push</button>
+                                        <button class="btn btn-sm commit-dialog-btn btn-outline-danger" disabled>Reset all changes</button>
+                                        <button class="btn btn-sm commit-dialog-btn btn-outline-warning" disabled>Reset unstaged changes</button>
                                     </div>
                                     <div class="col-sm-8" id="commit-dialog-message">
-                                        <textarea class="form-control" palceholder="Enter commit message here." ng-model="vm.commitMessage"></textarea>
+                                        <textarea class="form-control" palceholder="Enter commit message here." ng-model="vm.commitMessage" id="commit-message-textarea"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -203,6 +204,37 @@
                 </div>
               </div>
           </div>
+      </div>
+    </div>
+    <div class="modal fade" id="push-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Push</h5>
+            <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <div class="container-fluid form-inline">
+              <div class="form-group row">
+                <div class="col-12">
+                  Branch to push
+                  <select class="form-control" id="local-branch-to-push">
+                    <option ng-repeat="localBranch in vm.localBranches" value="{{localBranch}}">{{localBranch}}</option>
+                  </select>
+                  to
+                  <select class="form-control" id="remote-branch-to-push-to">
+                    <option ng-repeat="remoteBranch in vm.remoteBranches" value="{{remoteBranch}}">{{remoteBranch}}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  <button class="btn btn-primary pull-right" ng-click="vm.push()" ng-disabled="">Push</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 </div>

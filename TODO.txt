@@ -23,3 +23,5 @@
 . Implement Stash
 . Implement Auto Stash in pulling
 . Handle binary files.
+. Turn the asynchronous modals red at runtime if error occurs. (e.g. pulling, pushing)
+. Show repo in conflicted state
