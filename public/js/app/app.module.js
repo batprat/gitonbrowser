@@ -1,4 +1,4 @@
-var webgitApp = angular.module('webgitApp', ['ngRoute', 'RepositoriesModule', 'RepoDetailModule']);
+var webgitApp = angular.module('webgitApp', ['ngRoute', 'WebgitHomeModule', 'RepositoriesModule', 'RepoDetailModule']);
 
 webgitApp.controller('AppController', ['$scope', '$window', '$rootScope', function($scope, $window, $rootScope) {
     var onFocus = function() {

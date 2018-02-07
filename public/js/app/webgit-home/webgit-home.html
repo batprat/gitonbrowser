@@ -3,7 +3,7 @@
     <div class="col-4">
       <h2>Open GIT Repository</h2>
       <ul id="cloned-repos">
-            
+         <li ng-repeat="repo in vm.clonedRepos" class="cloned-repo" title="{{repo.path}}"><a href="/repo/{{repo.path}}" target="_self">{{repo.name}}</a></li>
       </ul>
     </div>
     <div class="col-8">
@@ -20,10 +20,10 @@
       Browse repository:
     </label>
     <div class="col-6">
-      <input type="text" class="form-control" id="browse-repo-inp" />
+      <input type="text" class="form-control" id="browse-repo-inp" ng-model="vm.browsePath" />
     </div>
     <div class="col-2">
-      <button class="btn btn-primary" id="btn-browse">Browse</button>
+      <button class="btn btn-primary" id="btn-browse" ng-click="vm.browse()">Browse</button>
     </div>
   </div>
   <div class="row">
