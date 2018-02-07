@@ -24,12 +24,7 @@ router.post('/clonerepo', function(req, res, next) {
   // TODO: validate URL
   // TODO: validate dir name
 
-  git.clone({
-    dir: req.body.dirName,
-    url: req.body.url,
-    req: req,
-    res: res
-  });
+  git.clone({req, res});
 });
 
 router.post('/test', function(req, res, next) {

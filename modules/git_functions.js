@@ -340,20 +340,19 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
     redirectIOForLog(child, req, res, randomSeperator);
 }
 
-function clone(options) {
-    let url = options.url;
-    let cloneDir = options.dir;
-    let res = options.res;
-    let req = options.req;
+function clone({req, res}) {
+    let url = req.body.url;
+    let cloneSubdirectoryName = req.body.dirName;
+    let destinationDir = req.body.destination;
   
     let cloneOptions = ['clone', '--progress', url];
     
-    if(cloneDir) {
-      cloneOptions.push(cloneDir);
+    if(cloneSubdirectoryName) {
+      cloneOptions.push(cloneSubdirectoryName);
     }
     
     const child = spawn('git', cloneOptions, {
-      cwd: utils.getCheckoutsDir(),
+      cwd: destinationDir,
       stdio: [0, 'pipe', 'pipe']
     });
 
