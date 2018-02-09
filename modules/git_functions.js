@@ -356,13 +356,28 @@ function clone({req, res}) {
       stdio: [0, 'pipe', 'pipe']
     });
 
-    redirectIO(child, req, res);
+    let logs = [];
+    child.stderr.on('data', function(data) {
+      logs.push(data.toString());
+    });
+
+    let extraInfo = {
+      repoPath: ''
+    };
+
+    child.on('exit', function(code, signal) {
+      let repoName = logs[0].match(/^Cloning into \'(.+)\'...\n$/);
+      repoName = repoName[1];
+      extraInfo.repoPath = utils.encodePath(destinationDir + '/' + repoName);
+    });
+
+    redirectIO(child, req, res, extraInfo);
 }
 
-function redirectIO(child, req, res) {
+function redirectIO(child, req, res, extraInfo = null) {
     return new Promise((resolve, reject) => {
-      var errors = [];
-      var output = [];
+      let errors = [];
+      let output = [];
       child.stdout.on('data', function(data) {
           output.push(data.toString());
           if(showAllLogs) {
@@ -402,7 +417,8 @@ function redirectIO(child, req, res) {
         let op = {
           errorCode: errors.length > 0 ? 1 : 0,
           errors,
-          output
+          output,
+          extraInfo
         };
 
         if(res) {

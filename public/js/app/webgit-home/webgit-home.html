@@ -1,4 +1,5 @@
-<div class="container-fluid">
+<div class="container-fluid webgit-home">
+  <link href="/js/app/webgit-home/webgit-home.css" rel="stylesheet" />
   <div class="row">
     <div class="col-4">
       <h2>Open GIT Repository</h2>
@@ -7,28 +8,22 @@
       </ul>
     </div>
     <div class="col-8">
-      <h2>Clone GIT Repository</h2>
-      <div class="form-inline">
-        <input type="text" class="form-control" id="inp-clone" placeholder="GIT URL" />
-        <input type="text" class="form-control" id="inp-dirname" placeholder="Directory Name">
-        <button class="btn btn-primary" id="btn-clone">Clone</button>
+      <div class="form-group row">
+        <label for="browse-repo-inp" class="col-2 col-form-label">
+          Browse repository:
+        </label>
+        <div class="col-6">
+          <input type="text" class="form-control" id="browse-repo-inp" ng-model="vm.browsePath" />
+        </div>
+        <div class="col-2">
+          <button class="btn btn-primary" id="btn-browse" ng-click="vm.browse()">Browse</button>
+        </div>
       </div>
-    </div>
-  </div>
-  <div class="form-group row">
-    <label for="browse-repo-inp" class="col-2 col-form-label">
-      Browse repository:
-    </label>
-    <div class="col-6">
-      <input type="text" class="form-control" id="browse-repo-inp" ng-model="vm.browsePath" />
-    </div>
-    <div class="col-2">
-      <button class="btn btn-primary" id="btn-browse" ng-click="vm.browse()">Browse</button>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-12">
-      <button id="clone-repo-btn" class="btn btn-primary" ng-click="vm.openCloneModal()">Open Clone Dialog</button>
+      <div class="row">
+        <div class="col-12">
+          <button id="clone-repo-btn" class="btn btn-primary" ng-click="vm.openCloneModal()">Open Clone Dialog</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="modal fade" id="clone-modal" tabindex="-1" role="dialog">
@@ -43,19 +38,29 @@
             <div class="form-group row">
               <label class="col-3 col-form-label">Repository to Clone</label>
               <div class="col-9">
-                <input class="form-control" type="text" ng-model="vm.pathOfRepoToClone">
+                <input class="form-control" type="text" ng-model="vm.pathOfRepoToClone" placeholder="e.g. https://github.com/myawesomerepo.git">
               </div>
             </div>
             <div class="form-group row">
               <label class="col-3 col-form-label">Destination</label>
               <div class="col-9">
-                <input class="form-control" type="text" ng-model="vm.pathOfDestination">
+                <input class="form-control" type="text" ng-model="vm.pathOfDestination" placeholder="e.g. C:\projects\git or /usr/local/git">
               </div>
             </div>
             <div class="form-group row">
               <label class="col-3 col-form-label">Subdirectory to create</label>
               <div class="col-9">
-                <input class="form-control" type="text" ng-model="vm.cloneSubdirectoryName">
+                <input class="form-control" type="text" ng-model="vm.cloneSubdirectoryName" placeholder="Optional. If you wanna name the repository something else">
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-12">
+                <div class="form-check merge-option">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" value="true" ng-model="vm.openAfterCheckingOut">
+                    Open repository after checking out
+                  </label>
+                </div>
               </div>
             </div>
             <div class="row">

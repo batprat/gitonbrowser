@@ -1,5 +1,5 @@
 <div class="repo-detail">
-    <link href="/js/app/webgit-home/repo-detail/repo-detail.css" rel="stylesheet">
+    <link href="/js/app/webgit-home/repo-detail/repo-detail.css" rel="stylesheet" />
     <div class="working-directory-details-container">
         <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
         <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">Commit {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
