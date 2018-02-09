@@ -1,6 +1,6 @@
 . Continuous output for clone, pull
 -1. Clone Repository - done
-. Specify ANY folder while cloning repository.
+-. Specify ANY folder while cloning repository.
 -2. Open cloned Repository - done
 -.Open repository cloned in any folder - done
 -3. Show git log - first 100 commits - done
@@ -25,3 +25,5 @@
 . Handle binary files.
 . Turn the asynchronous modals red at runtime if error occurs. (e.g. pulling, pushing)
 . Show repo in conflicted state
+. Handle passwords for cloning
+. Handle passwords for pushing
