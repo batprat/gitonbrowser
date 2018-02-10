@@ -89,12 +89,13 @@
                 }
 
                 function push() {
-                  // open the push modal.
-
-
-                  return repoDetailService.push().then(function() {
-                    // praty
-
+                  $responseModal.one('hide.bs.modal', function() {
+                    refreshLog();
+                  });
+                  $responseModalTitle.text('Pushing ' + vm.currentLocalBranch + ' to ' + vm.remote + '/' + vm.pushOptions.remoteBranch);
+                  $responseModal.modal('show');
+                  return repoDetailService.push(vm.remote, vm.pushOptions.remoteBranch).then(function(data) {
+                    $responseModalBody.html(data.errors.join('<br />').replace('\n', '<br />'));
                   });
                 }
 
@@ -140,7 +141,7 @@
                       page++;
                       $mainLogContainer.data('pageNum', page);
                       $mainLogLoadingIndicator.show();
-                      refreshLog(page).then(function(commits) {
+                      getNextBatchOfLog(page).then(function(commits) {
                         $mainLogLoadingIndicator.hide();
                         lazyLoadingInProgress = false;
 
@@ -157,6 +158,17 @@
                   if(!page) {
                     page = +$mainLogContainer.data('pageNum');
                   }
+                  return repoDetailService.getCommits(page).then(function(commits) {
+                    if(commits.length == 0) {
+                      return false;
+                    }
+                    parseCommits(commits);
+                    vm.commits = commits;
+                    return vm.commits;
+                  });
+                }
+
+                function getNextBatchOfLog(page) {
                   return repoDetailService.getCommits(page).then(function(commits) {
                     if(commits.length == 0) {
                       return false;
@@ -402,8 +414,8 @@
 
         return;
 
-        function push() {
-          return $http.get('/repo/' + repoName + '/push').then(function(res) {
+        function push(remoteName, remoteBranch) {
+          return $http.get('/repo/' + repoName + '/push?remotename=' + remoteName + '&remotebranch=' + remoteBranch).then(function(res) {
             return res.data;
           });
         }

@@ -16,8 +16,17 @@ let git = {
     getDiffBetweenCommits: getDiffBetweenCommits,
     commit: commit,
     initRepo: initRepo,
-    pull: pull
+    pull: pull,
+    push: push
 };
+
+function push({req, res, repo}) {
+  let remoteBranch = req.query.remotebranch,
+      remoteName = req.query.remotename;
+
+  const child = spawnGitProcess(repo, ['push', remoteName, remoteBranch]);
+  redirectIO(child, req, res);
+}
 
 function pull({req, res, repo}) {
   let remoteBranch = req.query.remotebranch,

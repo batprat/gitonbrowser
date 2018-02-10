@@ -7,14 +7,15 @@
 -4. Lazy load commits - done
 -5. Show local changes. - done
 -6. Show Diff - done
+. Branching
 7. Toggle whitespace while showing diff
 -6. Stage files - done
 -7. Unstage files - done
 8. Show branches graph
 -. Show local and remote branches - done
-. Show tags
+-. Show tags
 -. Commit files - done
-. Push changes
+-. Push changes
 -. Pull - done
 . Stage selected lines
 . unstage selected lines

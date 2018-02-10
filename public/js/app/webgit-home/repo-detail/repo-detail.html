@@ -214,22 +214,22 @@
             <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           </div>
           <div class="modal-body">
-            <div class="container-fluid form-inline">
-              <div class="form-group row">
-                <div class="col-12">
-                  Branch to push
-                  <select class="form-control" id="local-branch-to-push">
-                    <option ng-repeat="localBranch in vm.localBranches" value="{{localBranch}}">{{localBranch}}</option>
-                  </select>
-                  to
-                  <select class="form-control" id="remote-branch-to-push-to">
-                    <option ng-repeat="remoteBranch in vm.remoteBranches" value="{{remoteBranch}}">{{remoteBranch}}</option>
-                  </select>
+            <div class="container-fluid">
+              <div class="form-inline">
+                <div class="form-group row">
+                  <div class="col-12">
+                    Push
+                    <input type="text" value="{{vm.currentLocalBranch}}" disabled="disabled" class="form-control" />
+                    to {{vm.remote}}/
+                    <select class="form-control" id="remote-branch-to-push-to" ng-model="vm.pushOptions.remoteBranch">
+                      <option ng-repeat="remoteBranch in vm.remoteBranches" value="{{remoteBranch}}">{{remoteBranch}}</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div class="row">
                 <div class="col-12">
-                  <button class="btn btn-primary pull-right" ng-click="vm.push()" ng-disabled="">Push</button>
+                  <button class="btn btn-primary pull-right" ng-click="vm.push()" ng-disabled="!vm.pushOptions.remoteBranch">Push</button>
                 </div>
               </div>
             </div>
