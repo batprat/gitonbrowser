@@ -97,4 +97,10 @@ router.get('/:id/pull', function(req, res) {
   git.pull({repo, req, res});
 });
 
+router.get('/:id/push', function(req, res) {
+  let repo = req.params.id;
+
+  git.push({repo, req, res});
+});
+
 module.exports = router;
