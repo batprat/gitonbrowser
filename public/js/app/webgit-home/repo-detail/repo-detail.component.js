@@ -38,6 +38,7 @@
                 vm.unstageAllFiles = unstageAllFiles;
                 vm.showPullDialog = showPullDialog;
                 vm.showPushDialog = showPushDialog;
+                vm.showStashDialog = showStashDialog;
                 vm.commit = commit;
                 vm.commitAndPush = commitAndPush;
                 vm.pull = pull;
@@ -62,10 +63,6 @@
                     vm.refreshLocalChanges();
                 });
 
-                $commitModal.on('hide.bs.modal', function (e) {
-                    
-                });
-
                 $responseModal.on('hide.bs.modal', function(e) {
                   $responseModalBody.html('');
                   $responseModalTitle.html('');
@@ -78,9 +75,13 @@
 
                 return;
 
+                function showStashDialog() {
+                    
+                }
+
                 function commitAndPush() {
                   commit().then(function() {
-                    // push
+                    vm.showPushDialog();
                   });
                 }
 
@@ -91,6 +92,7 @@
                 function push() {
                   $responseModal.one('hide.bs.modal', function() {
                     refreshLog();
+                    $pushModal.modal('hide');
                   });
                   $responseModalTitle.text('Pushing ' + vm.currentLocalBranch + ' to ' + vm.remote + '/' + vm.pushOptions.remoteBranch);
                   $responseModal.modal('show');
@@ -275,6 +277,9 @@
                 }
 
                 function showDiffForFileOnCommitModal(file) {
+                    if(!file) {
+                        return;
+                    }
                     vm.diffOnCommitModal = {
                         file: file
                     };
@@ -289,9 +294,12 @@
                 function showCommitDialog() {
                     // use vm.localStatus
                     $commitModal.modal('show');
-                    $commitModal.on('shown.bs.modal', function() {
+                    $commitModal.one('shown.bs.modal', function() {
                         // select the first commit to show the diff.
                         showDefaultFileOnCommitModalDialog();
+                    });
+                    $commitModal.one('hide.bs.modal', function() {
+                        vm.diffOnCommitModal = null;
                     });
                 }
 
