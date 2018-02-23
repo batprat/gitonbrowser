@@ -132,7 +132,7 @@
 
 #commit-dialog-diff {
     background: #e2e1e0;
-    padding-bottom: 15px;
+    padding: 15px;
 }
 
 #commit-dialog-diff .diff {
