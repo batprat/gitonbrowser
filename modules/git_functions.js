@@ -1,7 +1,7 @@
 const utils = require('./utils');
 const { spawn } = require('child_process');
 
-let showAllLogs = true;
+let showAllLogs = false;
 
 let git = {
     clone: clone,
@@ -17,8 +17,17 @@ let git = {
     commit: commit,
     initRepo: initRepo,
     pull: pull,
-    push: push
+    push: push,
+    getStashList: getStashList,
+    selectStash: selectStash
 };
+
+function selectStash({req, res, repo}) {
+  let name = req.query.name;
+
+  const child = spawnGitProcess(repo, ['stash', 'show', '-p', name]);
+  redirectIO(child, req, res);
+}
 
 function push({req, res, repo}) {
   let remoteBranch = req.query.remotebranch,
@@ -49,21 +58,30 @@ function pull({req, res, repo}) {
   redirectIO(child, req, res);
 }
 
+function getStashList({repo, req, res}) {
+  const child = spawnGitProcess(repo, ['stash', 'list']);
+
+  let stashesListPromise = redirectIO(child, req, res);
+}
+
 function initRepo({req, res, repo}) {
   // do multiple things.
   // get remote name      // git remote
   // get remoteBranches   // git branch -r
   // get local branches   // git branch
   // get current branch
+  // get stashes
 
   let remotePromise = getRemote(repo);
   let remoteBranchesPromise = getRemoteBranches(repo);
   let localBranchesInfoPromise = getLocalBranches(repo);
+  // let stashesListPromise = getStashList(repo);
 
   Promise.all([remotePromise, remoteBranchesPromise, localBranchesInfoPromise]).then(function(op) {
     let remote = op[0];
     let remoteBranches = op[1];
     let localBranchesInfo = op[2];
+    // let stashes = op[3];
 
     sendResponse(res, {
       output: {
@@ -71,6 +89,7 @@ function initRepo({req, res, repo}) {
         remoteBranches,
         localBranches: localBranchesInfo.locals,
         currentBranch: localBranchesInfo.current
+        //stashes: stashes
       },
       errorCode: 0
     });
@@ -263,7 +282,7 @@ function getCommit(options) {
 }
 
 function spawnGitProcess(repo, processOptions) {
-    console.log('path = ' + utils.decodePath(repo));
+    // console.log('path = ' + utils.decodePath(repo));
     return spawn('git', processOptions, {
         cwd: _getCwd(repo),
         stdio: [0, 'pipe', 'pipe']

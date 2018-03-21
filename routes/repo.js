@@ -103,4 +103,16 @@ router.get('/:id/push', function(req, res) {
   git.push({repo, req, res});
 });
 
+router.get('/:id/getstashlist', (req, res) => {
+    let repo = req.params.id;
+
+    git.getStashList({repo, req, res});
+});
+
+router.get('/:id/selectstash', (req, res) => {
+    let repo = req.params.id;
+
+    git.selectStash({repo, req, res});
+});
+
 module.exports = router;

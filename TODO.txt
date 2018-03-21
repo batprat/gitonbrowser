@@ -1,3 +1,4 @@
+. Start program using custom port
 . Continuous output for clone, pull
 -1. Clone Repository - done
 -. Specify ANY folder while cloning repository.
@@ -28,3 +29,6 @@
 . Show repo in conflicted state
 . Handle passwords for cloning
 . Handle passwords for pushing
+. Handle case when we fetch commits above the checked out commit. Then color the checked out commits and show the commits above with a disabled look.
+. Update without focusing.
+. encodeURIComponent instead of complex >>> structure.

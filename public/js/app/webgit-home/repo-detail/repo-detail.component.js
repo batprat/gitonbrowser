@@ -3,15 +3,20 @@
     var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
     var $commitModal = null;
+    var $pushModal = null;
+    var $stashModal = null;
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
+
+    var $sce = null;
     
     repoDetailModule
         .component('repoDetail', {
             templateUrl: '/js/app/webgit-home/repo-detail/repo-detail.html',
             controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService',
-              function RepoDetailController($routeParams, repoDetailService, $sce, $scope, $filter, UtilsService) {
+              function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService) {
+                $sce = $sceLocal;
                 // repoName = UtilsService.decodePath($routeParams.repoName);
                 repoName = $routeParams.repoName;
     
@@ -24,11 +29,12 @@
                 $commitModal = $('#commit-modal');
                 $pullModal = $('#pull-modal');
                 $pushModal = $('#push-modal');
+                $stashModal = $('#stash-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
                 vm.selectCommit = selectCommit;
-                vm.selectFile = selectFile;
+                vm.selectFileInLog = selectFileInLog;
                 vm.refreshLocalChanges = refreshLocalChanges;
                 vm.showCommitDialog = showCommitDialog;
                 vm.showDiffForFileOnCommitModal = showDiffForFileOnCommitModal;
@@ -39,10 +45,13 @@
                 vm.showPullDialog = showPullDialog;
                 vm.showPushDialog = showPushDialog;
                 vm.showStashDialog = showStashDialog;
+                vm.selectStash = selectStash;
                 vm.commit = commit;
                 vm.commitAndPush = commitAndPush;
                 vm.pull = pull;
                 vm.push = push;
+                vm.selectedStash = null;
+                vm.selectFileInStash = selectFileInStash;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -54,6 +63,7 @@
                 };
 
                 vm.commitMap = {};
+                vm.stashes = [];
 
                 $scope.$on('windowfocus', function() {
                     if(($commitModal.data('bs.modal') || {})._isShown) {
@@ -69,14 +79,93 @@
                 });
 
                 initialize();
-                refreshLog();
+                refreshLog().then(loadGraph);
                 vm.refreshLocalChanges();
                 bindLazyLoadingCommits();
 
+                // TODO: comment out this.
+                window.vm = vm;
+
                 return;
 
-                function showStashDialog() {
+                function loadGraph() {
                     
+                }
+
+                function selectFileInStash(file) {
+                    if(vm.selectedStash.name === 'Local Changes') {
+                        vm.selectedStash.selectedFile = file;
+                        repoDetailService.getFileDiff(file.fileName, file.tags).then(function(diff) {
+                            // debugger;
+                            var parsedDiff = parseDiff(diff);
+                            vm.selectedStash.selectedFile.safeDiff = parsedDiff[0].safeDiff;
+                            // vm.selectedStash.diffDetails = parseDiff(diff);
+                            // vm.selectedStash.selectedFile = vm.selectedStash.diffDetails[0];
+                            // vm.diffSelectedStashFile = vm.selectedStash.diffDetails[0].safeDiff;
+                        });
+                    }
+                    else {
+                        vm.selectedStash.selectedFile = file;
+                    }
+                }
+
+                /*
+                    Select a stash from list of stashes. And select the first file in the list.
+                */
+                function selectStash() {
+                    // TODO: Show loading dialog.
+                    var stash = vm.selectedStash;
+                    if(stash.name === 'Local Changes') {
+                        // show local changes.
+                        if(vm.localStatus) {
+                            vm.selectedStash.diffDetails = vm.localStatus.map(function(f) {
+                                return {
+                                    fileName: f.name,
+                                    commitType: f.tags.indexOf('added') > -1 ? 'new' : (f.tags.indexOf('deleted') > -1 ? 'deleted' : 'modified'),
+                                    tags: f.tags
+                                };
+                            });
+
+                            vm.selectedStash.selectedFile = vm.selectedStash.diffDetails[0];
+
+                            selectFileInStash(vm.selectedStash.selectedFile);
+                        }
+
+                        return;
+                    }
+                    return repoDetailService.selectStash(stash).then(function(op) {
+                        vm.selectedStash.diffDetails = parseDiff(op.output.join(''));
+                        vm.selectedStash.selectedFile = vm.selectedStash.diffDetails[0];
+                        vm.diffSelectedStashFile = vm.selectedStash.diffDetails[0].safeDiff;
+                    });
+                }
+
+                function showStashDialog() {
+                    // TODO: Show loading dialog.
+                    updateStashes();
+                    $stashModal.modal('show');
+                }
+
+                function updateStashes() {
+                    return repoDetailService.getStashList().then(function(stashList) {
+                        stashList = stashList.output.join('').trim().split('\n');
+
+                        vm.stashes = stashList.map(function(s) {
+                            s = s.split(/:(.+)/);
+    
+                            return {
+                                name: s[0],
+                                description: s[1]
+                            };
+                        });
+    
+                        var local = {name: 'Local Changes', description: 'There are no stashes.'};
+                        vm.selectedStash = vm.stashes.length > 0 ? vm.stashes[0] : local;
+    
+                        vm.stashes.splice(0, 0, local);
+
+                        vm.selectStash();
+                    });
                 }
 
                 function commitAndPush() {
@@ -320,7 +409,7 @@
                     });
                 }
 
-                function selectFile(file) {
+                function selectFileInLog(file) {
                     vm.selectedFileDiff = $sce.trustAsHtml(file.diff);
                     vm.selectedFileDiffRaw = file.diff;
                 }
@@ -375,7 +464,7 @@
     
                             vm.commitDetails.diffDetails = parseDiff(vm.commitDetails.diff);
                             // pre select the first file of the commit.
-                            vm.selectFile(vm.commitDetails.diffDetails[0]);
+                            vm.selectFileInLog(vm.commitDetails.diffDetails[0]);
                         }
 
                         if(isMergeCommit) {
@@ -384,7 +473,7 @@
 
                                 vm.commitDetails.diffDetails = parseDiff(vm.commitDetails.diff);
                                 // pre select the first file of the commit.
-                                vm.selectFile(vm.commitDetails.diffDetails[0]);
+                                vm.selectFileInLog(vm.commitDetails.diffDetails[0]);
                             });
                         }
                     });
@@ -420,7 +509,23 @@
 
         this.push = push;
 
+        this.selectStash = selectStash;
+
+        this.getStashList = getStashList;
+
         return;
+
+        function getStashList() {
+            return $http.get('/repo/' + repoName + '/getstashlist').then(function(res) {
+                return res.data;
+            });
+        }
+
+        function selectStash(stash) {
+            return $http.get('/repo/' + repoName + '/selectstash?name=' + stash.name).then(function(res) {
+                return res.data;
+            });
+        }
 
         function push(remoteName, remoteBranch) {
           return $http.get('/repo/' + repoName + '/push?remotename=' + remoteName + '&remotebranch=' + remoteBranch).then(function(res) {
@@ -542,48 +647,60 @@
     function parseLocalStatus(data) {
         data = data.split('\n').filter(function(d) { return d.length > 0; });
 
-        var t = data.map(function(f) {
-            var fileTags = [];
 
+        var t = [];
+        data.forEach(function(f) {
+            var fileTags = [];
             switch(f[0]) {
                 case 'M': {
-                    fileTags.push('modifiedstaged', 'staged');
+                    fileTags.push('modified', 'modifiedstaged', 'staged');
                     break;
                 }
                 case 'D': {
-                    fileTags.push('deletedstaged', 'staged');
+                    fileTags.push('deleted', 'deletedstaged', 'staged');
                     break;
                 }
                 case 'A': {
-                    fileTags.push('addedstaged', 'staged');
+                    fileTags.push('added', 'addedstaged', 'staged');
                     break;
                 }
             }
+            if(f[0].trim().length) {
+                t.push({
+                    name: f.substring(3),
+                    tags: fileTags
+                });
+            }
+
+            fileTags = [];
 
             switch(f[1]) {
                 case 'M': {
-                    fileTags.push('modifiedunstaged', 'unstaged');
+                    fileTags.push('modified', 'modifiedunstaged', 'unstaged');
                     break;
                 }
                 case 'D': {
-                    fileTags.push('deletedunstaged', 'unstaged');
+                    fileTags.push('deleted', 'deletedunstaged', 'unstaged');
                     break;
                 }
                 case '?': {
-                    fileTags.push('addedunstaged', 'unstaged', 'untracked');
+                    fileTags.push('added', 'addedunstaged', 'unstaged', 'untracked');
                     break;
                 }
             }
+            if(f[1].trim().length) {
+                t.push({
+                    name: f.substring(3),
+                    tags: fileTags
+                });
+            }
 
-            return {
-                name: f.substring(3),
-                tags: fileTags
-            };
         });
 
         return t;
     }
 
+    // Accepts a diff string and parses into diff object
     function parseDiff(diff) {
         var diffDetails = [];
         diff = diff.split('\n');
@@ -620,6 +737,7 @@
                         }
 
                         currDiff.diff = currDiff.diff + '\n' + formattedStr;
+                        currDiff.safeDiff = $sce.trustAsHtml(currDiff.diff);
                     }
                 }
             }
