@@ -239,6 +239,7 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     margin-top: 15px;
+    margin-bottom: 15px;
     min-height: 150px;
 }
 
@@ -246,4 +247,8 @@
     margin-bottom: 15px;
     margin-top: 15px;
     min-height: 150px;
+}
+
+.btn-group-stash-local-changes {
+    width: 100%;
 }

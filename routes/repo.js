@@ -115,4 +115,22 @@ router.get('/:id/selectstash', (req, res) => {
     git.selectStash({repo, req, res});
 });
 
+router.post('/:id/stashlocal', (req, res) => {
+    let repo = req.params.id;
+
+    git.stashLocalChanges({repo, req, res});
+});
+
+router.delete('/:id/dropstash/:stashName', (req, res) => {
+    let repo = req.params.id;
+
+    git.dropStash({repo, req, res});
+});
+
+router.post('/:id/applystash', (req, res) => {
+    let repo = req.params.id;
+
+    git.applyStash({repo, req, res});
+});
+
 module.exports = router;

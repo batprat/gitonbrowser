@@ -19,8 +19,37 @@ let git = {
     pull: pull,
     push: push,
     getStashList: getStashList,
-    selectStash: selectStash
+    selectStash: selectStash,
+    stashLocalChanges: stashLocalChanges,
+    dropStash: dropStash,
+    applyStash: applyStash
 };
+
+function applyStash({req, res, repo}) {
+  let name = req.body.name;
+  let pop = req.body.pop;
+
+  console.log('name = ' + name + ' pop = ' + pop);
+  const child = spawnGitProcess(repo, ['stash', pop ? 'pop' : 'apply', name]);
+  redirectIO(child, req, res);
+}
+
+function dropStash({req, res, repo}) {
+  let name = req.params.stashName;
+  const child = spawnGitProcess(repo, ['stash', 'drop', name]);
+  redirectIO(child, req, res);
+}
+
+function stashLocalChanges({req, res, repo}) {
+  let includeUntracked = req.body.includeUntracked;
+
+  let options = ['stash', 'save'];
+  if(includeUntracked) {
+    options.push('-u');
+  }
+  const child = spawnGitProcess(repo, options);
+  redirectIO(child, req, res);
+}
 
 function selectStash({req, res, repo}) {
   let name = req.query.name;
