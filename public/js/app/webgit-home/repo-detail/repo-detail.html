@@ -278,9 +278,19 @@
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <button class="btn btn-default btn-block">Save Changes</button>
-                            <button class="btn btn-default btn-block">Delete Selected</button>
-                            <button class="btn btn-default btn-block">Apply Selected</button>
+                            <div class="btn-group btn-group-toggle btn-group-stash-local-changes">
+                                <button class="btn btn-primary btn-block" ng-disabled="vm.selectedStash.name != 'Local Changes'" ng-click="vm.stashLocalChanges()">Save Changes</button>
+                                <label class="btn btn-primary" ng-class="{'active': vm.stashLocalIncludeUntracked}">
+                                    <input type="checkbox" autocomplete="off" checked ng-model="vm.stashLocalIncludeUntracked"> + Untracked
+                                </label>
+                            </div>
+                            <button class="btn btn-primary btn-block" ng-disabled="vm.selectedStash.name == 'Local Changes'" ng-click="vm.dropSelectedStash()">Delete Selected</button>
+                            <div class="btn-group btn-group-toggle btn-group-stash-local-changes">
+                                <button class="btn btn-primary btn-block" ng-disabled="vm.selectedStash.name == 'Local Changes'" ng-click="vm.applyStash()">Apply Stash</button>
+                                <label class="btn btn-primary" ng-class="{'active': vm.popStash}">
+                                    <input type="checkbox" ng-model="vm.popStash"> + Delete
+                                </label>
+                            </div>
                         </div>
                     </div>
                   </div>

@@ -52,6 +52,9 @@
                 vm.push = push;
                 vm.selectedStash = null;
                 vm.selectFileInStash = selectFileInStash;
+                vm.stashLocalChanges = stashLocalChanges;
+                vm.dropSelectedStash = dropSelectedStash;
+                vm.applyStash = applyStash;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -61,6 +64,8 @@
                 vm.pullOptions = {
                   mergeOption: 'merge'
                 };
+                vm.stashLocalIncludeUntracked = true;
+                vm.popStash = false;
 
                 vm.commitMap = {};
                 vm.stashes = [];
@@ -92,6 +97,45 @@
                     
                 }
 
+                function applyStash() {
+                    $responseModalTitle.text('Applying Stash ' + vm.selectedStash.name);
+                    $responseModal.modal('show');
+                    return repoDetailService.applyStash(vm.selectedStash.name, vm.popStash).then(function(d) {
+                        if(d.errorCode) {
+                            $responseModalBody.html(d.errors.join('<br />').replace(/\n/g, '<br />'));
+                        }
+                        else {
+                            $responseModalBody.html(d.output.join('<br />').replace(/\n/g, '<br />'));
+                        }
+
+                        if(!d.errorCode) {
+                            if(vm.popStash) {
+                                updateStashes();
+                            }
+                            refreshLocalChanges();
+                        }
+                    });
+                }
+
+                function dropSelectedStash() {
+                    $responseModalTitle.text('Dropping Stash ' + vm.selectedStash.name);
+                    $responseModal.modal('show');
+                    return repoDetailService.dropSelectedStash(vm.selectedStash.name).then(function(d) {
+                        $responseModalBody.html(d.output.join('<br />'));
+                        updateStashes();
+                    });
+                }
+
+                function stashLocalChanges() {
+                    $responseModalTitle.text('Saving Local Changes...');
+                    $responseModal.modal('show');
+                    return repoDetailService.stashLocalChanges(vm.stashLocalIncludeUntracked).then(function(d) {
+                        $responseModalBody.html(d.output.join('<br />'));
+                        refreshLocalChanges();
+                        updateStashes();
+                    });
+                }
+                
                 function selectFileInStash(file) {
                     if(vm.selectedStash.name === 'Local Changes') {
                         vm.selectedStash.selectedFile = file;
@@ -99,16 +143,13 @@
                             // debugger;
                             var parsedDiff = parseDiff(diff);
                             vm.selectedStash.selectedFile.safeDiff = parsedDiff[0].safeDiff;
-                            // vm.selectedStash.diffDetails = parseDiff(diff);
-                            // vm.selectedStash.selectedFile = vm.selectedStash.diffDetails[0];
-                            // vm.diffSelectedStashFile = vm.selectedStash.diffDetails[0].safeDiff;
                         });
                     }
                     else {
                         vm.selectedStash.selectedFile = file;
                     }
                 }
-
+                
                 /*
                     Select a stash from list of stashes. And select the first file in the list.
                 */
@@ -117,6 +158,9 @@
                     var stash = vm.selectedStash;
                     if(stash.name === 'Local Changes') {
                         // show local changes.
+                        if(repoDetailService.selectStash.canceler) {
+                            repoDetailService.selectStash.canceler.resolve();
+                        }
                         if(vm.localStatus) {
                             vm.selectedStash.diffDetails = vm.localStatus.map(function(f) {
                                 return {
@@ -133,6 +177,7 @@
 
                         return;
                     }
+
                     return repoDetailService.selectStash(stash).then(function(op) {
                         vm.selectedStash.diffDetails = parseDiff(op.output.join(''));
                         vm.selectedStash.selectedFile = vm.selectedStash.diffDetails[0];
@@ -158,8 +203,9 @@
                                 description: s[1]
                             };
                         });
-    
-                        var local = {name: 'Local Changes', description: 'There are no stashes.'};
+                        
+                        // TODO: if no local changes, show no local changes in description.
+                        var local = {name: 'Local Changes', description: 'Local changes.'};
                         vm.selectedStash = vm.stashes.length > 0 ? vm.stashes[0] : local;
     
                         vm.stashes.splice(0, 0, local);
@@ -483,37 +529,45 @@
             controllerAs: 'vm'
         }); 
         
-    repoDetailModule.service('repoDetailService', ['$http', function($http) {
+    repoDetailModule.service('repoDetailService', ['$http', '$q', function($http, $q) {
         this.unstageFile = unstageFile;
-
         this.stageFile = stageFile;
-
         this.getFileDiff = getFileDiff;
-
         this.refreshLocalChanges = refreshLocalChanges;
         this.getCommits = getCommits;
-
         this.getCommit = getCommit;
-
         this.stageAllFiles = stageAllFiles;
-
         this.unstageAllFiles = unstageAllFiles;
-
         this.getDiff = getDiffBetweenCommits;
-
         this.commit = commit;
-
         this.initRepo = initRepo;
-
         this.pull = pull;
-
         this.push = push;
-
         this.selectStash = selectStash;
-
         this.getStashList = getStashList;
+        this.stashLocalChanges = stashLocalChanges;
+        this.dropSelectedStash = dropSelectedStash;
+        this.applyStash = applyStash;
 
         return;
+
+        function applyStash(name, pop) {
+            return $http.post('/repo/' + repoName + '/applystash', {pop: pop, name: name}).then(function(res) {
+                return res.data;
+            });
+        }
+
+        function dropSelectedStash(stashName) {
+            return $http.delete('/repo/' + repoName + '/dropstash/' + stashName).then(function (res) {
+                return res.data;
+            });
+        }
+
+        function stashLocalChanges(includeUntracked) {
+            return $http.post('/repo/' + repoName + '/stashlocal', {includeUntracked: includeUntracked}).then(function(res) {
+                return res.data;
+            });
+        }
 
         function getStashList() {
             return $http.get('/repo/' + repoName + '/getstashlist').then(function(res) {
@@ -522,7 +576,12 @@
         }
 
         function selectStash(stash) {
-            return $http.get('/repo/' + repoName + '/selectstash?name=' + stash.name).then(function(res) {
+            if(selectStash.canceler) {
+                // if this request already exists, cancel the request;
+                selectStash.canceler.resolve();
+            }
+            selectStash.canceler = $q.defer();
+            return $http.get('/repo/' + repoName + '/selectstash?name=' + stash.name, {timeout: selectStash.canceler.promise}).then(function(res) {
                 return res.data;
             });
         }
@@ -616,7 +675,12 @@
         }
 
         function getFileDiff(file, tags) {
-            return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
+            if(getFileDiff.canceler) {
+                // if this request already exists, cancel the request;
+                getFileDiff.canceler.resolve();
+            }
+            getFileDiff.canceler = $q.defer();
+            return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(',')), {timeout: getFileDiff.canceler.promise}).then(function(res) {
                 if(!res.data.errorCode) {
                     return res.data.output.join('\n');
                 }
