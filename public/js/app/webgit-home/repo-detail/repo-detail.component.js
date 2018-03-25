@@ -5,6 +5,7 @@
     var $commitModal = null;
     var $pushModal = null;
     var $stashModal = null;
+    var $resetAllFilesModal = null;
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
@@ -30,6 +31,7 @@
                 $pullModal = $('#pull-modal');
                 $pushModal = $('#push-modal');
                 $stashModal = $('#stash-modal');
+                $resetAllFilesModal = $('#reset-all-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
@@ -55,6 +57,8 @@
                 vm.stashLocalChanges = stashLocalChanges;
                 vm.dropSelectedStash = dropSelectedStash;
                 vm.applyStash = applyStash;
+                vm.showResetAllFilesModal = showResetAllFilesModal;
+                vm.resetAllChanges = resetAllChanges;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -66,6 +70,7 @@
                 };
                 vm.stashLocalIncludeUntracked = true;
                 vm.popStash = false;
+                vm.resetAllDeleteUntracked = false;
 
                 vm.commitMap = {};
                 vm.stashes = [];
@@ -95,6 +100,27 @@
 
                 function loadGraph() {
                     
+                }
+
+                function showResetAllFilesModal() {
+                    $resetAllFilesModal.modal('show');
+                }
+
+                function resetAllChanges() {
+                    var deleteUntrackedFiles = vm.resetAllDeleteUntracked;
+
+                    return repoDetailService.resetAllChanges(deleteUntrackedFiles).then(function(d) {
+                        $resetAllFilesModal.modal('hide');
+                        refreshLocalChanges();
+
+                        if(!d.errorCode) {
+                            return;
+                        }
+
+                        $responseModalTitle.html('Reset output');
+                        $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
+                        $responseModalBody.modal('show');
+                    });
                 }
 
                 function applyStash() {
@@ -251,12 +277,18 @@
                 function initialize() {
                   return repoDetailService.initRepo().then(function(d) {
                     vm.remote = d.remote;
-                    vm.remoteBranches = d.remoteBranches.slice(1).map(function(b) {
-                      // remove `origin/` from the branch names.
-                      return b.substring('origin/'.length);
-                    });    // first is the reference to origin/HEAD
+                    vm.remoteBranches = d.remoteBranches.slice(1)
+                                            .map(function(b) {
+                                                // remove `origin/` from the branch names.
+                                                return b.substring('origin/'.length);
+                                            });    // first is the reference to origin/HEAD
                     vm.currentLocalBranch = d.currentBranch;
                     vm.localBranches = d.localBranches;
+
+                    // try to determine the default selected  remote branch in the pull dialog
+                    if(vm.remoteBranches.indexOf('origin/' + vm.currentLocalBranch) > -1) {
+                        vm.pullOptions.remoteBranch = 'origin/' + vm.currentLocalBranch;
+                    }
                   });
                 }
 
@@ -413,6 +445,7 @@
 
                 function showDiffForFileOnCommitModal(file) {
                     if(!file) {
+                        vm.diffOnCommitModal.safeDiff = '';
                         return;
                     }
                     vm.diffOnCommitModal = {
@@ -548,8 +581,15 @@
         this.stashLocalChanges = stashLocalChanges;
         this.dropSelectedStash = dropSelectedStash;
         this.applyStash = applyStash;
+        this.resetAllChanges = resetAllChanges;
 
         return;
+
+        function resetAllChanges(deleteUntracked) {
+            return $http.post('/repo/' + repoName + '/resetall', {deleteUntracked: deleteUntracked}).then(function(res) {
+                return res.data;
+            });
+        }
 
         function applyStash(name, pop) {
             return $http.post('/repo/' + repoName + '/applystash', {pop: pop, name: name}).then(function(res) {
@@ -729,7 +769,7 @@
                     break;
                 }
             }
-            if(f[0].trim().length) {
+            if(f[0].trim().length && f[0] != '?') {     // `?` == untracked, will be handled below.
                 t.push({
                     name: f.substring(3),
                     tags: fileTags

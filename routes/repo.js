@@ -133,4 +133,10 @@ router.post('/:id/applystash', (req, res) => {
     git.applyStash({repo, req, res});
 });
 
+router.post('/:id/resetall', (req, res) => {
+    let repo = req.params.id;
+
+    git.resetAllChanges({repo, req, res});
+});
+
 module.exports = router;
