@@ -6,6 +6,7 @@
     var $pushModal = null;
     var $stashModal = null;
     var $resetAllFilesModal = null;
+    var $resetUnstagedFilesModal = null;
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
@@ -32,6 +33,7 @@
                 $pushModal = $('#push-modal');
                 $stashModal = $('#stash-modal');
                 $resetAllFilesModal = $('#reset-all-modal');
+                $resetUnstagedFilesModal = $('#reset-unstaged-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
@@ -59,6 +61,8 @@
                 vm.applyStash = applyStash;
                 vm.showResetAllFilesModal = showResetAllFilesModal;
                 vm.resetAllChanges = resetAllChanges;
+                vm.showResetUnstagedFilesModal = showResetUnstagedFilesModal;
+                vm.resetUnstagedChanges = resetUnstagedChanges;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -102,8 +106,29 @@
                     
                 }
 
+                function showResetUnstagedFilesModal() {
+                    $resetUnstagedFilesModal.modal('show');
+                }
+
                 function showResetAllFilesModal() {
                     $resetAllFilesModal.modal('show');
+                }
+
+                function resetUnstagedChanges() {
+                    var deleteUntrackedFiles = vm.resetUnstagedDeleteUntracked;
+
+                    return repoDetailService.resetUnstagedChanges(deleteUntrackedFiles).then(function(d) {
+                        $resetUnstagedFilesModal.modal('hide');
+                        refreshLocalChanges();
+
+                        if(!d.errorCode) {
+                            return;
+                        }
+
+                        $responseModalTitle.html('Reset output');
+                        $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
+                        $responseModalBody.modal('show');
+                    });
                 }
 
                 function resetAllChanges() {
@@ -582,8 +607,15 @@
         this.dropSelectedStash = dropSelectedStash;
         this.applyStash = applyStash;
         this.resetAllChanges = resetAllChanges;
+        this.resetUnstagedChanges = resetUnstagedChanges;
 
         return;
+
+        function resetUnstagedChanges(deleteUntracked) {
+            return $http.post('/repo/' + repoName + '/resetunstaged', {deleteUntracked: deleteUntracked}).then(function(res) {
+                return res.data;
+            });
+        }
 
         function resetAllChanges(deleteUntracked) {
             return $http.post('/repo/' + repoName + '/resetall', {deleteUntracked: deleteUntracked}).then(function(res) {
