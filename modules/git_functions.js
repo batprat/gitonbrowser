@@ -23,8 +23,28 @@ let git = {
     stashLocalChanges: stashLocalChanges,
     dropStash: dropStash,
     applyStash: applyStash,
-    resetAllChanges: resetAllChanges
+    resetAllChanges: resetAllChanges,
+    resetUnstagedChanges: resetUnstagedChanges
 };
+
+function resetUnstagedChanges({req, res, repo}) {
+  let deleteUntracked = req.body.deleteUntracked;
+
+  if(!deleteUntracked) {
+    const child = spawnGitProcess(repo, ['checkout', '.']);
+    redirectIO(child, req, res);
+    return;
+  }
+  else {
+    const child = spawnGitProcess(repo, ['clean', '-fd']);
+    let cleanPromise = redirectIO(child, null, null);
+
+    cleanPromise.then(function(cleanInfo) {
+      const child2 = spawnGitProcess(repo, ['checkout', '.']);
+      redirectIO(child2, req, res, {cleanInfo: cleanInfo});
+    });
+  }
+}
 
 function resetAllChanges({req, res, repo}) {
   let deleteUntracked = req.body.deleteUntracked;

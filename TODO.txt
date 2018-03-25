@@ -33,3 +33,4 @@
 . Update without focusing.
 . encodeURIComponent instead of complex >>> structure.
 -. Reset all changes
+-. Reset unstaged changes

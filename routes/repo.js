@@ -139,4 +139,10 @@ router.post('/:id/resetall', (req, res) => {
     git.resetAllChanges({repo, req, res});
 });
 
+router.post('/:id/resetunstaged', (req, res) => {
+    let repo = req.params.id;
+
+    git.resetUnstagedChanges({repo, req, res});
+});
+
 module.exports = router;
