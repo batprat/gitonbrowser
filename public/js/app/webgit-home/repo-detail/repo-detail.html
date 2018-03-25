@@ -127,7 +127,7 @@
                                     <div class="col-sm-4" id="commit-dialog-actions">
                                         <button class="btn btn-sm commit-dialog-btn btn-outline-info" ng-click="vm.commit()">Commit</button>
                                         <button class="btn btn-sm commit-dialog-btn btn-outline-success" ng-click="vm.commitAndPush()">Commit &amp; Push</button>
-                                        <button class="btn btn-sm commit-dialog-btn btn-outline-danger" disabled>Reset all changes</button>
+                                        <button class="btn btn-sm commit-dialog-btn btn-outline-danger" ng-click="vm.showResetAllFilesModal()">Reset all changes</button>
                                         <button class="btn btn-sm commit-dialog-btn btn-outline-warning" disabled>Reset unstaged changes</button>
                                     </div>
                                     <div class="col-sm-8" id="commit-dialog-message">
@@ -278,29 +278,58 @@
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <div class="btn-group btn-group-toggle btn-group-stash-local-changes">
+                            <div class="btn-group btn-group-toggle btn-group-stash-local-changes btn-stash-action">
                                 <button class="btn btn-primary btn-block" ng-disabled="vm.selectedStash.name != 'Local Changes'" ng-click="vm.stashLocalChanges()">Save Changes</button>
-                                <label class="btn btn-primary" ng-class="{'active': vm.stashLocalIncludeUntracked}">
-                                    <input type="checkbox" autocomplete="off" checked ng-model="vm.stashLocalIncludeUntracked"> + Untracked
+                                <label class="btn btn-primary" ng-class="{'active': vm.stashLocalIncludeUntracked, 'disabled': vm.selectedStash.name != 'Local Changes'}">
+                                    <input type="checkbox" ng-disabled="vm.selectedStash.name != 'Local Changes'" ng-model="vm.stashLocalIncludeUntracked"> + Untracked
                                 </label>
                             </div>
-                            <button class="btn btn-primary btn-block" ng-disabled="vm.selectedStash.name == 'Local Changes'" ng-click="vm.dropSelectedStash()">Delete Selected</button>
-                            <div class="btn-group btn-group-toggle btn-group-stash-local-changes">
+                            <button class="btn btn-primary btn-block btn-stash-action" ng-disabled="vm.selectedStash.name == 'Local Changes'" ng-click="vm.dropSelectedStash()">Delete Selected</button>
+                            <div class="btn-group btn-group-toggle btn-group-stash-local-changes btn-stash-action">
                                 <button class="btn btn-primary btn-block" ng-disabled="vm.selectedStash.name == 'Local Changes'" ng-click="vm.applyStash()">Apply Stash</button>
-                                <label class="btn btn-primary" ng-class="{'active': vm.popStash}">
-                                    <input type="checkbox" ng-model="vm.popStash"> + Delete
+                                <label class="btn btn-primary" ng-class="{'active': vm.popStash, 'disabled': vm.selectedStash.name == 'Local Changes'}">
+                                    <input type="checkbox" ng-disabled="vm.selectedStash.name == 'Local Changes'" ng-model="vm.popStash"> + Delete
                                 </label>
                             </div>
                         </div>
                     </div>
                   </div>
-                  <div class="col-7 diff" ng-bind-html="vm.selectedStash.selectedFile.safeDiff">
-                    
-                  </div>
+                  <div class="col-7 diff" ng-bind-html="vm.selectedStash.selectedFile.safeDiff"></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+    </div>
+    <div class="modal fade" id="reset-all-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">[Alert!]Reset All Changes</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <div>Are you sure you want to Reset All Changes?</div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="resetAllDeleteUntracked" ng-model="vm.resetAllDeleteUntracked">
+                                    <label class="form-check-label" for="resetAllDeleteUntracked">Also Delete Untracked Files</label>
+                                </div>
+                                <div class="alert alert-danger" role="alert">
+                                    Caution! This will reset all files (revert all your changes) even if they are staged.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <button class="btn btn-danger pull-right" ng-click="vm.resetAllChanges()">Reset All Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

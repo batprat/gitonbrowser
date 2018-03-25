@@ -22,14 +22,43 @@ let git = {
     selectStash: selectStash,
     stashLocalChanges: stashLocalChanges,
     dropStash: dropStash,
-    applyStash: applyStash
+    applyStash: applyStash,
+    resetAllChanges: resetAllChanges
 };
+
+function resetAllChanges({req, res, repo}) {
+  let deleteUntracked = req.body.deleteUntracked;
+
+  if(!deleteUntracked) {
+    const child = spawnGitProcess(repo, ['reset', 'HEAD']);
+    let resetPromise = redirectIO(child, null, null);
+
+    resetPromise.then(function(resetInfo) {
+      const child2 = spawnGitProcess(repo, ['checkout', '.']);
+      redirectIO(child2, req, res, {resetInfo: resetInfo});
+    });
+    return;
+  }
+  else {
+    const child = spawnGitProcess(repo, ['reset', 'HEAD']);
+    let resetPromise = redirectIO(child, null, null);
+
+    resetPromise.then(function(resetInfo) {
+      const child2 = spawnGitProcess(repo, ['clean', '-fd']);
+      let cleanPromise = redirectIO(child2, null, null);
+
+      cleanPromise.then(function(cleanInfo) {
+        const child3 = spawnGitProcess(repo, ['checkout', '.']);
+        redirectIO(child3, req, res, {cleanInfo: cleanInfo, resetInfo: resetInfo});
+      });
+    });
+  }
+}
 
 function applyStash({req, res, repo}) {
   let name = req.body.name;
   let pop = req.body.pop;
 
-  console.log('name = ' + name + ' pop = ' + pop);
   const child = spawnGitProcess(repo, ['stash', pop ? 'pop' : 'apply', name]);
   redirectIO(child, req, res);
 }
@@ -139,7 +168,7 @@ function getLocalBranches(repo) {
   let localBranchesPromise = redirectIO(child, null, null);
   return localBranchesPromise.then(function(res) {
     if(!res.errorCode) {
-      let localBranches = res.output[0].trim().split('\n');
+      let localBranches = res.output.join('\n').trim().split('\n');
       let branchInfo = {
         locals: [],
         current: ''
