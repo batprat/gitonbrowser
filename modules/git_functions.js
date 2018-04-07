@@ -24,8 +24,26 @@ let git = {
     dropStash: dropStash,
     applyStash: applyStash,
     resetAllChanges: resetAllChanges,
-    resetUnstagedChanges: resetUnstagedChanges
+    resetUnstagedChanges: resetUnstagedChanges,
+    createNewBranch: createNewBranch
 };
+
+function createNewBranch({req, res, repo}) {
+  let revision = req.body.revision;
+  let checkoutAfterCreate = req.body.checkoutAfterCreate;
+  let branchName = req.body.branchName;
+
+  let options = null;
+
+  if(checkoutAfterCreate) {
+    options = ['checkout', '-b', branchName, revision];
+  } 
+  else {
+    options = ['branch', branchName, revision];
+  }
+  const child = spawnGitProcess(repo, options);
+  redirectIO(child, req, res);
+}
 
 function resetUnstagedChanges({req, res, repo}) {
   let deleteUntracked = req.body.deleteUntracked;

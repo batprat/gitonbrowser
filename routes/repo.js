@@ -145,4 +145,10 @@ router.post('/:id/resetunstaged', (req, res) => {
     git.resetUnstagedChanges({repo, req, res});
 });
 
+router.post('/:id/createnewbranch', (req, res) => {
+    let repo = req.params.id;
+
+    git.createNewBranch({repo, req, res});
+});
+
 module.exports = router;

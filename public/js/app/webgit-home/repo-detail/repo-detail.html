@@ -8,7 +8,7 @@
         <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()">S</button>
     </div>
     <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
-        <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}">
+        <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
             <div class="col-sm-7">
                 <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
                 <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
@@ -356,6 +356,48 @@
                         <div class="row">
                             <div class="col-12">
                                 <button class="btn btn-danger pull-right" ng-click="vm.resetUnstagedChanges()">Reset All Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="new-branch-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create a new Branch</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-inline">
+                                    <div class="form-group row row-vertical-margin">
+                                        <div class="col-12">
+                                            Create branch at this revision
+                                            <input type="text" value="{{vm.newBranch.atRevision}}" disabled="disabled" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row row-vertical-margin">
+                                        <div class="col-12">
+                                            Branch Name
+                                            <input type="text" class="form-control" ng-model="vm.newBranch.name" />
+                                        </div>
+                                    </div>
+                                    <div class="form-group row row-vertical-margin">
+                                        <div class="col-12">
+                                            <label><input type="checkbox" ng-model="vm.newBranch.checkout"> Checkout after create</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row row-vertical-margin">
+                            <div class="col-12">
+                                <button class="btn btn-primary pull-right" ng-click="vm.createNewBranch()">Create Branch</button>
                             </div>
                         </div>
                     </div>
