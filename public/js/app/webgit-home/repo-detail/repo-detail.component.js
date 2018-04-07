@@ -7,6 +7,7 @@
     var $stashModal = null;
     var $resetAllFilesModal = null;
     var $resetUnstagedFilesModal = null;
+    var $newBranchModal = null;
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
@@ -34,6 +35,7 @@
                 $stashModal = $('#stash-modal');
                 $resetAllFilesModal = $('#reset-all-modal');
                 $resetUnstagedFilesModal = $('#reset-unstaged-modal');
+                $newBranchModal = $('#new-branch-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
@@ -63,6 +65,7 @@
                 vm.resetAllChanges = resetAllChanges;
                 vm.showResetUnstagedFilesModal = showResetUnstagedFilesModal;
                 vm.resetUnstagedChanges = resetUnstagedChanges;
+                vm.createNewBranch = createNewBranch;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -78,6 +81,11 @@
 
                 vm.commitMap = {};
                 vm.stashes = [];
+                vm.newBranch = {
+                    atRevision: '',
+                    name: '',
+                    checkout: true
+                };
 
                 $scope.$on('windowfocus', function() {
                     if(($commitModal.data('bs.modal') || {})._isShown) {
@@ -100,10 +108,55 @@
                 // TODO: comment out this.
                 window.vm = vm;
 
+                initLogContextMenu();
+
                 return;
+
+                function initLogContextMenu() {
+                    var rightClickedCommitHash = null;
+                    $('#main-log-container').on('contextmenu', '.commit', function(a, b, c) {
+                        rightClickedCommitHash = $(this).data('commitHash');
+                        selectCommit(rightClickedCommitHash);
+                    });
+
+                    var menu = new BootstrapMenu('#main-log-container .commit', {
+                        actions: [
+                            {
+                                name: 'Create new branch',
+                                onClick: function () {
+                                    showNewBranchModal(rightClickedCommitHash);
+                                }
+                            }
+                        ]
+                    });
+                }
 
                 function loadGraph() {
                     
+                }
+
+                function createNewBranch() {
+                    var revision = vm.newBranch.atRevision;
+                    var checkoutAfterCreate = vm.newBranch.checkout;
+                    var branchName = vm.newBranch.name;
+                    return repoDetailService.createNewBranch(revision, branchName, checkoutAfterCreate).then(function(d) {
+                        $newBranchModal.modal('hide');
+                        var text = d.errors.join('\n').trim();
+                        if(text.length) {
+                            $responseModalTitle.html('Create New Branch');
+                            $responseModalBody.html(text.replace('\n', '<br />'));
+                            $responseModal.modal('show');
+                        }
+                        refreshLog();
+                    });
+                }
+
+                function showNewBranchModal(commitHash) {
+                    vm.newBranch.atRevision = commitHash;
+                    vm.newBranch.name = '';
+                    vm.newBranch.checkout = true;
+                    $newBranchModal.modal('show');
+                    $scope.$apply();                        // guilty :(
                 }
 
                 function showResetUnstagedFilesModal() {
@@ -608,8 +661,15 @@
         this.applyStash = applyStash;
         this.resetAllChanges = resetAllChanges;
         this.resetUnstagedChanges = resetUnstagedChanges;
+        this.createNewBranch = createNewBranch;
 
         return;
+
+        function createNewBranch(revision, branchName, checkoutAfterCreate) {
+            return $http.post('/repo/' + repoName + '/createnewbranch', {revision: revision, branchName: branchName, checkoutAfterCreate: checkoutAfterCreate}).then(function(res) {
+                return res.data;
+            });
+        }
 
         function resetUnstagedChanges(deleteUntracked) {
             return $http.post('/repo/' + repoName + '/resetunstaged', {deleteUntracked: deleteUntracked}).then(function(res) {

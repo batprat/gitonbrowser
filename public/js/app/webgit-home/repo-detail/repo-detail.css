@@ -256,3 +256,31 @@
 .btn-stash-action {
     margin-top: 10px;
 }
+
+.row-vertical-margin {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.bootstrapMenu .dropdown-menu {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.bootstrapMenu .dropdown-menu>li {
+    padding: 10px;
+    transition: all 0.2s ease 0s;
+}
+
+.bootstrapMenu .dropdown-menu>li:hover {
+    background: #d3d3d3;
+}
+
+.bootstrapMenu .dropdown-menu>li>a {
+    color: #000;
+    text-decoration: none;
+}
+
+.bootstrapMenu .dropdown-menu>li>a:hover {
+    text-decoration: none;
+}

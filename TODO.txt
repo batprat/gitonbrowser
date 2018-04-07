@@ -1,5 +1,23 @@
+. Branching
+. Handle passwords for cloning
+. Handle passwords for pushing
+. Handle binary files.
+. Show repo in conflicted state
 . Start program using custom port
 . Continuous output for clone, pull
+. Toggle whitespace while showing diff
+. Show branches graph
+. Stage selected lines
+. unstage selected lines
+. revert selected lines
+. Add loaders to all git operations
+. Implement Auto Stash in pulling
+. Turn the asynchronous modals red at runtime if error occurs. (e.g. pulling, pushing)
+. Handle case when we fetch commits above the checked out commit. Then color the checked out commits and show the commits above with a disabled look.
+. Update without focusing - sockets
+. encodeURIComponent instead of complex >>> structure.
+-. Reset all changes
+-. Reset unstaged changes
 -1. Clone Repository - done
 -. Specify ANY folder while cloning repository.
 -2. Open cloned Repository - done
@@ -8,29 +26,11 @@
 -4. Lazy load commits - done
 -5. Show local changes. - done
 -6. Show Diff - done
-. Branching
-7. Toggle whitespace while showing diff
 -6. Stage files - done
 -7. Unstage files - done
-8. Show branches graph
 -. Show local and remote branches - done
 -. Show tags
 -. Commit files - done
 -. Push changes
 -. Pull - done
-. Stage selected lines
-. unstage selected lines
-. revert selected lines
-. Add loaders to all git operations
 -. Implement Stash
-. Implement Auto Stash in pulling
-. Handle binary files.
-. Turn the asynchronous modals red at runtime if error occurs. (e.g. pulling, pushing)
-. Show repo in conflicted state
-. Handle passwords for cloning
-. Handle passwords for pushing
-. Handle case when we fetch commits above the checked out commit. Then color the checked out commits and show the commits above with a disabled look.
-. Update without focusing.
-. encodeURIComponent instead of complex >>> structure.
--. Reset all changes
--. Reset unstaged changes
