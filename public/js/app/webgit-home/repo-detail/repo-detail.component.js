@@ -103,27 +103,24 @@
                 initialize();
                 refreshLog().then(loadGraph);
                 vm.refreshLocalChanges();
+                
                 bindLazyLoadingCommits();
+                initLogContextMenu();
 
                 // TODO: comment out this.
                 window.vm = vm;
 
-                initLogContextMenu();
-
                 return;
 
                 function initLogContextMenu() {
-                    var rightClickedCommitHash = null;
-                    $('#main-log-container').on('contextmenu', '.commit', function(a, b, c) {
-                        rightClickedCommitHash = $(this).data('commitHash');
-                        selectCommit(rightClickedCommitHash);
-                    });
-
                     var menu = new BootstrapMenu('#main-log-container .commit', {
+                        fetchElementData: function($rowElem) {
+                            return $rowElem.data('commitHash');
+                        },
                         actions: [
                             {
                                 name: 'Create new branch',
-                                onClick: function () {
+                                onClick: function (rightClickedCommitHash) {
                                     showNewBranchModal(rightClickedCommitHash);
                                 }
                             }
