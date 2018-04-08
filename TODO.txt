@@ -1,9 +1,5 @@
-. Branching
- -. Create new branch
- -. Checkout new branch
- . Checkout a branch that is already present
- . Delete local branch
- . Delete remote branch
+. Delete local branch
+. Delete remote branch
 . Handle passwords for cloning
 . Handle passwords for pushing
 . Handle binary files.
@@ -40,3 +36,7 @@
 -. Push changes
 -. Pull - done
 -. Implement Stash
+-. Branching
+ -. Create new branch
+ -. Checkout new branch
+ -. Checkout a branch that is already present

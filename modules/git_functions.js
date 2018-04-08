@@ -25,8 +25,16 @@ let git = {
     applyStash: applyStash,
     resetAllChanges: resetAllChanges,
     resetUnstagedChanges: resetUnstagedChanges,
-    createNewBranch: createNewBranch
+    createNewBranch: createNewBranch,
+    checkoutLocalBranch: checkoutLocalBranch
 };
+
+function checkoutLocalBranch({req, res, repo}) {
+  let branchName = req.body.branchName;
+
+  const child = spawnGitProcess(repo, ['checkout', branchName]);
+  redirectIO(child, req, res);
+}
 
 function createNewBranch({req, res, repo}) {
   let revision = req.body.revision;

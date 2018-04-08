@@ -114,39 +114,59 @@
 
                 function initLogContextMenu() {
                     $('#main-log-container').on('contextmenu', '.commit', function() {
+                        // I could've put the following line inside the build block below, but I wanna keep it as clean as possible.
                         vm.selectCommit($(this).data('commitHash'));
                     });
                     $.contextMenu({
                         // define which elements trigger this menu
                         selector: "#main-log-container .commit",
-                        // define the elements of the menu
-                        items: {
-                            createNewBranch: {
-                                name: "Create new branch", 
-                                callback: function(key, opt, rootMenu, originalEvent) { 
-                                    showNewBranchModal($(this).data('commitHash'));
-                                }
-                            },
-                            checkoutBranch: {
-                                name: "Checkout branch", 
-                                callback: function(key, opt) {
-                                    debugger;
-                                },
-                                disabled: function() {
-                                    var commit = vm.commitMap[$(this).data('commitHash')];
-                                    if(commit && commit.localBranches && commit.localBranches.length > 0) {
-                                        return false;
+                        build: function($trigger, e) {
+                            var commitHash = $trigger.data('commitHash');
+                            var commit = vm.commitMap[commitHash];
+                            var hasLocalBranches = commit && commit.localBranches && commit.localBranches.length > 0;
+                            var options = {
+                                items: {
+                                    createNewBranch: {
+                                        name: "Create new branch", 
+                                        callback: function(key, opt, rootMenu, originalEvent) { 
+                                            showNewBranchModal(commitHash);
+                                        }
+                                    },
+                                    checkoutBranch: {
+                                        name: "Checkout branch", 
+                                        disabled: !hasLocalBranches
                                     }
-                                    return true;
+                                }
+                            };
+
+                            if(hasLocalBranches) {
+                                options.items.checkoutBranch.items = {};
+                                
+                                for(var i = 0; i < commit.localBranches.length; i++) {
+                                    options.items.checkoutBranch.items[commit.localBranches[i]] = {
+                                        name: commit.localBranches[i],
+                                        callback: checkoutLocalBranch
+                                    };
                                 }
                             }
+
+                            return options;
                         }
-                        // there's more, have a look at the demos and docs...
                     });
                 }
 
                 function loadGraph() {
                     
+                }
+
+                function checkoutLocalBranch(branchName) {
+                    return repoDetailService.checkoutLocalBranch(branchName).then(function(d) {
+                        refreshLog();
+                        refreshLocalChanges();
+                        $responseModalTitle.html('Checkout Branch');
+                        $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
+                        $responseModal.modal('show');
+                    });
                 }
 
                 function createNewBranch() {
@@ -676,8 +696,17 @@
         this.resetAllChanges = resetAllChanges;
         this.resetUnstagedChanges = resetUnstagedChanges;
         this.createNewBranch = createNewBranch;
+        this.checkoutLocalBranch = checkoutLocalBranch;
 
         return;
+
+        function checkoutLocalBranch(branchName) {
+            return $http.post('/repo/' + repoName + '/checkoutlocalbranch', {
+                branchName: encodeURIComponent(branchName)
+            }).then(function(res) {
+                return res.data;
+            });
+        }
 
         function createNewBranch(revision, branchName, checkoutAfterCreate) {
             return $http.post('/repo/' + repoName + '/createnewbranch', {revision: revision, branchName: branchName, checkoutAfterCreate: checkoutAfterCreate}).then(function(res) {
