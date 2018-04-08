@@ -103,7 +103,7 @@
                 initialize();
                 refreshLog().then(loadGraph);
                 vm.refreshLocalChanges();
-                
+
                 bindLazyLoadingCommits();
                 initLogContextMenu();
 
@@ -113,18 +113,35 @@
                 return;
 
                 function initLogContextMenu() {
-                    var menu = new BootstrapMenu('#main-log-container .commit', {
-                        fetchElementData: function($rowElem) {
-                            return $rowElem.data('commitHash');
-                        },
-                        actions: [
-                            {
-                                name: 'Create new branch',
-                                onClick: function (rightClickedCommitHash) {
-                                    showNewBranchModal(rightClickedCommitHash);
+                    $('#main-log-container').on('contextmenu', '.commit', function() {
+                        vm.selectCommit($(this).data('commitHash'));
+                    });
+                    $.contextMenu({
+                        // define which elements trigger this menu
+                        selector: "#main-log-container .commit",
+                        // define the elements of the menu
+                        items: {
+                            createNewBranch: {
+                                name: "Create new branch", 
+                                callback: function(key, opt, rootMenu, originalEvent) { 
+                                    showNewBranchModal($(this).data('commitHash'));
+                                }
+                            },
+                            checkoutBranch: {
+                                name: "Checkout branch", 
+                                callback: function(key, opt) {
+                                    debugger;
+                                },
+                                disabled: function() {
+                                    var commit = vm.commitMap[$(this).data('commitHash')];
+                                    if(commit && commit.localBranches && commit.localBranches.length > 0) {
+                                        return false;
+                                    }
+                                    return true;
                                 }
                             }
-                        ]
+                        }
+                        // there's more, have a look at the demos and docs...
                     });
                 }
 

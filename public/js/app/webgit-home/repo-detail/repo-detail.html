@@ -7,6 +7,7 @@
         <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
         <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()">S</button>
     </div>
+    <div id="main-log-context-menu" style="display: none;"></div>
     <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
         <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
             <div class="col-sm-7">
