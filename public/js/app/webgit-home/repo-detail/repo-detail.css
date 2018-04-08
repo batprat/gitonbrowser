@@ -269,11 +269,21 @@
 
 .bootstrapMenu .dropdown-menu>li {
     padding: 10px;
+    cursor: pointer;
     transition: all 0.2s ease 0s;
+}
+
+.bootstrapMenu .dropdown-menu>li.disabled, .bootstrapMenu .dropdown-menu>li.disabled>a {
+    color: #aaa;
+    cursor: default;
 }
 
 .bootstrapMenu .dropdown-menu>li:hover {
     background: #d3d3d3;
+}
+
+.bootstrapMenu .dropdown-menu>li.disabled:hover {
+    background: #fff;
 }
 
 .bootstrapMenu .dropdown-menu>li>a {
