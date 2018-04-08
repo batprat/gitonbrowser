@@ -151,4 +151,10 @@ router.post('/:id/createnewbranch', (req, res) => {
     git.createNewBranch({repo, req, res});
 });
 
+router.post('/:id/checkoutlocalbranch', (req, res) => {
+    let repo = req.params.id;
+
+    git.checkoutLocalBranch({repo, req, res});
+});
+
 module.exports = router;
