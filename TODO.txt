@@ -1,8 +1,11 @@
+. Handle Rebase
 . Delete local branch
 . Delete remote branch
 . Handle passwords for cloning
 . Handle passwords for pushing
-. Handle binary files.
+. Prevent CSRF attacks.
+. Handle CRLF errors.
+. Implement searching for commits
 . Revert commit
 . Show repo in conflicted state
 . Start program using custom port
@@ -40,3 +43,5 @@
  -. Create new branch
  -. Checkout new branch
  -. Checkout a branch that is already present
+ -. Handle binary files.
+ -. Create new branch while pushing

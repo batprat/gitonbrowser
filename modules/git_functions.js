@@ -26,8 +26,17 @@ let git = {
     resetAllChanges: resetAllChanges,
     resetUnstagedChanges: resetUnstagedChanges,
     createNewBranch: createNewBranch,
-    checkoutLocalBranch: checkoutLocalBranch
+    checkoutLocalBranch: checkoutLocalBranch,
+    pushNewBranch: pushNewBranch
 };
+
+function pushNewBranch({req, res, repo}) {
+  let remoteName = req.body.remoteName;
+  let newRemoteBranchName = req.body.newRemoteBranchName;
+
+  const child = spawnGitProcess(repo, ['push', '-u', 'origin', newRemoteBranchName + ':' + newRemoteBranchName]);
+  redirectIO(child, req, res);
+}
 
 function checkoutLocalBranch({req, res, repo}) {
   let branchName = req.body.branchName;

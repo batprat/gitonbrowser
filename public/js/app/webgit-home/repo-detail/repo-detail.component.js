@@ -100,7 +100,7 @@
                   $responseModalTitle.html('');
                 });
 
-                initialize();
+                initializeRemote();
                 refreshLog().then(loadGraph);
                 vm.refreshLocalChanges();
 
@@ -359,6 +359,7 @@
                 }
 
                 function showPushDialog() {
+                  vm.pushOptions = {};
                   $pushModal.modal('show');
                 }
 
@@ -369,8 +370,9 @@
                   });
                   $responseModalTitle.text('Pushing ' + vm.currentLocalBranch + ' to ' + vm.remote + '/' + vm.pushOptions.remoteBranch);
                   $responseModal.modal('show');
-                  return repoDetailService.push(vm.remote, vm.pushOptions.remoteBranch).then(function(data) {
+                  return repoDetailService.push(vm.remote, vm.pushOptions.remoteBranch, vm.pushOptions.newRemoteBranchName).then(function(data) {
                     $responseModalBody.html(data.errors.join('<br />').replace('\n', '<br />'));
+                    initializeRemote();
                   });
                 }
 
@@ -386,7 +388,7 @@
                   });
                 }
 
-                function initialize() {
+                function initializeRemote() {
                   return repoDetailService.initRepo().then(function(d) {
                     vm.remote = d.remote;
                     vm.remoteBranches = d.remoteBranches.slice(1)
@@ -435,11 +437,12 @@
                   });
                 }
 
-                function refreshLog(page) {
-                  if(!page) {
-                    page = +$mainLogContainer.data('pageNum');
-                  }
-                  return repoDetailService.getCommits(page).then(function(commits) {
+                /**
+                 * Refreshes the log from page 1.
+                */
+                function refreshLog() {
+                  // 1 below is the page num. 
+                  return repoDetailService.getCommits(1).then(function(commits) {
                     if(commits.length == 0) {
                       return false;
                     }
@@ -525,7 +528,8 @@
 
                 function unstageAllFiles() {
                     repoDetailService.unstageAllFiles().then(function(res) {
-                        if(res === '') {
+                        // TODO: Handle errors here. Probably CRLF errors.
+                        if(res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                             vm.refreshLocalChanges();
                         }
                     });
@@ -533,7 +537,8 @@
 
                 function stageAllFiles() {
                     repoDetailService.stageAllFiles().then(function(res) {
-                        if(res === '') {
+                        // TODO: Handle errors here. Probably CRLF errors.
+                        if(res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                             vm.refreshLocalChanges();
                         }
                     });
@@ -541,7 +546,8 @@
 
                 function unstageFile() {
                     repoDetailService.unstageFile(vm.fileSelectedOnCommitModal.name, vm.fileSelectedOnCommitModal.tags).then(function(res) {
-                        if(res === '') {
+                        // TODO: Handle errors here. Probably CRLF errors.
+                        if(res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                             vm.refreshLocalChanges();
                         }
                     });
@@ -549,7 +555,8 @@
 
                 function stageFile() {
                     repoDetailService.stageFile(vm.fileSelectedOnCommitModal.name, vm.fileSelectedOnCommitModal.tags).then(function(res) {
-                        if(res === '') {
+                        // TODO: Handle errors here. Probably CRLF errors.
+                        if(res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                             vm.refreshLocalChanges();
                         }
                     });
@@ -566,6 +573,10 @@
 
                     vm.fileSelectedOnCommitModal = file;
                     repoDetailService.getFileDiff(file.name, file.tags).then(function(diff) {
+                        if(typeof diff == 'object') {
+                            diff = diff.output.join('\n').trim();
+                            // TODO: Handle errors here.. probably CRLF errors.
+                        }
                         var commitDetails = parseDiff(diff);
                         vm.diffOnCommitModal.safeDiff = $sce.trustAsHtml(commitDetails[0].diff);
                     });
@@ -761,7 +772,15 @@
             });
         }
 
-        function push(remoteName, remoteBranch) {
+        function push(remoteName, remoteBranch, newRemoteBranchName) {
+          if(remoteBranch == 'create-new-branch') {
+              return $http.post('/repo/' + repoName + '/pushnewbranch', {
+                    remoteName: remoteName,
+                    newRemoteBranchName: newRemoteBranchName
+              }).then(function(res) {
+                  return res.data;
+              })
+          }
           return $http.get('/repo/' + repoName + '/push?remotename=' + remoteName + '&remotebranch=' + remoteBranch).then(function(res) {
             return res.data;
           });
@@ -884,6 +903,10 @@
     }]);
 
     function parseLocalStatus(data) {
+        if(typeof data == 'object') {
+            // TODO: handle data.errors here. They are probably CRLF errors.
+            data = data.output.join('\n').trim();
+        }
         data = data.split('\n').filter(function(d) { return d.length > 0; });
 
 
