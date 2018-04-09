@@ -27,8 +27,16 @@ let git = {
     resetUnstagedChanges: resetUnstagedChanges,
     createNewBranch: createNewBranch,
     checkoutLocalBranch: checkoutLocalBranch,
-    pushNewBranch: pushNewBranch
+    pushNewBranch: pushNewBranch,
+    rebaseCurrentBranchOn
 };
+
+function rebaseCurrentBranchOn({req, res, repo}) {
+  let branchNameOrRevision = req.body.branchNameOrRevision;
+
+  const child = spawnGitProcess(repo, ['rebase', branchNameOrRevision]);
+  redirectIO(child, req, res);
+}
 
 function pushNewBranch({req, res, repo}) {
   let remoteName = req.body.remoteName;

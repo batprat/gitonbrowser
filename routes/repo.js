@@ -161,6 +161,12 @@ router.post('/:id/pushnewbranch', (req, res) => {
     let repo = req.params.id;
 
     git.pushNewBranch({repo, req, res});
-})
+});
+
+router.post('/:id/rebasecurrentbranchon', (req, res) => {
+    let repo = req.params.id;
+
+    git.rebaseCurrentBranchOn({repo, req, res});
+});
 
 module.exports = router;
