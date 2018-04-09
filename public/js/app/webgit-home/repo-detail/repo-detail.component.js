@@ -127,17 +127,23 @@
                             var options = {
                                 items: {
                                     createNewBranch: {
-                                        name: "Create new branch", 
+                                        name: 'Create new branch', 
                                         callback: function(key, opt, rootMenu, originalEvent) { 
                                             showNewBranchModal(commitHash);
                                         }
                                     },
                                     checkoutBranch: {
-                                        name: "Checkout branch", 
+                                        name: 'Checkout branch', 
                                         disabled: !hasLocalBranches
+                                    },
+                                    rebaseBranchOn: {
+                                        name: 'Rebase current branch on',
+                                        items: {}
                                     }
                                 }
                             };
+
+                            var rebaseOptions = [];
 
                             if(hasLocalBranches) {
                                 options.items.checkoutBranch.items = {};
@@ -150,6 +156,23 @@
                                 }
                             }
 
+                            // rebase options - start
+                            if(hasLocalBranches || (commit.remoteBranches && commit.remoteBranches.length > 0)) {
+                                Array.prototype.push.apply(rebaseOptions, commit.localBranches);
+                                Array.prototype.push.apply(rebaseOptions, commit.remoteBranches);
+                            }
+                            else {
+                                rebaseOptions.push(commit.hash);
+                            }
+
+                            for(var i = 0; i < rebaseOptions.length; i++) {
+                                options.items.rebaseBranchOn.items[rebaseOptions[i]] = {
+                                    name: rebaseOptions[i],
+                                    callback: rebaseCurrentBranchOn
+                                };
+                            }
+                            // rebase options - end
+
                             return options;
                         }
                     });
@@ -159,8 +182,18 @@
                     
                 }
 
+                function rebaseCurrentBranchOn(branchNameOrRevision) {
+                    $responseModalTitle.text('Rebasing');
+                    $responseModal.modal('show');
+                    return repoDetailService.rebaseCurrentBranchOn(branchNameOrRevision).then(function(d) {
+                        $responseModalBody.html(d.output.join('\n').trim().replace('\n', '<br />'));
+                        refreshLog();
+                    });
+                }
+
                 function checkoutLocalBranch(branchName) {
                     return repoDetailService.checkoutLocalBranch(branchName).then(function(d) {
+                        initializeRemote();
                         refreshLog();
                         refreshLocalChanges();
                         $responseModalTitle.html('Checkout Branch');
@@ -708,8 +741,17 @@
         this.resetUnstagedChanges = resetUnstagedChanges;
         this.createNewBranch = createNewBranch;
         this.checkoutLocalBranch = checkoutLocalBranch;
+        this.rebaseCurrentBranchOn = rebaseCurrentBranchOn;
 
         return;
+
+        function rebaseCurrentBranchOn(branchNameOrRevision) {
+            return $http.post('/repo/' + repoName + '/rebasecurrentbranchon', {
+                branchNameOrRevision: branchNameOrRevision
+            }).then(function(res) {
+                return res.data;
+            });
+        }
 
         function checkoutLocalBranch(branchName) {
             return $http.post('/repo/' + repoName + '/checkoutlocalbranch', {
