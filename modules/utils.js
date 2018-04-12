@@ -15,9 +15,16 @@ let utils = {
     conflictFileExists,
     getRevertHeadPath,
     getMergeHeadPath,
-    getRebaseHeadPath
+    getRebaseHeadPath,
+    interactiveRebaseHeadPath
 };
 
+// using https://stackoverflow.com/questions/3921409/how-to-know-if-there-is-a-git-rebase-in-progress
+function interactiveRebaseHeadPath(repo) {
+    return decodePath(repo) + '.git/rebase-merge/interactive';
+}
+
+// using https://stackoverflow.com/questions/3921409/how-to-know-if-there-is-a-git-rebase-in-progress
 function getRebaseHeadPath(repo) {
     return decodePath(repo) + '/.git/rebase-apply';
 }

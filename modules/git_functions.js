@@ -224,12 +224,13 @@ function initRepo({req, res, repo}) {
 
 function getLocalConflictStatus(repo) {
   let rebaseHeadPromise = utils.conflictFileExists(utils.getRebaseHeadPath(repo));
+  let interactiveRebaseHeadPromise = utils.conflictFileExists(utils.interactiveRebaseHeadPath(repo));
   let mergeHeadPromise = utils.conflictFileExists(utils.getMergeHeadPath(repo));
   let revertHeadPromise = utils.conflictFileExists(utils.getRevertHeadPath(repo));
 
   // no way yet to handle conflicts arising due to stash.
   // we'll detect these by checking UU on file status.
-  return Promise.all([rebaseHeadPromise, mergeHeadPromise, revertHeadPromise]).then((heads)=> {
+  return Promise.all([rebaseHeadPromise, mergeHeadPromise, revertHeadPromise, interactiveRebaseHeadPromise]).then((heads)=> {
     console.log('heads = ' + heads);
     if(heads[0] || heads[1] || heads[2]) {
       // there is some conflict!
@@ -241,6 +242,9 @@ function getLocalConflictStatus(repo) {
       }
       if(heads[2]) {
         return 'revert-conflict';
+      }
+      if(heads[3]) {
+        return 'interactive-rebase-conflict';
       }
     }
     return;
