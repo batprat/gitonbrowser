@@ -138,6 +138,7 @@
 #commit-dialog-diff .diff {
     max-height: 200px;
     overflow-y: auto;
+    white-space: pre;
 }
 
 .panel-name {

@@ -139,6 +139,10 @@
                                     rebaseBranchOn: {
                                         name: 'Rebase current branch on',
                                         items: {}
+                                    },
+                                    mergeIntoCurrent: {
+                                        name: 'Merge into current branch',
+                                        items: {}
                                     }
                                 }
                             };
@@ -257,6 +261,7 @@
                     return repoDetailService.resetAllChanges(deleteUntrackedFiles).then(function(d) {
                         $resetAllFilesModal.modal('hide');
                         refreshLocalChanges();
+                        vm.diffOnCommitModal.safeDiff = '';     // reset the text on the commit modal.
 
                         if(!d.errorCode) {
                             return;
@@ -596,6 +601,13 @@
                 }
 
                 function showDiffForFileOnCommitModal(file) {
+                    if(file.tags.indexOf('bothmodified') > -1 && file.tags.indexOf('staged') > -1) {
+                        // no diff for this.
+                        // TODO: Should we show a conflict message here?
+                        vm.diffOnCommitModal.safeDiff = '';
+                        vm.diffOnCommitModal.file = file;
+                        return;
+                    }
                     if(!file) {
                         vm.diffOnCommitModal.safeDiff = '';
                         return;
@@ -634,7 +646,9 @@
 
                 function refreshLocalChanges() {
                     return repoDetailService.refreshLocalChanges().then(function(data) {
-                        vm.localStatus = parseLocalStatus(data);
+                        // praty
+                        vm.repoInConflict = data.conflict;
+                        vm.localStatus = parseLocalStatus(data.localStatus);
                         vm.stagedFiles = $filter('filter')(vm.localStatus, {tags: 'staged'}, true);
                         vm.unstagedFiles = $filter('filter')(vm.localStatus, {tags: 'unstaged'}, true);
 
@@ -904,7 +918,10 @@
         function refreshLocalChanges() {
             return $http.get('/repo/' + repoName + '/refreshlocal').then(function(res) {
                 if(!res.data.errorCode) {
-                    return res.data.output.join('\n');
+                    return {
+                        conflict: res.data.extraInfo && res.data.extraInfo.conflict,
+                        localStatus: res.data.output.join('\n')
+                    };
                 }
                 return res.data;
             });
@@ -955,6 +972,31 @@
         var t = [];
         data.forEach(function(f) {
             var fileTags = [];
+
+            var firstTwoCharacters = f.substring(0, 2);
+            if(firstTwoCharacters == 'DD' || firstTwoCharacters == 'AA' || firstTwoCharacters.indexOf('U') > -1) {
+                // conflict state.
+                switch(firstTwoCharacters) {
+                    case 'UU': {
+                        // unmerged, both modified
+                        fileTags.push('unstaged', 'conflicted', 'unmerged', 'bothmodified');
+                        t.push({
+                            name: f.substring(3),
+                            tags: fileTags
+                        });
+                        fileTags = [];
+                        fileTags.push('staged', 'conflicted', 'unmerged', 'bothmodified');
+                        t.push({
+                            name: f.substring(3),
+                            tags: fileTags
+                        });
+                        break;
+                    }
+                }
+                vm.repoInConflict = true;
+                return;
+            }
+            vm.repoInConflict = false;
             switch(f[0]) {
                 case 'M': {
                     fileTags.push('modified', 'modifiedstaged', 'staged');
@@ -966,6 +1008,11 @@
                 }
                 case 'A': {
                     fileTags.push('added', 'addedstaged', 'staged');
+                    break;
+                }
+                case '!': {
+                    fileTags.push('ignored');
+                    // TODO: Handle this case
                     break;
                 }
             }
@@ -989,6 +1036,12 @@
                 }
                 case '?': {
                     fileTags.push('added', 'addedunstaged', 'unstaged', 'untracked');
+                    break;
+                }
+                
+                case '!': {
+                    fileTags.push('ignored');
+                    // TODO: Handle this case
                     break;
                 }
             }
@@ -1030,6 +1083,8 @@
                     }
                     else {
                         var formattedStr = diff[i];
+                        // strip tags off formattedStr.
+                        formattedStr = formattedStr.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
                         if(formattedStr.indexOf('+') === 0) {
                             formattedStr = '<span class="line-added">' + formattedStr + '</span>'
                         }

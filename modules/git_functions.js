@@ -196,21 +196,21 @@ function initRepo({req, res, repo}) {
   let remotePromise = getRemote(repo);
   let remoteBranchesPromise = getRemoteBranches(repo);
   let localBranchesInfoPromise = getLocalBranches(repo);
-  // let stashesListPromise = getStashList(repo);
+  let localConflictsPromise = getLocalConflictStatus(repo);
 
-  Promise.all([remotePromise, remoteBranchesPromise, localBranchesInfoPromise]).then(function(op) {
+  Promise.all([remotePromise, remoteBranchesPromise, localBranchesInfoPromise, localConflictsPromise]).then(function(op) {
     let remote = op[0];
     let remoteBranches = op[1];
     let localBranchesInfo = op[2];
-    // let stashes = op[3];
+    let localConflicts = op[3];
 
     sendResponse(res, {
       output: {
         remote,
         remoteBranches,
         localBranches: localBranchesInfo.locals,
-        currentBranch: localBranchesInfo.current
-        //stashes: stashes
+        currentBranch: localBranchesInfo.current,
+        localConflicts: localConflicts
       },
       errorCode: 0
     });
@@ -219,6 +219,33 @@ function initRepo({req, res, repo}) {
       errorCode: 1,
       errors: ex
     });
+  });
+}
+
+function getLocalConflictStatus(repo) {
+  let rebaseHeadPromise = utils.conflictFileExists(utils.getRebaseHeadPath(repo));
+  let mergeHeadPromise = utils.conflictFileExists(utils.getMergeHeadPath(repo));
+  let revertHeadPromise = utils.conflictFileExists(utils.getRevertHeadPath(repo));
+
+  // no way yet to handle conflicts arising due to stash.
+  // we'll detect these by checking UU on file status.
+  return Promise.all([rebaseHeadPromise, mergeHeadPromise, revertHeadPromise]).then((heads)=> {
+    console.log('heads = ' + heads);
+    if(heads[0] || heads[1] || heads[2]) {
+      // there is some conflict!
+      if(heads[0]) {
+        return 'rebase-conflict';
+      }
+      if(heads[1]) {
+        return 'merge-conflict';
+      }
+      if(heads[2]) {
+        return 'revert-conflict';
+      }
+    }
+    return;
+  }).catch((err) => {
+    console.log(err);
   });
 }
 
@@ -387,8 +414,12 @@ function getStatus(options) {
     let res = options.res;
     let repo = options.repo;
 
-    const child = spawnGitProcess(repo, ['status', '-uall', '--porcelain']);
-    redirectIO(child, req, res);
+    getLocalConflictStatus(repo).then((conflict) => {
+      const child = spawnGitProcess(repo, ['status', '-uall', '--porcelain']);
+      redirectIO(child, req, res, {
+        conflict: conflict
+      });
+    });
 }
 
 function getCommit(options) {
@@ -710,7 +741,6 @@ function redirectIOForLog(child, req, res, splitter) {
 
 function _getCwd(repo) {
   return utils.decodePath(repo);
-  return utils.getCheckoutsDir() + '/' + repo;
 }
 
 module.exports = git;
