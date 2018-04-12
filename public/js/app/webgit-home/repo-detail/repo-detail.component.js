@@ -191,6 +191,7 @@
                     $responseModal.modal('show');
                     return repoDetailService.rebaseCurrentBranchOn(branchNameOrRevision).then(function(d) {
                         $responseModalBody.html(d.output.join('\n').trim().replace('\n', '<br />'));
+                        refreshLocalChanges();
                         refreshLog();
                     });
                 }
@@ -646,8 +647,34 @@
 
                 function refreshLocalChanges() {
                     return repoDetailService.refreshLocalChanges().then(function(data) {
-                        // praty
-                        vm.repoInConflict = data.conflict;
+                        if(data.conflict) {
+                            vm.conflict = {};
+                            switch(data.conflict) {
+                                case 'rebase-conflict': {
+                                    vm.conflict.message = 'Conflict while rebasing.';
+                                    vm.conflict.type = 'rebase';
+                                    break;
+                                }
+                                case 'merge-conflict': {
+                                    vm.conflict.message = 'Conflict while merging';
+                                    vm.conflict.type = 'merge';
+                                    break;
+                                }
+                                case 'revert-conflict': {
+                                    vm.conflict.message = 'Conflict while reverting';
+                                    vm.conflict.type = 'revert';
+                                    break;
+                                }
+                                case 'interactive-rebase-conflict': {
+                                    vm.conflict.message = 'Conflict while interactive rebasing';
+                                    vm.conflict.type = 'interactiverebase';
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            vm.conflict = null;
+                        }
                         vm.localStatus = parseLocalStatus(data.localStatus);
                         vm.stagedFiles = $filter('filter')(vm.localStatus, {tags: 'staged'}, true);
                         vm.unstagedFiles = $filter('filter')(vm.localStatus, {tags: 'unstaged'}, true);
@@ -993,10 +1020,9 @@
                         break;
                     }
                 }
-                vm.repoInConflict = true;
+                vm.conflict = vm.conflict || true;
                 return;
             }
-            vm.repoInConflict = false;
             switch(f[0]) {
                 case 'M': {
                     fileTags.push('modified', 'modifiedstaged', 'staged');

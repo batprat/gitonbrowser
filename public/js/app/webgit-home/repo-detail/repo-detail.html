@@ -7,7 +7,7 @@
         <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
         <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()">S</button>
 
-        <button class="btn btn-danger pull-right" ng-show="vm.repoInConflict">Repo in conflict</button>
+        <button class="btn btn-danger pull-right" ng-show="vm.conflict">{{vm.conflict.message ? vm.conflict.message :  'Repo in conflict'}}</button>
     </div>
     <div id="main-log-context-menu" style="display: none;"></div>
     <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
