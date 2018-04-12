@@ -3,11 +3,14 @@
 . Delete remote branch
 . Handle passwords for cloning
 . Handle passwords for pushing
+. Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
 . Prevent CSRF attacks.
 . Handle CRLF errors.
 . Implement searching for commits
 . Revert commit
+. Squash commits
 . Show repo in conflicted state
+. Handle conflicts from rebase, merge, stash
 . Start program using custom port
 . Continuous output for clone, pull
 . Toggle whitespace while showing diff

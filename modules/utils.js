@@ -1,4 +1,4 @@
-const { lstatSync, readdirSync, existsSync, mkdirSync } = require('fs');
+const { lstatSync, readdirSync, existsSync, mkdirSync, access, constants } = require('fs');
 const { join } = require('path');
 let repos = require('../data/repos.json');
 
@@ -11,8 +11,41 @@ let utils = {
     encodePath,
     decodePath,
     getRepoNameFromEncodedPath,
-    getAllClonedRepos
+    getAllClonedRepos,
+    conflictFileExists,
+    getRevertHeadPath,
+    getMergeHeadPath,
+    getRebaseHeadPath
 };
+
+function getRebaseHeadPath(repo) {
+    return decodePath(repo) + '/.git/rebase-apply';
+}
+
+function getMergeHeadPath(repo) {
+    return decodePath(repo) + '/.git/MERGE_HEAD';
+}
+
+function getRevertHeadPath(repo) {
+    return decodePath(repo) + '/.git/REVERT_HEAD';
+}
+
+
+// This function will return a promise that will always resolve.
+// in case the conflicting file does exist, it will resolve the path of the file.
+function conflictFileExists(path) {
+    return new Promise((resolve, reject) => {
+        access(path, constants.F_OK, (err) => {
+            let resolution;
+            // if error, its good, the conflicting file is not present.
+            // if not error, the conflicting file is present. send resolution as path.
+            if(!err) {
+                resolution = path;
+            }
+            resolve(resolution);
+        });
+    });
+}
 
 function getAllClonedRepos() {
   let allRepos = [];
