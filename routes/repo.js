@@ -169,4 +169,22 @@ router.post('/:id/rebasecurrentbranchon', (req, res) => {
     git.rebaseCurrentBranchOn({repo, req, res});
 });
 
+router.post('/:id/resetheadfile', (req, res) => {
+    let repo = req.params.id;
+
+    git.doResetHEADFile({repo, req, res});
+});
+
+router.post('/:id/abortrebase', (req, res) => {
+    let repo = req.params.id;
+
+    git.abortRebase({repo, req, res});
+});
+
+router.post('/:id/continuerebase', (req, res) => {
+    let repo = req.params.id;
+
+    git.continueRebase({repo, req, res});
+});
+
 module.exports = router;

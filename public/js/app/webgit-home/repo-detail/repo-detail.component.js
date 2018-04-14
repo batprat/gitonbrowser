@@ -11,6 +11,7 @@
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
+    var $rebaseConflictModal = null;
 
     var $sce = null;
     
@@ -36,6 +37,7 @@
                 $resetAllFilesModal = $('#reset-all-modal');
                 $resetUnstagedFilesModal = $('#reset-unstaged-modal');
                 $newBranchModal = $('#new-branch-modal');
+                $rebaseConflictModal = $('#rebase-conflict-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
@@ -66,6 +68,11 @@
                 vm.showResetUnstagedFilesModal = showResetUnstagedFilesModal;
                 vm.resetUnstagedChanges = resetUnstagedChanges;
                 vm.createNewBranch = createNewBranch;
+                vm.showModalToHandleConflict = showModalToHandleConflict;
+                vm.showDiffOnConflictModal = showDiffOnConflictModal;
+                vm.markFileAsResolvedDuringRebase = markFileAsResolvedDuringRebase;
+                vm.abortRebase = abortRebase;
+                vm.continueRebase = continueRebase;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -107,10 +114,67 @@
                 bindLazyLoadingCommits();
                 initLogContextMenu();
 
+                $('[data-toggle="popover"]').popover();
+
                 // TODO: comment out this.
                 window.vm = vm;
 
                 return;
+
+                function continueRebase() {
+                    repoDetailService.continueRebase().then(function(d) {
+                        if(!d.errorCode) {
+                            $rebaseConflictModal.modal('hide');
+                        }
+                        refreshLocalChanges();
+                        refreshLog();
+                        // TODO: handle error here.
+                    });
+                }
+
+                function abortRebase() {
+                    repoDetailService.abortRebase().then(function(d) {
+                        if(d.errorCode) {
+                            // TODO: handle error here.
+                        }
+                        refreshLocalChanges();
+                        refreshLog();
+                        $rebaseConflictModal.modal('hide');
+                    });
+                }
+
+                function markFileAsResolvedDuringRebase() {
+                    return repoDetailService.stageFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function(res) {
+                        // TODO: Handle errors here. Probably CRLF errors.
+                        if(res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
+                            vm.refreshLocalChanges();
+                        }
+                    });
+                }
+
+                function showDiffOnConflictModal(conflictedFile) {
+                    vm.diffOnConflictModal = {
+                        file: conflictedFile
+                    };
+
+                    return repoDetailService.getFileDiff(conflictedFile.name, conflictedFile.tags).then(function(diff) {
+                        if(typeof diff == 'object') {
+                            diff = diff.output.join('\n').trim();
+                            // TODO: Handle errors here.. probably CRLF errors.
+                        }
+                        var conflictDetails = parseDiff(diff);
+                        vm.diffOnConflictModal.safeDiff = $sce.trustAsHtml(conflictDetails[0].diff);
+                    });
+                }
+
+                function showModalToHandleConflict() {
+                    switch(vm.progress.type) {
+                        case 'rebase': {
+                            $rebaseConflictModal.modal('show');
+                            break;
+                        }
+                    }
+                }
 
                 function initLogContextMenu() {
                     $('#main-log-container').on('contextmenu', '.commit', function() {
@@ -647,33 +711,33 @@
 
                 function refreshLocalChanges() {
                     return repoDetailService.refreshLocalChanges().then(function(data) {
-                        if(data.conflict) {
-                            vm.conflict = {};
-                            switch(data.conflict) {
-                                case 'rebase-conflict': {
-                                    vm.conflict.message = 'Conflict while rebasing.';
-                                    vm.conflict.type = 'rebase';
+                        if(data.progress) {
+                            vm.progress = {};
+                            switch(data.progress) {
+                                case 'rebase-progress': {
+                                    vm.progress.message = 'Rebase in progress.';
+                                    vm.progress.type = 'rebase';
                                     break;
                                 }
-                                case 'merge-conflict': {
-                                    vm.conflict.message = 'Conflict while merging';
-                                    vm.conflict.type = 'merge';
+                                case 'merge-progress': {
+                                    vm.progress.message = 'Merge in progress';
+                                    vm.progress.type = 'merge';
                                     break;
                                 }
-                                case 'revert-conflict': {
-                                    vm.conflict.message = 'Conflict while reverting';
-                                    vm.conflict.type = 'revert';
+                                case 'revert-progress': {
+                                    vm.progress.message = 'Revert in progress';
+                                    vm.progress.type = 'revert';
                                     break;
                                 }
-                                case 'interactive-rebase-conflict': {
-                                    vm.conflict.message = 'Conflict while interactive rebasing';
-                                    vm.conflict.type = 'interactiverebase';
+                                case 'interactive-rebase-progress': {
+                                    vm.progress.message = 'Interactive rebase in progress';
+                                    vm.progress.type = 'interactiverebase';
                                     break;
                                 }
                             }
                         }
                         else {
-                            vm.conflict = null;
+                            vm.progress = null;
                         }
                         vm.localStatus = parseLocalStatus(data.localStatus);
                         vm.stagedFiles = $filter('filter')(vm.localStatus, {tags: 'staged'}, true);
@@ -783,8 +847,31 @@
         this.createNewBranch = createNewBranch;
         this.checkoutLocalBranch = checkoutLocalBranch;
         this.rebaseCurrentBranchOn = rebaseCurrentBranchOn;
+        this.doResetHEADFile = doResetHEADFile;
+        this.abortRebase = abortRebase;
+        this.continueRebase = continueRebase;
 
         return;
+
+        function continueRebase() {
+            return $http.post('/repo/' + repoName + '/continuerebase').then(function(res) {
+                return res.data;
+            });
+        }
+
+        function abortRebase() {
+            return $http.post('/repo/' + repoName + '/abortrebase').then(function(res) {
+                return res.data;
+            });
+        }
+
+        function doResetHEADFile(fileName) {
+            return $http.post('/repo/' + repoName + '/resetheadfile', {
+                fileName: window.encodeURIComponent(fileName)
+            }).then(function(res) {
+                return res.data;
+            });
+        }
 
         function rebaseCurrentBranchOn(branchNameOrRevision) {
             return $http.post('/repo/' + repoName + '/rebasecurrentbranchon', {
@@ -946,7 +1033,7 @@
             return $http.get('/repo/' + repoName + '/refreshlocal').then(function(res) {
                 if(!res.data.errorCode) {
                     return {
-                        conflict: res.data.extraInfo && res.data.extraInfo.conflict,
+                        progress: res.data.extraInfo && res.data.extraInfo.progress,
                         localStatus: res.data.output.join('\n')
                     };
                 }
@@ -1006,13 +1093,13 @@
                 switch(firstTwoCharacters) {
                     case 'UU': {
                         // unmerged, both modified
-                        fileTags.push('unstaged', 'conflicted', 'unmerged', 'bothmodified');
+                        fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'bothmodified');
                         t.push({
                             name: f.substring(3),
                             tags: fileTags
                         });
                         fileTags = [];
-                        fileTags.push('staged', 'conflicted', 'unmerged', 'bothmodified');
+                        fileTags.push('staged', 'conflicted', 'conflictedstaged', 'unmerged', 'bothmodified');
                         t.push({
                             name: f.substring(3),
                             tags: fileTags
@@ -1020,7 +1107,7 @@
                         break;
                     }
                 }
-                vm.conflict = vm.conflict || true;
+                vm.conflict = true;
                 return;
             }
             switch(f[0]) {

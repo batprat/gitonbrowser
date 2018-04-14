@@ -295,3 +295,43 @@
 .bootstrapMenu .dropdown-menu>li>a:hover {
     text-decoration: none;
 }
+
+#conflict-dialog-diff.diff {
+    height: 60vh;
+    overflow-y: auto;
+    white-space: pre;
+}
+
+.conflict-dialog-diff-placeholder {
+    height: 60vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.conflicting-files-list {
+    /* padding-bottom: 15px;
+    border-bottom: 1px solid #CCC; */
+    max-height: 20vh;
+    overflow-y: auto;
+}
+
+.modal-xl {
+    max-width: 80%;
+}
+
+.rebase-explaination {
+    font-weight: bold;
+}
+
+.btn-rebase-move-2 {
+    margin-top: 15px;
+}
+
+.rebase-actions {
+    margin-top: 15px;
+}
+
+.rebase-actions button {
+    margin-left: 10px;
+}

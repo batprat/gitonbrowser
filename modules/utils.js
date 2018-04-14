@@ -12,7 +12,7 @@ let utils = {
     decodePath,
     getRepoNameFromEncodedPath,
     getAllClonedRepos,
-    conflictFileExists,
+    progressFileExists,
     getRevertHeadPath,
     getMergeHeadPath,
     getRebaseHeadPath,
@@ -39,13 +39,13 @@ function getRevertHeadPath(repo) {
 
 
 // This function will return a promise that will always resolve.
-// in case the conflicting file does exist, it will resolve the path of the file.
-function conflictFileExists(path) {
+// in case the file does exist, it will resolve the path of the file.
+function progressFileExists(path) {
     return new Promise((resolve, reject) => {
         access(path, constants.F_OK, (err) => {
             let resolution;
-            // if error, its good, the conflicting file is not present.
-            // if not error, the conflicting file is present. send resolution as path.
+            // if error, the progress file is not present.
+            // if not error, the progress file is present. That means something (rebase, merge, revert) is in progress. send resolution as path.
             if(!err) {
                 resolution = path;
             }

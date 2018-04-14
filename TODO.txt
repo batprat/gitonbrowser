@@ -4,6 +4,8 @@
 . Handle passwords for cloning
 . Handle passwords for pushing
 . Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
+. Checkout remote branch        // git checkout -B "master" "origin/master"
+. Select multiple files while staging, unstaging, rebase modal, etc.
 . Prevent CSRF attacks.
 . Handle CRLF errors.
 . Implement searching for commits

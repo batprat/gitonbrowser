@@ -7,7 +7,7 @@
         <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
         <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()">S</button>
 
-        <button class="btn btn-danger pull-right" ng-show="vm.conflict">{{vm.conflict.message ? vm.conflict.message :  'Repo in conflict'}}</button>
+        <button class="btn btn-danger pull-right" ng-show="vm.progress" ng-click="vm.showModalToHandleConflict()">{{ vm.progress.message }}</button>
     </div>
     <div id="main-log-context-menu" style="display: none;"></div>
     <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
@@ -407,6 +407,50 @@
                         <div class="row row-vertical-margin">
                             <div class="col-12">
                                 <button class="btn btn-primary pull-right" ng-click="vm.createNewBranch()">Create Branch</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="rebase-conflict-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Handle Rebase Conflict</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="rebase-explaination">
+                                    Mark all conflicts as resolved to continue your rebase. You may abort at any time.
+                                </div>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Fix conflicts in the following files using your editor.</h6>
+                                        <div class="conflicting-files-list container-fluid">
+                                            <div class="row list-item-selector" ng-repeat="conflictedFile in vm.localStatus | filter: {tags: 'conflictedunstaged'}: true" ng-click="vm.showDiffOnConflictModal(conflictedFile)" ng-class="{'selected': vm.diffOnConflictModal.file === conflictedFile }">
+                                                <div class="col-sm-12">
+                                                    {{conflictedFile.name}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-primary pull-right btn-rebase-move-2" ng-click="vm.markFileAsResolvedDuringRebase()" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Click me after making sure you have fixed all conflicts in the selected file.">Mark Resolved</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rebase-actions">
+                                    <button class="btn btn-primary pull-right" ng-click="vm.continueRebase()">Continue Rebase</button>
+                                    <button class="btn btn-danger pull-right" ng-click="vm.abortRebase()">Abort Rebase</button>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div id="conflict-dialog-diff" class="card-body diff" ng-if="vm.diffOnConflictModal.safeDiff" ng-bind-html="vm.diffOnConflictModal.safeDiff"></div>
+                                <div class="conflict-dialog-diff-placeholder" ng-if="!vm.diffOnConflictModal.safeDiff"><span>Select conflicted file to view diff</span></div>
                             </div>
                         </div>
                     </div>
