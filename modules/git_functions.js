@@ -28,8 +28,28 @@ let git = {
     createNewBranch: createNewBranch,
     checkoutLocalBranch: checkoutLocalBranch,
     pushNewBranch: pushNewBranch,
-    rebaseCurrentBranchOn
+    rebaseCurrentBranchOn,
+    doResetHEADFile,
+    abortRebase,
+    continueRebase
 };
+
+function continueRebase({req, res, repo}) {
+  const child = spawnGitProcess(repo, ['rebase', '--continue']);
+  redirectIO(child, req, res);
+}
+
+function abortRebase({req, res, repo}) {
+  const child = spawnGitProcess(repo, ['rebase', '--abort']);
+  redirectIO(child, req, res);
+}
+
+function doResetHEADFile({req, res, repo}) {
+  let fileName = req.body.fileName;
+
+  const child = spawnGitProcess(repo, ['reset', 'HEAD', fileName]);
+  redirectIO(child, req, res);
+}
 
 function rebaseCurrentBranchOn({req, res, repo}) {
   let branchNameOrRevision = req.body.branchNameOrRevision;
@@ -196,13 +216,13 @@ function initRepo({req, res, repo}) {
   let remotePromise = getRemote(repo);
   let remoteBranchesPromise = getRemoteBranches(repo);
   let localBranchesInfoPromise = getLocalBranches(repo);
-  let localConflictsPromise = getLocalConflictStatus(repo);
+  let localProgressPromise = getLocalProgressStatus(repo);
 
-  Promise.all([remotePromise, remoteBranchesPromise, localBranchesInfoPromise, localConflictsPromise]).then(function(op) {
+  Promise.all([remotePromise, remoteBranchesPromise, localBranchesInfoPromise, localProgressPromise]).then(function(op) {
     let remote = op[0];
     let remoteBranches = op[1];
     let localBranchesInfo = op[2];
-    let localConflicts = op[3];
+    let localProgress = op[3];
 
     sendResponse(res, {
       output: {
@@ -210,7 +230,7 @@ function initRepo({req, res, repo}) {
         remoteBranches,
         localBranches: localBranchesInfo.locals,
         currentBranch: localBranchesInfo.current,
-        localConflicts: localConflicts
+        localProgress: localProgress
       },
       errorCode: 0
     });
@@ -222,29 +242,32 @@ function initRepo({req, res, repo}) {
   });
 }
 
-function getLocalConflictStatus(repo) {
-  let rebaseHeadPromise = utils.conflictFileExists(utils.getRebaseHeadPath(repo));
-  let interactiveRebaseHeadPromise = utils.conflictFileExists(utils.interactiveRebaseHeadPath(repo));
-  let mergeHeadPromise = utils.conflictFileExists(utils.getMergeHeadPath(repo));
-  let revertHeadPromise = utils.conflictFileExists(utils.getRevertHeadPath(repo));
+/**
+ * Checks if rebase, interactive rebase, merge or revert are in progress.
+*/
+function getLocalProgressStatus(repo) {
+  let rebaseHeadPromise = utils.progressFileExists(utils.getRebaseHeadPath(repo));
+  let interactiveRebaseHeadPromise = utils.progressFileExists(utils.interactiveRebaseHeadPath(repo));
+  let mergeHeadPromise = utils.progressFileExists(utils.getMergeHeadPath(repo));
+  let revertHeadPromise = utils.progressFileExists(utils.getRevertHeadPath(repo));
 
-  // no way yet to handle conflicts arising due to stash.
+  // no way yet to see stash in progress.
   // we'll detect these by checking UU on file status.
   return Promise.all([rebaseHeadPromise, mergeHeadPromise, revertHeadPromise, interactiveRebaseHeadPromise]).then((heads)=> {
     console.log('heads = ' + heads);
     if(heads[0] || heads[1] || heads[2]) {
-      // there is some conflict!
+      // there is something in progress!
       if(heads[0]) {
-        return 'rebase-conflict';
+        return 'rebase-progress';
       }
       if(heads[1]) {
-        return 'merge-conflict';
+        return 'merge-progress';
       }
       if(heads[2]) {
-        return 'revert-conflict';
+        return 'revert-progress';
       }
       if(heads[3]) {
-        return 'interactive-rebase-conflict';
+        return 'interactive-rebase-progress';
       }
     }
     return;
@@ -418,10 +441,10 @@ function getStatus(options) {
     let res = options.res;
     let repo = options.repo;
 
-    getLocalConflictStatus(repo).then((conflict) => {
+    getLocalProgressStatus(repo).then((progress) => {
       const child = spawnGitProcess(repo, ['status', '-uall', '--porcelain']);
       redirectIO(child, req, res, {
-        conflict: conflict
+        progress: progress
       });
     });
 }
