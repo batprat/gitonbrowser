@@ -1,5 +1,5 @@
 . Show branches graph
-. Handle merge
+. Handle merging            // https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
 . Delete local branch
 . Delete remote branch
 . Handle passwords for cloning

@@ -11,21 +11,26 @@
     </div>
     <div id="main-log-context-menu" style="display: none;"></div>
     <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
-        <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
-            <div class="col-sm-7">
-                <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
-                <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
-                    {{localBranch}}
-                </span>
-                <span class="remote-branch tags-refs" ng-if="commit.remoteBranches" ng-repeat="remoteBranch in commit.remoteBranches">
-                    {{remoteBranch}}
-                </span>
-                {{commit.subject}}
+        <div class="row">
+            <div id="graph-container" class="col"></div>
+            <div class="col">
+                <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
+                    <div class="col-sm-7">
+                        <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
+                        <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
+                            {{localBranch}}
+                        </span>
+                        <span class="remote-branch tags-refs" ng-if="commit.remoteBranches" ng-repeat="remoteBranch in commit.remoteBranches">
+                            {{remoteBranch}}
+                        </span>
+                        {{commit.subject}}
+                    </div>
+                    <div class="col-sm-2">{{commit.name}}</div>
+                    <div class="col-sm-3">{{commit.fromNow}}</div>
+                </div>
+                <div id="main-log-loading-indicator">Loading next batch of commits...</div>
             </div>
-            <div class="col-sm-2">{{commit.name}}</div>
-            <div class="col-sm-3">{{commit.fromNow}}</div>
         </div>
-        <div id="main-log-loading-indicator">Loading next batch of commits...</div>
     </div>
     <div class="details-container">
         <ul class="nav nav-tabs details-tabs" role="tablist">
