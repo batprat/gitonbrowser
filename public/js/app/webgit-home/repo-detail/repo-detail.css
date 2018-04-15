@@ -332,6 +332,6 @@
     margin-top: 15px;
 }
 
-.rebase-actions button {
+.rebase-actions button, .conflict-modal-selected-file-actions button {
     margin-left: 10px;
 }

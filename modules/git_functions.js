@@ -31,8 +31,22 @@ let git = {
     rebaseCurrentBranchOn,
     doResetHEADFile,
     abortRebase,
-    continueRebase
+    continueRebase,
+    skipRebase,
+    removeFile
 };
+
+function removeFile({req, res, repo}) {
+  let fileName = req.body.name;
+
+  const child = spawnGitProcess(repo, ['rm', fileName]);
+  redirectIO(child, req, res);
+}
+
+function skipRebase({req, res, repo}) {
+  const child = spawnGitProcess(repo, ['rebase', '--skip']);
+  redirectIO(child, req, res);
+}
 
 function continueRebase({req, res, repo}) {
   const child = spawnGitProcess(repo, ['rebase', '--continue']);

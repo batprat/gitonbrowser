@@ -73,6 +73,8 @@
                 vm.markFileAsResolvedDuringRebase = markFileAsResolvedDuringRebase;
                 vm.abortRebase = abortRebase;
                 vm.continueRebase = continueRebase;
+                vm.showRemoveFileBtnOnRebaseConflictModal = showRemoveFileBtnOnRebaseConflictModal;
+                vm.getMetaOfConflictedFile = getMetaOfConflictedFile;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -93,6 +95,8 @@
                     name: '',
                     checkout: true
                 };
+
+                vm.diffOnConflictModal = null;
 
                 $scope.$on('windowfocus', function() {
                     if(($commitModal.data('bs.modal') || {})._isShown) {
@@ -121,14 +125,72 @@
 
                 return;
 
-                function continueRebase() {
-                    repoDetailService.continueRebase().then(function(d) {
-                        if(!d.errorCode) {
-                            $rebaseConflictModal.modal('hide');
+                function unselectFilesAfterLocalRefresh() {
+                    vm.diffOnConflictModal = null;
+                    showDefaultFileOnCommitModalDialog();
+                }
+
+                function getMetaOfConflictedFile(conflictedFile) {
+                    if(!conflictedFile) {
+                        return;
+                    }
+                    var tags = conflictedFile.tags;
+                    var name = '';
+                    var description = '';
+                    switch(true) {
+                        case tags.indexOf('deletedbyus') > -1: {
+                            name = 'DU';
+                            description = 'This file is deleted in the other branch and modified on your branch.';
+                            break;
                         }
-                        refreshLocalChanges();
-                        refreshLog();
-                        // TODO: handle error here.
+                        case tags.indexOf('bothmodified') > -1: {
+                            name = 'UU';
+                            description = 'This file is modified on both the branches.';
+                            break;
+                        }
+                        case tags.indexOf('deletedbythem') > -1: {
+                            name = 'UD';
+                            description = 'This file is deleted on your branch and probably edited on the other.';
+                            break;
+                        }
+                    }
+                    return {
+                        name: name,
+                        description: description
+                    };
+                }
+
+                function showRemoveFileBtnOnRebaseConflictModal() {
+                    if(vm.diffOnConflictModal && vm.diffOnConflictModal.file) {
+                        return vm.diffOnConflictModal.file.tags.indexOf('deletedbyus') > -1 || vm.diffOnConflictModal.file.tags.indexOf('deletedbythem') > -1;
+                    }
+                    return false;
+                }
+
+                function continueRebase() {
+                    repoDetailService.refreshLocalChanges().then(function(d) {
+                        var localStatus = parseLocalStatus(d.localStatus);
+                        if(localStatus.length == 0) {
+                            // there is nothing to apply here.
+                            // run git rebase --skip
+                            repoDetailService.skipRebase().then(function(d) {
+                                if(!d.errorCode) {
+                                    refreshLocalChanges();
+                                    refreshLog();
+                                    $rebaseConflictModal.modal('hide');
+                                }
+                            });
+                        }
+                        else {
+                            repoDetailService.continueRebase().then(function(d) {
+                                if(!d.errorCode) {
+                                    $rebaseConflictModal.modal('hide');
+                                }
+                                refreshLocalChanges();
+                                refreshLog();
+                                // TODO: handle error here.
+                            });
+                        }
                     });
                 }
 
@@ -143,19 +205,34 @@
                     });
                 }
 
-                function markFileAsResolvedDuringRebase() {
-                    return repoDetailService.stageFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function(res) {
-                        // TODO: Handle errors here. Probably CRLF errors.
-                        if(res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                            vm.refreshLocalChanges();
-                        }
-                    });
+                function markFileAsResolvedDuringRebase(add) {
+                    if(add) {
+                        return repoDetailService.stageFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function(res) {
+                            // TODO: Handle errors here. Probably CRLF errors.
+                            if(res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
+                                vm.refreshLocalChanges();
+                            }
+                        });
+                    }
+                    else {
+                        return repoDetailService.removeFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function(res) {
+                            // TODO: Handle errors here. Probably CRLF errors.
+                            if(!res.errorCode) {
+                                vm.refreshLocalChanges();
+                            }
+                        });
+                    }
                 }
 
                 function showDiffOnConflictModal(conflictedFile) {
                     vm.diffOnConflictModal = {
                         file: conflictedFile
                     };
+
+                    if(conflictedFile.tags.indexOf('deletedbyus') > -1 || conflictedFile.tags.indexOf('deletedbythem') > -1) {
+                        // no diff for this file. Pick an option to keep or delete this file.
+                        return;
+                    }
 
                     return repoDetailService.getFileDiff(conflictedFile.name, conflictedFile.tags).then(function(diff) {
                         if(typeof diff == 'object') {
@@ -744,7 +821,7 @@
                         vm.unstagedFiles = $filter('filter')(vm.localStatus, {tags: 'unstaged'}, true);
 
                         if(($commitModal.data('bs.modal') || {})._isShown) {
-                            showDefaultFileOnCommitModalDialog();
+                            unselectFilesAfterLocalRefresh();
                         }
                     });
                 }
@@ -850,8 +927,16 @@
         this.doResetHEADFile = doResetHEADFile;
         this.abortRebase = abortRebase;
         this.continueRebase = continueRebase;
+        this.removeFile = removeFile;
+        this.skipRebase = skipRebase;
 
         return;
+
+        function skipRebase() {
+            return $http.post('/repo/' + repoName + '/skiprebase').then(function(res) {
+                return res.data;
+            });
+        }
 
         function continueRebase() {
             return $http.post('/repo/' + repoName + '/continuerebase').then(function(res) {
@@ -1055,8 +1140,19 @@
             });
         }
 
+        function removeFile(name, tags) {
+            return $http.post('/repo/' + repoName + '/removefile', {
+                name: name,
+                tags:tags.join(',')
+            }).then(function(res) {
+                if(!res.data.errorCode) {
+                    return res.data;
+                }
+                return res.data;
+            });
+        }
+
         function stageFile(file, tags) {
-            console.log(tags);
             return $http.get('/repo/' + repoName + '/stagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function(res) {
                 if(!res.data.errorCode) {
                     return res.data.output.join('\n');
@@ -1100,6 +1196,24 @@
                         });
                         fileTags = [];
                         fileTags.push('staged', 'conflicted', 'conflictedstaged', 'unmerged', 'bothmodified');
+                        t.push({
+                            name: f.substring(3),
+                            tags: fileTags
+                        });
+                        break;
+                    }
+                    case 'DU': {
+                        // unmerged, deleted by us.
+                        fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'deletedbyus');
+                        t.push({
+                            name: f.substring(3),
+                            tags: fileTags
+                        });
+                        break;
+                    }
+                    case 'UD': {
+                        // unmerged, deleted by them.
+                        fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'deletedbythem');
                         t.push({
                             name: f.substring(3),
                             tags: fileTags

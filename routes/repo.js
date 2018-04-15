@@ -187,4 +187,18 @@ router.post('/:id/continuerebase', (req, res) => {
     git.continueRebase({repo, req, res});
 });
 
+router.post('/:id/removefile', (req, res) => {
+    let repo = req.params.id;
+
+    git.removeFile({repo, req, res});
+});
+
+router.post('/:id/skiprebase', (req, res) => {
+    let repo = req.params.id;
+
+    git.skipRebase({repo, req, res});
+});
+
+
+
 module.exports = router;
