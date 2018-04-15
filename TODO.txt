@@ -1,4 +1,5 @@
-. Handle Rebase
+. Show branches graph
+. Handle merge
 . Delete local branch
 . Delete remote branch
 . Handle passwords for cloning
@@ -11,12 +12,15 @@
 . Implement searching for commits
 . Revert commit
 . Squash commits
-. Show repo in conflicted state
-. Handle conflicts from rebase, merge, stash
+. Handle conflicts from merge, stash
+. Handle Rebase Cases       // https://git-scm.com/docs/git-status
+ . unmerged, both deleted
+ . unmerged, added by us
+ . unmerged, added by them
+ . unmerged, both added
 . Start program using custom port
 . Continuous output for clone, pull
 . Toggle whitespace while showing diff
-. Show branches graph
 . Stage selected lines
 . unstage selected lines
 . revert selected lines
@@ -48,5 +52,11 @@
  -. Create new branch
  -. Checkout new branch
  -. Checkout a branch that is already present
- -. Handle binary files.
- -. Create new branch while pushing
+-. Handle binary files.
+-. Create new branch while pushing
+-. Rebase cases
+ -. Both modified
+ -. Deleted by us
+ -. Deleted by them
+-. Show repo in conflicted state
+-. Handle conflicts from rebase
