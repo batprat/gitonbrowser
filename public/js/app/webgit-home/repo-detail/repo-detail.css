@@ -335,3 +335,8 @@
 .rebase-actions button, .conflict-modal-selected-file-actions button {
     margin-left: 10px;
 }
+
+#graph-container {
+    flex: 0 0 50px;
+    background: #fff;
+}
