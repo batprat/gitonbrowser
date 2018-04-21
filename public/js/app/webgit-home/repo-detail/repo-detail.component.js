@@ -667,43 +667,69 @@
                     commits = commits.map(function(c) {
                         c.parentHashes = c.parentHashes.split(' ');
                         c.branches = [];
+                        c.branchLevels = [];
                         c.fromNow = moment(c.date).fromNow();
 
                         vm.commitMap[c.hash] = c;
                         return c;
                     });
 
+                    var openBranches = [];
+                    var branchLevel = 0;
 
+                    commits[0].x = branchLevel;
 
-                    // TODO: Add code here to draw branches.
-                    return;
+                    openBranches[branchLevel] = commits[0].hash;
 
-                    var branches = {};
-                    var commitBranchMap = {};
-                    var commitMap = {};
+                    var nextCommit = null,
+                        currCommit = null;
+                    
+                    var x = null,
+                        idx = null,
+                        first = null,
+                        t = null;
 
-                    var branchNum = 0;
-
-                    commits.forEach(function(c) { commitMap[c.hash] = c; });
-
-                    commits.forEach(function(commit, idx) {
-                        if(!commit.branches[0]) {
-                            commit.branches.push(++branchNum);
+                    for(var i = 0; i < commits.length; i++) {
+                        
+                        currCommit = commits[i];
+                        nextCommit = commits[i + 1];
+                        first = true;
+                        for(j = 0; j < currCommit.parentHashes.length; j++) {
+                            idx = openBranches.indexOf(currCommit.parentHashes[j]);
+                            if(idx > -1) {
+                                // in case a commit is on branch-2 and there are some commits on branch-1 after (chronogically) our commit;
+                                // but parent of our commit is supposed to be on branch-1 (since branch-2 started from its parent).
+                                // Then the parent should be on branch-1. 
+                                // It should look as if branch-2 is coming out of branch-1. Therefore the parent will be on branch-1;
+                                t = vm.commitMap[openBranches[idx]];
+                                if(t && typeof t.x != 'undefined' && t.x > currCommit.x) {
+                                    t.x = currCommit.x;
+                                }
+                                openBranches.splice(idx, 1);
+                                branchLevel--;
+                            }
+                            else if(typeof currCommit.x == 'undefined') {
+                                // new branch!
+                                currCommit.x = ++branchLevel;
+                                openBranches[branchLevel] = currCommit.hash;
+                                j--;
+                                continue;
+                            }
+                            else if(first){
+                                first = false;
+                                openBranches.splice(openBranches.indexOf(currCommit.hash), 1, currCommit.parentHashes[j]);
+                                if(vm.commitMap[currCommit.parentHashes[j]]) {
+                                    vm.commitMap[currCommit.parentHashes[j]].x = currCommit.x;
+                                }
+                            }
+                            else {
+                                openBranches[++branchLevel] = currCommit.parentHashes[j];
+                                if(vm.commitMap[currCommit.parentHashes[j]]) {
+                                    vm.commitMap[currCommit.parentHashes[j]].x = branchLevel;
+                                }
+                            }
                         }
-                        commit.parentHashes.forEach(function(parentHash, idx) {
-                            if(idx == 1) {
-                                // for 2nd parent hash, the current commit is also present on the (new, so + 1) branch of the new commit.
-                                commit.branches.push(branchNum + 1);
-                                commit.branches = commit.branches.sort();
-                            }
-                            var parentCommit = commitMap[parentHash];
-                            if(parentCommit) {
-                                // first parent commit will have branch same as that of current commit.
-                                // second parent commit will have new branch.
-                                parentCommit.branches.push(idx == 0 ? commit.branches[0] : ++branchNum);
-                            }
-                        });
-                    });
+                    }
                 }
 
                 function unstageAllFiles() {
