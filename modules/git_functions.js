@@ -666,6 +666,7 @@ function sendResponse(res, op) {
 let logCommits = [];
 
 function redirectIOForLog(child, req, res, splitter) {
+    let errors = [];
     child.stdout.on('data', function(data) {
         if(showAllLogs)
         console.log( `stdout===========================: ${data}` );
@@ -706,6 +707,10 @@ function redirectIOForLog(child, req, res, splitter) {
         console.log('event -- close');
         console.log('code = ' + code);
         console.log('signal = ' + signal);
+        }
+
+        if(errors.length) {
+            return sendResponse(res, {errors});
         }
 
         let commitData = {};

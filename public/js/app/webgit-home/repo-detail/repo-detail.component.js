@@ -14,12 +14,21 @@
     var $rebaseConflictModal = null;
 
     var $sce = null;
+
+    var logGraphDefaults = {
+        lineWidth: 2,
+        commitRadius: 5,
+        distanceBetweenBranches: 20,
+        commitBorderWidth: 2,
+        commitBorderColor: '#000000',
+        connectionWidth: 2
+    };
     
     repoDetailModule
         .component('repoDetail', {
             templateUrl: '/js/app/webgit-home/repo-detail/repo-detail.html',
-            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService',
-              function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService) {
+            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService', '$timeout',
+              function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService, $timeout) {
                 $sce = $sceLocal;
                 // repoName = UtilsService.decodePath($routeParams.repoName);
                 repoName = $routeParams.repoName;
@@ -112,7 +121,7 @@
                 });
 
                 initializeRemote();
-                refreshLog().then(loadGraph);
+                refreshLog();
                 vm.refreshLocalChanges();
 
                 bindLazyLoadingCommits();
@@ -324,7 +333,115 @@
                 }
 
                 function loadGraph() {
+                    var $graphContainer = $('#graph-container');
+                    $graphContainer.empty().append('<canvas id="log-graph" height="'+ $graphContainer.height() +'" width="'+ $graphContainer.width() +'"></canvas>');
+
+                    var graph = document.getElementById('log-graph');
+                    var ctx = graph.getContext("2d");
+                    var commits = vm.commits;
+
+                    drawConnections(ctx, commits);
+                    drawCommits(ctx, commits);
                     
+                }
+
+                function drawConnections(ctx, commits) {
+                    var getParentFromHash = function(h) {
+                        return vm.commitMap[h];
+                    },
+                    hashes = commits.map(function(c) {
+                        return c.hash;
+                    });
+
+                    var currCommit = null,
+                        parents = null,
+                        currParent = null,
+                        j = null;
+
+                    var colors = ['#FF0000', '#00FF00', '#0000FF'];
+
+                    var m = 10,
+                        c = 10,
+                        y = 40,
+                        halfy = y / 2;
+
+                    ctx.lineWidth = logGraphDefaults.connectionWidth;
+
+                    for(var i = 0; i < commits.length; i++) {
+                        currCommit = commits[i];
+                        parents = currCommit.parentHashes.map(getParentFromHash);
+
+                        for(j = 0; j < parents.length; j++) {
+                            currParent = parents[j];
+                            if(!currParent) {
+                                continue;
+                            }
+
+                            // draw a line from currCommit.x to parent.x
+                            if(currParent.x == currCommit.x) {
+                                // draw a straight line.
+                                ctx.beginPath();
+                                ctx.strokeStyle = colors[currParent.x];
+                                ctx.moveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i);
+                                ctx.lineTo(currParent.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * hashes.indexOf(currParent.hash));
+                                ctx.stroke();
+                            }
+                            else if(currParent.x > currCommit.x) {
+                                // curve to lane to right, then straight down.
+                                ctx.beginPath();
+                                ctx.strokeStyle= colors[currParent.x];
+                                ctx.moveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i);
+                                ctx.bezierCurveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, 
+                                    halfy + y * i + y , 
+                                    currParent.x * logGraphDefaults.distanceBetweenBranches + c, 
+                                    halfy + y * i, 
+                                    currParent.x * logGraphDefaults.distanceBetweenBranches + c, 
+                                    halfy + y * i + y);
+                                ctx.moveTo(currParent.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i + y);
+                                ctx.lineTo(currParent.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * hashes.indexOf(currParent.hash));
+                                ctx.stroke();
+                            }
+                            else if(currParent.x < currCommit.x) {
+                                ctx.beginPath();
+                                ctx.strokeStyle= colors[currCommit.x];
+                                ctx.moveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i);
+                                ctx.lineTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * (hashes.indexOf(currParent.hash) - 1));
+                                ctx.moveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * (hashes.indexOf(currParent.hash) - 1));
+                                ctx.bezierCurveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, 
+                                    halfy + y * (hashes.indexOf(currParent.hash) - 1) + y , 
+                                    currParent.x * logGraphDefaults.distanceBetweenBranches + c, 
+                                    halfy + y * (hashes.indexOf(currParent.hash) - 1), 
+                                    currParent.x * logGraphDefaults.distanceBetweenBranches + c, 
+                                    halfy + y * (hashes.indexOf(currParent.hash) - 1) + y);
+                                
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                }
+
+                function drawCommits(ctx, commits) {
+                    ctx.lineWidth = logGraphDefaults.commitBorderWidth;
+                    ctx.strokeStyle = logGraphDefaults.commitBorderColor;
+
+                    var m = 10,
+                        c = 10,
+                        y = 40,
+                        halfy = y / 2;
+                    
+                    var currCommit = null;
+
+                    var colors = ['#FF0000', '#00FF00', '#0000FF'];
+                    var PIx2 = 2*Math.PI;
+                    for(var i = 0; i < commits.length; i++) {
+                        currCommit = commits[i];
+
+                        ctx.beginPath();
+                        ctx.fillStyle = colors[currCommit.x];
+                        ctx.arc(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i, logGraphDefaults.commitRadius, 0, PIx2);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
                 }
 
                 function rebaseCurrentBranchOn(branchNameOrRevision) {
@@ -628,6 +745,7 @@
                     }
                     parseCommits(commits);
                     vm.commits = commits;
+                    $timeout(loadGraph);
                     return vm.commits;
                   });
                 }

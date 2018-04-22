@@ -16,6 +16,9 @@
 .commit {
     background: #FFF;
     border-bottom: 1px solid #CCC;
+    align-items: center;
+    display: flex;
+    height: 40px;
 }
 
 .list-item-selector {
@@ -339,4 +342,5 @@
 #graph-container {
     flex: 0 0 50px;
     background: #fff;
+    padding: 0;
 }
