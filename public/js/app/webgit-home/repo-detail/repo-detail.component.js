@@ -333,6 +333,7 @@
                 }
 
                 function loadGraph() {
+                    setGraphInfo();
                     var $graphContainer = $('#graph-container');
                     $graphContainer.empty().append('<canvas id="log-graph" height="'+ $graphContainer.height() +'" width="'+ $graphContainer.width() +'"></canvas>');
 
@@ -575,7 +576,6 @@
                     if(vm.selectedStash.name === 'Local Changes') {
                         vm.selectedStash.selectedFile = file;
                         repoDetailService.getFileDiff(file.fileName, file.tags).then(function(diff) {
-                            // debugger;
                             var parsedDiff = parseDiff(diff);
                             vm.selectedStash.selectedFile.safeDiff = parsedDiff[0].safeDiff;
                         });
@@ -729,6 +729,9 @@
                         if(commits === false) {
                           noMoreCommits = true;
                         }
+                        else {
+                            $timeout(loadGraph);
+                        }
                       });
                     }
                   });
@@ -792,6 +795,11 @@
                         return c;
                     });
 
+                    
+                }
+
+                function setGraphInfo() {
+                    var commits = vm.commits;
                     var openBranches = [];
                     var branchLevel = 0;
 
@@ -834,6 +842,7 @@
                                 continue;
                             }
                             else if(first){
+                                // replace the openBranch with current parent.
                                 first = false;
                                 openBranches.splice(openBranches.indexOf(currCommit.hash), 1, currCommit.parentHashes[j]);
                                 if(vm.commitMap[currCommit.parentHashes[j]]) {
