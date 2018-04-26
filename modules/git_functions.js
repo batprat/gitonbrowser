@@ -33,8 +33,23 @@ let git = {
     abortRebase,
     continueRebase,
     skipRebase,
-    removeFile
+    removeFile,
+    mergeIntoCurrent,
+    abortMerge
 };
+
+function abortMerge({req, res, repo}) {
+    // TODO: Handle for older git versions.. https://stackoverflow.com/questions/5741407/how-to-undo-a-git-merge-with-conflicts
+    const child = spawnGitProcess(repo, ['merge', '--abort']);
+    redirectIO(child, req, res);
+}
+
+function mergeIntoCurrent({req, res, repo}) {
+    let obj = req.body.obj;
+
+    const child = spawnGitProcess(repo, ['merge', obj]);
+    redirectIO(child, req, res);
+}
 
 function removeFile({req, res, repo}) {
   let fileName = req.body.name;

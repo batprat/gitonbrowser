@@ -419,39 +419,56 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="rebase-conflict-modal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="conflict-modal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Handle Rebase Conflict</h5>
+                    <h5 class="modal-title">Handle {{vm.progress.type}} conflict</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-6">
-                                <div class="rebase-explaination">
-                                    Mark all conflicts as resolved to continue your rebase. You may abort at any time.
+                                <div class="conflict-explaination">
+                                    Mark all conflicts as resolved to continue your {{vm.progress.type}}. You may abort at any time.
                                 </div>
                                 <div class="card">
                                     <div class="card-body">
-                                        <h6 class="card-title">Fix conflicts in the following files using your editor.</h6>
+                                        <h6 ng-if="filteredConflictedFiles.length > 0" class="card-title">Fix conflicts in the following files using your editor.<br />Then select each file and mark it as resolved.</h6>
+                                        <h6 ng-if="filteredConflictedFiles.length == 0" class="card-title">Now we can continue merging.</h6>
                                         <div class="conflicting-files-list container-fluid">
-                                            <div class="row list-item-selector" ng-repeat="conflictedFile in vm.localStatus | filter: {tags: 'conflictedunstaged'}: true" ng-click="vm.showDiffOnConflictModal(conflictedFile)" ng-class="{'selected': vm.diffOnConflictModal.file === conflictedFile }">
+                                            <div class="row list-item-selector" ng-repeat="conflictedFile in vm.localStatus | filter: {tags: 'conflictedunstaged'}: true as filteredConflictedFiles" ng-click="vm.showDiffOnConflictModal(conflictedFile)" ng-class="{'selected': vm.diffOnConflictModal.file === conflictedFile }">
                                                 <div class="col-sm-12">
                                                     <span class="badge badge-warning" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="{{vm.getMetaOfConflictedFile(conflictedFile).description}}" >{{ vm.getMetaOfConflictedFile(conflictedFile).name }}</span> {{conflictedFile.name}}
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="conflict-modal-selected-file-actions">
-                                            <button class="btn btn-primary pull-right btn-rebase-move-2" ng-show="vm.diffOnConflictModal.file" ng-click="vm.markFileAsResolvedDuringRebase(true)" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="{{ vm.showRemoveFileBtnOnRebaseConflictModal() ? 'Click me if you want to keep this file.' : 'Click me after making sure you have fixed all conflicts in the selected file.' }}">{{ vm.showRemoveFileBtnOnRebaseConflictModal() ? 'Keep File' :'Mark Resolved' }}</button>
-                                            <button class="btn btn-primary pull-right btn-rebase-move-2" ng-show="vm.showRemoveFileBtnOnRebaseConflictModal()" ng-click="vm.markFileAsResolvedDuringRebase(false)" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Click me if you want to delete this file.">Delete File</button>
+                                            <button class="btn btn-primary pull-right btn-conflict-action" ng-show="vm.diffOnConflictModal.file" ng-click="vm.markFileAsResolvedDuringConflict(true)" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="{{ vm.showRemoveFileBtnOnConflictModal() ? 'Click me if you want to keep this file.' : 'Click me after making sure you have fixed all conflicts in the selected file.' }}">{{ vm.showRemoveFileBtnOnConflictModal() ? 'Keep File' :'Mark Resolved' }}</button>
+                                            <button class="btn btn-primary pull-right btn-conflict-action" ng-show="vm.showRemoveFileBtnOnConflictModal()" ng-click="vm.markFileAsResolvedDuringConflict(false)" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Click me if you want to delete this file.">Delete File</button>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="rebase-actions">
-                                    <button class="btn btn-primary pull-right" ng-click="vm.continueRebase()">Continue Rebase</button>
-                                    <button class="btn btn-danger pull-right" ng-click="vm.abortRebase()">Abort Rebase</button>
+                                <div class="container-fluid conflict-modal-action-btns-container">
+                                    <div class="row">
+                                        <div class="col">
+                                            <label class="" for="conflict-commit-message">Commit Message</label>
+                                            <textarea ng-if="vm.progress.type == 'merge'" id="conflict-commit-message" class="form-control" ng-model="vm.mergeConflictCommitMessage"></textarea>
+                                        </div>
+                                        <div class="col" ng-if="vm.progress.type == 'rebase'">
+                                            <div class="conflict-actions">
+                                                <button class="btn btn-primary pull-right" ng-click="vm.continueRebase()">Continue Rebase</button>
+                                                <button class="btn btn-danger pull-right" ng-click="vm.abortRebase()">Abort Rebase</button>
+                                            </div>
+                                        </div>
+                                        <div class="col merge-conflict-actions" ng-if="vm.progress.type == 'merge'">
+                                            <div class="conflict-actions" ng-if="vm.progress.type == 'merge'">
+                                                <button class="btn btn-primary pull-right" ng-click="vm.continueMerge()" ng-disabled="filteredConflictedFiles.length > 0 || vm.mergeConflictCommitMessage.length == 0">Continue Merge</button>
+                                                <button class="btn btn-danger pull-right" ng-click="vm.abortMerge()">Abort Merge</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-6">

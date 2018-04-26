@@ -199,6 +199,16 @@ router.post('/:id/skiprebase', (req, res) => {
     git.skipRebase({repo, req, res});
 });
 
+router.post('/:id/merge', (req, res) => {
+    let repo = req.params.id;
 
+    git.mergeIntoCurrent({repo, req, res});
+});
+
+router.post('/:id/abortmerge', (req, res) => {
+    let repo = req.params.id;
+
+    git.abortMerge({repo, req, res});
+});
 
 module.exports = router;

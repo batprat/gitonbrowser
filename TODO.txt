@@ -1,5 +1,4 @@
-. Show branches graph
-. Handle merging            // https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
+. Handle cherrypick
 . Delete local branch
 . Delete remote branch
 . Handle passwords for cloning
@@ -10,6 +9,10 @@
 . Prevent CSRF attacks.
 . Handle CRLF errors.
 . Implement searching for commits
+. Refactor code.
+ . Use angular-ui
+ . Move service into different file
+ . Move modals into their own files
 . Revert commit
 . Squash commits
 . Handle conflicts from merge, stash
@@ -60,3 +63,5 @@
  -. Deleted by them
 -. Show repo in conflicted state
 -. Handle conflicts from rebase
+- . Show branches graph
+-. Handle merging            // https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging

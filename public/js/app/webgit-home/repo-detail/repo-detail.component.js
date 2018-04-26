@@ -11,7 +11,7 @@
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
-    var $rebaseConflictModal = null;
+    var $conflictModal = null;
 
     var $sce = null;
 
@@ -21,7 +21,8 @@
         distanceBetweenBranches: 20,
         commitBorderWidth: 2,
         commitBorderColor: '#000000',
-        connectionWidth: 2
+        connectionWidth: 2,
+        colors: ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3']       // colors of the rainbow :)
     };
     
     repoDetailModule
@@ -46,7 +47,7 @@
                 $resetAllFilesModal = $('#reset-all-modal');
                 $resetUnstagedFilesModal = $('#reset-unstaged-modal');
                 $newBranchModal = $('#new-branch-modal');
-                $rebaseConflictModal = $('#rebase-conflict-modal');
+                $conflictModal = $('#conflict-modal');
                 vm.selectedCommit = null;
                 vm.modifiedFileNames = [];
 
@@ -79,11 +80,14 @@
                 vm.createNewBranch = createNewBranch;
                 vm.showModalToHandleConflict = showModalToHandleConflict;
                 vm.showDiffOnConflictModal = showDiffOnConflictModal;
-                vm.markFileAsResolvedDuringRebase = markFileAsResolvedDuringRebase;
+                vm.markFileAsResolvedDuringConflict = markFileAsResolvedDuringConflict;
                 vm.abortRebase = abortRebase;
                 vm.continueRebase = continueRebase;
-                vm.showRemoveFileBtnOnRebaseConflictModal = showRemoveFileBtnOnRebaseConflictModal;
+                vm.showRemoveFileBtnOnConflictModal = showRemoveFileBtnOnConflictModal;
                 vm.getMetaOfConflictedFile = getMetaOfConflictedFile;
+                vm.continueMerge = continueMerge;
+                vm.abortMerge = abortMerge;
+                vm.mergeConflictCommitMessage = '';
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -134,6 +138,29 @@
 
                 return;
 
+                function abortMerge() {
+                    return repoDetailService.abortMerge().then(function(d) {
+                        if(!d.errorCode) {
+                            refreshLocalChanges();
+                            refreshLog();
+                            $conflictModal.modal('hide');
+                        }
+                    });
+                }
+
+                function continueMerge() {
+                    // continue merge means commit.
+                    return repoDetailService.commit(vm.mergeConflictCommitMessage).then(function(d) {
+                        if(typeof d == 'string') {
+                            // the commit was successful.
+                            // close the conflict modal.
+                            refreshLocalChanges();
+                            refreshLog();
+                            $conflictModal.modal('hide');
+                        }
+                    });
+                }
+
                 function unselectFilesAfterLocalRefresh() {
                     vm.diffOnConflictModal = null;
                     showDefaultFileOnCommitModalDialog();
@@ -169,7 +196,7 @@
                     };
                 }
 
-                function showRemoveFileBtnOnRebaseConflictModal() {
+                function showRemoveFileBtnOnConflictModal() {
                     if(vm.diffOnConflictModal && vm.diffOnConflictModal.file) {
                         return vm.diffOnConflictModal.file.tags.indexOf('deletedbyus') > -1 || vm.diffOnConflictModal.file.tags.indexOf('deletedbythem') > -1;
                     }
@@ -186,14 +213,14 @@
                                 if(!d.errorCode) {
                                     refreshLocalChanges();
                                     refreshLog();
-                                    $rebaseConflictModal.modal('hide');
+                                    $conflictModal.modal('hide');
                                 }
                             });
                         }
                         else {
                             repoDetailService.continueRebase().then(function(d) {
                                 if(!d.errorCode) {
-                                    $rebaseConflictModal.modal('hide');
+                                    $conflictModal.modal('hide');
                                 }
                                 refreshLocalChanges();
                                 refreshLog();
@@ -210,15 +237,16 @@
                         }
                         refreshLocalChanges();
                         refreshLog();
-                        $rebaseConflictModal.modal('hide');
+                        $conflictModal.modal('hide');
                     });
                 }
 
-                function markFileAsResolvedDuringRebase(add) {
+                function markFileAsResolvedDuringConflict(add) {
                     if(add) {
                         return repoDetailService.stageFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function(res) {
                             // TODO: Handle errors here. Probably CRLF errors.
                             if(res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
+                                vm.diffOnConflictModal = null;
                                 vm.refreshLocalChanges();
                             }
                         });
@@ -227,6 +255,7 @@
                         return repoDetailService.removeFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function(res) {
                             // TODO: Handle errors here. Probably CRLF errors.
                             if(!res.errorCode) {
+                                vm.diffOnConflictModal = null;
                                 vm.refreshLocalChanges();
                             }
                         });
@@ -255,8 +284,9 @@
 
                 function showModalToHandleConflict() {
                     switch(vm.progress.type) {
-                        case 'rebase': {
-                            $rebaseConflictModal.modal('show');
+                        case 'rebase':
+                        case 'merge': {
+                            $conflictModal.modal('show');
                             break;
                         }
                     }
@@ -307,6 +337,11 @@
                                         name: commit.localBranches[i],
                                         callback: checkoutLocalBranch
                                     };
+
+                                    options.items.mergeIntoCurrent.items[commit.localBranches[i]] = {
+                                        name: commit.localBranches[i],
+                                        callback: mergeLocalBranch
+                                    };
                                 }
                             }
 
@@ -332,9 +367,20 @@
                     });
                 }
 
+                function mergeLocalBranch(branchName) {
+                    $responseModalTitle.text('Merging');
+                    $responseModal.modal('show');
+                    return repoDetailService.mergeIntoCurrent(branchName).then(function(d) {
+                        $responseModalBody.html(d.output.join('\n').trim().replace('\n', '<br />'));
+                        refreshLocalChanges();
+                        refreshLog();
+                    });
+                }
+
                 function loadGraph() {
                     setGraphInfo();
                     var $graphContainer = $('#graph-container');
+                    $graphContainer.css('flex', '0 0 ' + (((vm.maxX + 1) * logGraphDefaults.distanceBetweenBranches) + logGraphDefaults.distanceBetweenBranches).toString() + 'px');
                     $graphContainer.empty().append('<canvas id="log-graph" height="'+ $graphContainer.height() +'" width="'+ $graphContainer.width() +'"></canvas>');
 
                     var graph = document.getElementById('log-graph');
@@ -359,7 +405,7 @@
                         currParent = null,
                         j = null;
 
-                    var colors = ['#FF0000', '#00FF00', '#0000FF'];
+                    var colors = logGraphDefaults.colors;
 
                     var m = 10,
                         c = 10,
@@ -432,7 +478,7 @@
                     
                     var currCommit = null;
 
-                    var colors = ['#FF0000', '#00FF00', '#0000FF'];
+                    var colors = logGraphDefaults.colors;
                     var PIx2 = 2*Math.PI;
                     for(var i = 0; i < commits.length; i++) {
                         currCommit = commits[i];
@@ -813,7 +859,8 @@
                     var x = null,
                         idx = null,
                         first = null,
-                        t = null;
+                        t = null,
+                        maxX = branchLevel;
 
                     for(var i = 0; i < commits.length; i++) {
                         
@@ -839,6 +886,10 @@
                                 currCommit.x = ++branchLevel;
                                 openBranches[branchLevel] = currCommit.hash;
                                 j--;
+                                // since this is the only place where branchLevel increments, lets find the max branch level here.
+                                if(branchLevel > maxX) {
+                                    maxX = branchLevel;
+                                }
                                 continue;
                             }
                             else if(first){
@@ -857,6 +908,8 @@
                             }
                         }
                     }
+                    // maxX will be used to set the width of the canvas.
+                    vm.maxX = maxX;
                 }
 
                 function unstageAllFiles() {
@@ -1082,8 +1135,22 @@
         this.continueRebase = continueRebase;
         this.removeFile = removeFile;
         this.skipRebase = skipRebase;
+        this.mergeIntoCurrent = mergeIntoCurrent;
+        this.abortMerge = abortMerge;
 
         return;
+
+        function abortMerge() {
+            return $http.post('/repo/' + repoName + '/abortmerge').then(function(res) {
+                return res.data;
+            });
+        }
+
+        function mergeIntoCurrent(branchName) {
+            return $http.post('/repo/' + repoName + '/merge', {obj: branchName}).then(function(res) {
+                return res.data;
+            });
+        }
 
         function skipRebase() {
             return $http.post('/repo/' + repoName + '/skiprebase').then(function(res) {
