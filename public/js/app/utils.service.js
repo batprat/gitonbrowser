@@ -5,7 +5,8 @@
     };
 
     function decodePath(path) {
-      return path.replace('>>>', ':/').replace('>>', ':').replace('>', '/');
+      // return path.replace('>>>', ':/').replace('>>', ':').replace('>', '/');
+      return decodeURIComponent(path);
     }
   }]);
 })();

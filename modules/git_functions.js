@@ -35,8 +35,14 @@ let git = {
     skipRebase,
     removeFile,
     mergeIntoCurrent,
-    abortMerge
+    abortMerge,
+    testGit
 };
+
+function testGit({req, res}) {
+    const child = spawnGitProcess();
+    redirectIO(child, req, res);
+}
 
 function abortMerge({req, res, repo}) {
     // TODO: Handle for older git versions.. https://stackoverflow.com/questions/5741407/how-to-undo-a-git-merge-with-conflicts
@@ -577,9 +583,9 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
 }
 
 function clone({req, res}) {
-    let url = req.body.url;
-    let cloneSubdirectoryName = req.body.dirName;
-    let destinationDir = req.body.destination;
+    let url = decodeURIComponent(req.body.url);
+    let cloneSubdirectoryName = decodeURIComponent(req.body.dirName);
+    let destinationDir = decodeURIComponent(req.body.destination);
   
     let cloneOptions = ['clone', '--progress', url];
     
@@ -595,6 +601,10 @@ function clone({req, res}) {
     let logs = [];
     child.stderr.on('data', function(data) {
       logs.push(data.toString());
+    });
+
+    child.on('error', function(err) {
+        logs.push(err.toString);
     });
 
     let extraInfo = {

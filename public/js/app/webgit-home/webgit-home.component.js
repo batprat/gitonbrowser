@@ -24,6 +24,8 @@
       vm.openCloneModal = openCloneModal;
       vm.clone = clone;
       vm.openAfterCheckingOut = true;
+      vm.testGit = testGit;
+      vm.getRepoTitle = getRepoTitle;
 
       WebgitHomeService.getClonedRepos().then(function(data) {
         var allRepos = data.allRepos;
@@ -31,6 +33,14 @@
       });
 
       return;
+
+      function getRepoTitle(path) {
+        return utils.decodePath(path);
+      }
+
+      function testGit() {
+        return WebgitHomeService.testGit();
+      }
 
       function clone() {
         // open the response modal.
@@ -68,14 +78,15 @@
     this.getClonedRepos = getClonedRepos;
     this.browseRepo = browseRepo;
     this.clone = clone;
+    this.testGit = testGit;
 
     return;
 
     function clone(pathOfRepo, pathOfDestination, subdirName) {
       return $http.post('/clonerepo', {
-        url: pathOfRepo,
-        dirName: subdirName,
-        destination: pathOfDestination
+        url: window.encodeURIComponent(pathOfRepo),
+        dirName: window.encodeURIComponent(subdirName),
+        destination: window.encodeURIComponent(pathOfDestination)
       }).then(function(res) {
         return res.data;
       });
@@ -90,6 +101,12 @@
     function browseRepo(repoPath) {
       return $http.get('/browserepo?path=' + window.encodeURIComponent(repoPath)).then(function(res) {
         $location.path(res.data.path);
+      });
+    }
+
+    function testGit() {
+      return $http.post('/testgit').then(function(res) {
+        return res.data;
       });
     }
   }]);

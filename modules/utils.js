@@ -67,11 +67,13 @@ function getAllClonedRepos() {
     > is not allowed in file/folder names for windows. Unix users just have to take care that there folder names must not contain >.
 */
 function encodePath(path) {
-  return path.replace(/[\/\\]/g, '>').replace(':', '>>');
+  // return path.replace(/[\/\\]/g, '>').replace(':', '>>');
+  return encodeURIComponent(path);
 }
 
 function decodePath(path) {
-  return path.replace(/\>\>\>/g, ':\\').replace(/\>\>/g, ':').replace(/\>/g, '\\');
+  // return path.replace(/\>\>\>/g, ':\\').replace(/\>\>/g, ':').replace(/\>/g, '\\');
+  return decodeURIComponent(path);
 }
 
 function getRepoNameFromEncodedPath(encodedPath) {

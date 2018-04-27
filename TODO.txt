@@ -32,7 +32,6 @@
 . Turn the asynchronous modals red at runtime if error occurs. (e.g. pulling, pushing)
 . Handle case when we fetch commits above the checked out commit. Then color the checked out commits and show the commits above with a disabled look.
 . Update without focusing - sockets
-. encodeURIComponent instead of complex >>> structure.
 -. Reset all changes
 -. Reset unstaged changes
 -1. Clone Repository - done
@@ -65,3 +64,4 @@
 -. Handle conflicts from rebase
 - . Show branches graph
 -. Handle merging            // https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
+-. encodeURIComponent instead of complex >>> structure.

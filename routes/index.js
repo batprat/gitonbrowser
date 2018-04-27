@@ -27,8 +27,8 @@ router.post('/clonerepo', function(req, res, next) {
   git.clone({req, res});
 });
 
-router.post('/test', function(req, res, next) {
-
+router.post('/testgit', function(req, res, next) {
+  git.testGit({req, res});
 });
 
 router.get('/browserepo', function(req, res) {

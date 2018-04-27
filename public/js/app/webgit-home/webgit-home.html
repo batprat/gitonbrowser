@@ -4,8 +4,9 @@
     <div class="col-4">
       <h2>Open GIT Repository</h2>
       <ul id="cloned-repos">
-         <li ng-repeat="repo in vm.clonedRepos" class="cloned-repo" title="{{repo.path}}"><a href="/repo/{{repo.path}}" target="_self">{{repo.name}}</a></li>
+         <li ng-repeat="repo in vm.clonedRepos" class="cloned-repo" title="{{vm.getRepoTitle(repo.path)}}"><a href="/repo/{{repo.path}}" target="_self">{{repo.name}}</a></li>
       </ul>
+      <!-- <button class="btn btn-danger" ng-click="vm.testGit()">Test Git</button> -->
     </div>
     <div class="col-8">
       <div class="form-group row">

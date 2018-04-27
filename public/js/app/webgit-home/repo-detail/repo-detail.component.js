@@ -31,8 +31,7 @@
             controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService', '$timeout',
               function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService, $timeout) {
                 $sce = $sceLocal;
-                // repoName = UtilsService.decodePath($routeParams.repoName);
-                repoName = $routeParams.repoName;
+                repoName = encodeURIComponent(decodeURIComponent($routeParams.repoName));
     
                 this.repoName = repoName;
 
