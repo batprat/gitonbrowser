@@ -85,7 +85,7 @@
     function clone(pathOfRepo, pathOfDestination, subdirName) {
       return $http.post('/clonerepo', {
         url: window.encodeURIComponent(pathOfRepo),
-        dirName: window.encodeURIComponent(subdirName),
+        dirName: subdirName ? window.encodeURIComponent(subdirName) : '',
         destination: window.encodeURIComponent(pathOfDestination)
       }).then(function(res) {
         return res.data;
