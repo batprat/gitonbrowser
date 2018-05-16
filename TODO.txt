@@ -22,7 +22,6 @@
  . unmerged, added by us
  . unmerged, added by them
  . unmerged, both added
-. Start program using custom port
 . Continuous output for clone, pull
 . Toggle whitespace while showing diff
 . Stage selected lines
@@ -66,3 +65,4 @@
 -. Handle merging            // https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
 -. encodeURIComponent instead of complex >>> structure.
 -. Add loaders to all git operations
+-. Start program using custom port
