@@ -3,9 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "postinstall": "bower install",
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "bower": "latest",
     "body-parser": "^1.18.2",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",

@@ -1,9 +1,9 @@
 {
-  "name": "webgit-client",
+  "name": "gitonbrowser",
   "authors": [
     "pratyush <pratyushtamhankar@gmail.com>"
   ],
-  "description": "Client side of the webgit project",
+  "description": "Frontend of gitonbrowser",
   "main": "",
   "keywords": [
     "GIT",
@@ -12,7 +12,7 @@
     "Control"
   ],
   "license": "MIT",
-  "homepage": "practicalpraty.com/tech/webgit",
+  "homepage": "https://github.com/batprat/gitonbrowser",
   "private": true,
   "ignore": [
     "**/.*",
@@ -23,8 +23,8 @@
   ],
   "dependencies": {
     "jquery": "3.2.1",
-    "angular": "1.6.9",
-    "angular-route": "^1.6.6",
+    "angular": "1.7.0",
+    "angular-route": "1.7.0",
     "moment": "latest",
     "bootstrap": "^4",
     "font-awesome": "4.7.0",
