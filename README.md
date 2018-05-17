@@ -1,7 +1,7 @@
 # gitonbrowser
 
 **gitonbrowser** is a Git client on your web browser. Internally it is an express application that executes git commands behind the scenes and provides UI on any browser.
-One big advantage of **gitonbrowser** is that since it runs in a browser, it will provide (almost) the same experience on different OSs when used in the same browser.
+One big advantage of **gitonbrowser** is that since it uses node and runs in a browser, it is platform independent and will run on any platform that supports node and a modern web browser.
 
 ## Requirements
 nodejs (https://nodejs.org)
