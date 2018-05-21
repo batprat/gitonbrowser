@@ -8,8 +8,8 @@ One big advantage of **gitonbrowser** is that since it uses node and runs in a b
 nodejs (https://nodejs.org)
 
 ## Installation
-1. clone or download the repository anywhere on your computer.
-2. `cd` into the folder where you have cloned/downloaded the repository.  You should be inside the folder with the `package.json` file.
+1. clone or download this repository anywhere on your computer.
+2. `cd` into the folder where you have cloned/downloaded this repository. You should be inside the folder with the `package.json` file.
 3. `npm install`
 4. `npm start`
 5. Open http://localhost:3000 in the browser of your choice.
