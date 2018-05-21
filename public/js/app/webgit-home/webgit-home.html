@@ -1,28 +1,48 @@
 <div class="container-fluid webgit-home">
   <link href="/js/app/webgit-home/webgit-home.css" rel="stylesheet" />
   <div class="row">
-    <div class="col-4">
-      <h2>Open GIT Repository</h2>
-      <ul id="cloned-repos">
-         <li ng-repeat="repo in vm.clonedRepos" class="cloned-repo" title="{{vm.getRepoTitle(repo.path)}}"><a href="/repo/{{repo.path}}" target="_self">{{repo.name}}</a></li>
-      </ul>
-      <!-- <button class="btn btn-danger" ng-click="vm.testGit()">Test Git</button> -->
+    <div class="col-12">
+      <h1 class="main-title">gitonbrowser</h1>
     </div>
-    <div class="col-8">
-      <div class="form-group row">
-        <label for="browse-repo-inp" class="col-2 col-form-label">
-          Browse repository:
-        </label>
-        <div class="col-6">
-          <input type="text" class="form-control" id="browse-repo-inp" ng-model="vm.browsePath" />
-        </div>
-        <div class="col-2">
-          <button class="btn btn-primary" id="btn-browse" ng-click="vm.browse()">Browse</button>
+  </div>
+  <div class="row">
+    <div class="col-sm-12 col-xs-12 col-md-6 col-lg-6 col-xl-4 home-card">
+      <div class="card">
+        <h4 class="card-header">Clone new repository</h4>
+        <div class="card-body">
+          <p class="card-text">
+            You want to use this option if you have the <b>repository URL</b> and want to <b>clone</b> it to your local computer.
+          </p>
+          <button id="clone-repo-btn" class="btn btn-primary" ng-click="vm.openCloneModal()">Open Clone Dialog</button>
         </div>
       </div>
-      <div class="row">
-        <div class="col-12">
-          <button id="clone-repo-btn" class="btn btn-primary" ng-click="vm.openCloneModal()">Open Clone Dialog</button>
+    </div>
+    <div class="col-sm-12 col-xs-12 col-md-6 col-lg-6 col-xl-4 home-card" ng-if="vm.clonedRepos && vm.clonedRepos.length">
+      <div class="card">
+        <h4 class="card-header">Open cloned repository</h4>
+        <div class="card-body">
+          <p class="card-text">
+            These are shortcuts to the repositories that you have already cloned.
+          </p>
+          <div ng-repeat="repo in vm.clonedRepos" class="cloned-repo col-4" title="{{vm.getRepoTitle(repo.path)}}"><a href="/repo/{{repo.path}}" target="_self">{{repo.name}}</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-12 col-xs-12 col-md-6 col-lg-6 col-xl-4 home-card">
+      <div class="card">
+        <h4 class="card-header">Browse cloned repository</h4>
+        <div class="card-body">
+          <p class="card-text">
+            Just put the path of the folder where you have cloned your repository to open it.
+          </p>
+          <div class="row">
+            <div class="col-10">
+              <input type="text" class="form-control" id="browse-repo-inp" ng-model="vm.browsePath" placeholder="D:\git\myrepo on Windows OR /usr/myusername/git/myrepo" />
+            </div>
+            <div class="col-2">
+              <button class="btn btn-primary" id="btn-browse" ng-click="vm.browse()">Browse</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

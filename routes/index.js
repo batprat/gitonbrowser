@@ -7,7 +7,7 @@ const fs = require('fs');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Welcome' });
+  res.render('index', { title: 'gitonbrowser' });
 });
 
 router.get('/getclonedrepos', function(req, res) {
