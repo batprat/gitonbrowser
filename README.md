@@ -1,3 +1,4 @@
+
 # gitonbrowser
 
 **gitonbrowser** is a Git client on your web browser. Internally it is an express application that executes git commands behind the scenes and provides UI on any browser.
@@ -17,3 +18,20 @@ To use another port (e.g. 4001), `npm start 4001`.
 
 ## Common Errors
 One common error at this point might be that the node app **doesn't have write access** to your git files. In this case, **open an elevated command prompt / terminal app** and try the above steps.
+
+## Features
+This is the list of features in this git client. There might be some features I might have missed out in this list.
+1. Clone
+2. Open existing repository
+3. Pull
+4. Push
+5. Stage individual/all files
+6. Unstage individual/all files
+7. Commit files
+8. Reset individual/all files
+9. View commit **graph**
+10. View commits
+11. View individual files' diff in a commit
+12. Create branches
+13. Commit and/or push to branches
+14. View stash, delete or stash changes
