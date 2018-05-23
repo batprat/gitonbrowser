@@ -357,8 +357,3 @@
     margin-top: 30px;
 }
 
-.overflow-ellipsis {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-}
