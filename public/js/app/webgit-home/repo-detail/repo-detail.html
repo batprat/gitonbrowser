@@ -15,7 +15,7 @@
             <div id="graph-container" class="col"></div>
             <div class="col">
                 <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
-                    <div class="col-sm-7">
+                    <div class="col-sm-7 overflow-ellipsis">
                         <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
                         <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
                             {{localBranch}}
@@ -25,8 +25,8 @@
                         </span>
                         {{commit.subject}}
                     </div>
-                    <div class="col-sm-2">{{commit.name}}</div>
-                    <div class="col-sm-3">{{commit.fromNow}}</div>
+                    <div class="col-sm-2 overflow-ellipsis">{{commit.name}}</div>
+                    <div class="col-sm-3 overflow-ellipsis">{{commit.fromNow}}</div>
                 </div>
                 <div id="main-log-loading-indicator">Loading next batch of commits...</div>
             </div>

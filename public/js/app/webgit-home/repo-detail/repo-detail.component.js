@@ -427,7 +427,7 @@
                             if(currParent.x == currCommit.x) {
                                 // draw a straight line.
                                 ctx.beginPath();
-                                ctx.strokeStyle = colors[currParent.x];
+                                ctx.strokeStyle = colors[currParent.x % colors.length];
                                 ctx.moveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i);
                                 ctx.lineTo(currParent.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * hashes.indexOf(currParent.hash));
                                 ctx.stroke();
@@ -885,7 +885,7 @@
                                 currCommit.x = ++branchLevel;
                                 openBranches[branchLevel] = currCommit.hash;
                                 j--;
-                                // since this is the only place where branchLevel increments, lets find the max branch level here.
+                                // maxX is the max branch level.
                                 if(branchLevel > maxX) {
                                     maxX = branchLevel;
                                 }
@@ -903,6 +903,10 @@
                                 openBranches[++branchLevel] = currCommit.parentHashes[j];
                                 if(vm.commitMap[currCommit.parentHashes[j]]) {
                                     vm.commitMap[currCommit.parentHashes[j]].x = branchLevel;
+                                }
+                                // maxX is the max branch level.
+                                if(branchLevel > maxX) {
+                                    maxX = branchLevel;
                                 }
                             }
                         }
