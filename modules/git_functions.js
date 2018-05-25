@@ -566,7 +566,7 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
 
     let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s%n${randomSeperator}`;
 
-    let logArgs = ['log', '-n 100', logFormat, '--branches', '--remotes', '--tags'];
+    let logArgs = ['log', '-n 100', logFormat, '--branches', '--tags'];
 
     let page = req.query.page || 1;
 
