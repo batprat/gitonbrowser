@@ -1520,7 +1520,7 @@
             if(line.indexOf('diff') === 0) {
                 currDiff = {
                     fileName: line.substring(line.indexOf('b/') + 2),
-                    commitType: diff[i + 1].indexOf('new') === 0 ? 'new' : (diff[i + 1].indexOf('similarity') === 0 ? 'rename' : ( diff[i + 1].indexOf('deleted') === 0 ? 'deleted' : 'edit'))
+                    commitType: diff[i + 1].indexOf('new') === 0 ? 'new' : (diff[i + 1].indexOf('similarity') === 0 ? 'rename' : ( diff[i + 1].indexOf('deleted') === 0 ? 'deleted' : 'modified'))
                 };
 
                 currDiff.diff = line;

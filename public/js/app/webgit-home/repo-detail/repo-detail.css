@@ -38,6 +38,10 @@
 
 .commit-container {
     overflow-y: auto;
+    height: calc(100% - 40px);
+}
+
+.commit-container.details-visible {
     height: calc(100% - 40px - 250px);
 }
 
@@ -60,7 +64,7 @@
 
 .tab-content-details {
     height: calc(100% - 42px);
-    background: #FFF;
+    background: #EEE;
 }
 
 .tab-pane {
@@ -357,3 +361,22 @@
     margin-top: 30px;
 }
 
+.log-commit-message-container {
+    display: flex;
+}
+
+.tags-container {
+    white-space: nowrap;
+}
+
+.log-commit-message {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.label-heading {
+    font-weight: bold;
+    font-size: 25px;
+}

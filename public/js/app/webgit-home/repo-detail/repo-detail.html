@@ -3,51 +3,58 @@
     <div class="working-directory-details-container">
         <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
         <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">Commit {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
-        <button class="btn btn-secondary" title="Open Pull Dialog" ng-click="vm.showPullDialog()"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
-        <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i></button>
-        <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()">S</button>
+        <button class="btn btn-secondary" title="Open Pull Dialog" ng-click="vm.showPullDialog()"><i class="fa fa-arrow-down" aria-hidden="true"></i> Pull...</button>
+        <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i> Push...</button>
+        <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()"><i class="fa fa-database"></i> Stash...</button>
 
         <button class="btn btn-danger pull-right" ng-show="vm.progress" ng-click="vm.showModalToHandleConflict()">{{ vm.progress.message }}</button>
     </div>
     <div id="main-log-context-menu" style="display: none;"></div>
-    <div id="main-log-container" class="commit-container container-fluid" data-page-num="1">
+    <div id="main-log-container" class="commit-container container-fluid" ng-class="{'details-visible': vm.commitDetails}" data-page-num="1">
+        <div class="row">
+            <div class="col-12">
+                <span class="label-heading">Repository log</span> <span class="label-caption"> - Select a commit to view details.</span>
+            </div>
+        </div>
         <div class="row">
             <div id="graph-container" class="col"></div>
             <div class="col">
                 <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
-                    <div class="col-sm-7 overflow-ellipsis">
-                        <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
-                        <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
-                            {{localBranch}}
+                    <div class="col-sm-7 log-commit-message-container">
+                        <span class="tags-container">
+                            <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
+                            <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
+                                {{localBranch}}
+                            </span>
+                            <span class="remote-branch tags-refs" ng-if="commit.remoteBranches" ng-repeat="remoteBranch in commit.remoteBranches">
+                                {{remoteBranch}}
+                            </span>
                         </span>
-                        <span class="remote-branch tags-refs" ng-if="commit.remoteBranches" ng-repeat="remoteBranch in commit.remoteBranches">
-                            {{remoteBranch}}
-                        </span>
-                        {{commit.subject}}
+                        <span class="log-commit-message">{{commit.subject}}</span>
                     </div>
-                    <div class="col-sm-2 overflow-ellipsis">{{commit.name}}</div>
-                    <div class="col-sm-3 overflow-ellipsis">{{commit.fromNow}}</div>
+                    <div class="col-sm-2">{{commit.name}}</div>
+                    <div class="col-sm-3">{{commit.fromNow}}</div>
                 </div>
                 <div id="main-log-loading-indicator">Loading next batch of commits...</div>
             </div>
         </div>
     </div>
-    <div class="details-container">
+    <div class="details-container" ng-show="vm.commitDetails">
         <ul class="nav nav-tabs details-tabs" role="tablist">
             <li class="nav-item">
-                <span class="nav-link active" data-target="#commit" data-toggle="tab" role="tab">Commit</span>
+                <span class="nav-link active" data-target="#tab-commit" data-toggle="tab" role="tab">Commit</span>
             </li>
             <li class="nav-item">
-                <span class="nav-link" data-target="#file-tree" data-toggle="tab" role="tab">File tree</span>
+                <span class="nav-link" data-target="#tab-file-tree" data-toggle="tab" role="tab">File tree</span>
             </li>
             <li class="nav-item">
-                <span class="nav-link" data-target="#diff" data-toggle="tab" role="tab">Diff</span>
+                <span class="nav-link" data-target="#tab-diff" data-toggle="tab" role="tab">Diff</span>
             </li>
         </ul>
             
             <!-- Tab panes -->
         <div class="tab-content tab-content-details">
-            <div class="tab-pane active" id="commit" role="tabpanel">
+            <div class="tab-pane active" id="tab-commit" role="tabpanel">
                 <div ng-if="vm.commitDetails" class="container-fluid">
                     <div class="row">
                         <div class="col-sm-12">
@@ -62,12 +69,12 @@
                     </div>
                 </div>
             </div>
-            <div class="tab-pane" id="file-tree" role="tabpanel">file tree</div>
-            <div class="tab-pane" id="diff" role="tabpanel">
+            <div class="tab-pane" id="tab-file-tree" role="tabpanel">file tree</div>
+            <div class="tab-pane" id="tab-diff" role="tabpanel">
                 <div class="container-fluid height100" ng-if="vm.commitDetails">
                     <div class="row height100">
                         <div class="col-sm-4 height100 diff-files-list">
-                            <div class="file list-item-selector" ng-repeat="file in vm.commitDetails.diffDetails" ng-click="vm.selectFileInLog(file)" ng-class="{'selected': vm.selectedFileDiffRaw === file.diff}">[{{file.commitType}}]{{file.fileName}}</div>
+                            <div class="file list-item-selector" ng-repeat="file in vm.commitDetails.diffDetails" ng-click="vm.selectFileInLog(file)" ng-class="{'selected': vm.selectedFileDiffRaw === file.diff}"><span class="fa" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span> <span title="{{file.fileName}}">{{file.fileName}}</span></div>
                         </div>
                         <div class="col-sm-8 file-diff-column height100">
                             <div ng-bind-html="vm.selectedFileDiff" class="diff"></div>
@@ -279,7 +286,7 @@
                         <div class="col-12">
                             <div class="row list-item-selector" ng-repeat="file in vm.selectedStash.diffDetails" ng-click="vm.selectFileInStash(file)" ng-class="{'selected': vm.selectedStash.selectedFile == file}">
                                 <div class="col-12">
-                                    <span class="file-status" ng-class="{'new': file.commitType == 'new', 'modified': file.commitType == 'edit', 'deleted': file.commitType == 'deleted', 'rename': file.commitType == 'rename'}"></span>
+                                    <span class="file-status" ng-class="{'new': file.commitType == 'new', 'modified': file.commitType == 'modified', 'deleted': file.commitType == 'deleted', 'rename': file.commitType == 'rename'}"></span>
                                     {{file.fileName}}
                                 </div>
                             </div>
