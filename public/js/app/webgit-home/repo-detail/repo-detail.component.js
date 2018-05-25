@@ -11,6 +11,7 @@
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
+    var $logRowsContainer = null;
     var $conflictModal = null;
 
     var $sce = null;
@@ -38,6 +39,8 @@
                 var vm = this;
                 var $mainLogContainer = $('#main-log-container');
                 var $mainLogLoadingIndicator = $('#main-log-loading-indicator');
+
+                $logRowsContainer = $('#log-rows-container');
 
                 $commitModal = $('#commit-modal');
                 $pullModal = $('#pull-modal');
@@ -379,7 +382,9 @@
                 function loadGraph() {
                     setGraphInfo();
                     var $graphContainer = $('#graph-container');
-                    $graphContainer.css('flex', '0 0 ' + (((vm.maxX + 1) * logGraphDefaults.distanceBetweenBranches) + logGraphDefaults.distanceBetweenBranches).toString() + 'px');
+                    var varWidth = (((vm.maxX + 1) * logGraphDefaults.distanceBetweenBranches) + logGraphDefaults.distanceBetweenBranches).toString() + 'px';
+                    $graphContainer.css('flex', '0 0 ' + varWidth);
+                    $logRowsContainer.css('width', 'calc(100% - '+ varWidth +')');
                     $graphContainer.empty().append('<canvas id="log-graph" height="'+ $graphContainer.height() +'" width="'+ $graphContainer.width() +'"></canvas>');
 
                     var graph = document.getElementById('log-graph');

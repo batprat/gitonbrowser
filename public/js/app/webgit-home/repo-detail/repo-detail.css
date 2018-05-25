@@ -361,19 +361,23 @@
     margin-top: 30px;
 }
 
+.commit-message-div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
 .log-commit-message-container {
     display: flex;
 }
 
-.tags-container {
-    white-space: nowrap;
-}
-
 .log-commit-message {
-    flex: 1;
-    white-space: nowrap;
+    display: inline-block;
     overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
+    max-width: 100%;
+    flex: 1;
 }
 
 .label-heading {

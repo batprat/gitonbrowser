@@ -18,7 +18,7 @@
         </div>
         <div class="row">
             <div id="graph-container" class="col"></div>
-            <div class="col">
+            <div class="col" id="log-rows-container">
                 <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
                     <div class="col-sm-7 log-commit-message-container">
                         <span class="tags-container">
@@ -30,7 +30,8 @@
                                 {{remoteBranch}}
                             </span>
                         </span>
-                        <span class="log-commit-message">{{commit.subject}}</span>
+                        &nbsp;
+                        <span class="log-commit-message"><span class="commit-message-div">{{commit.subject}}</span></span>
                     </div>
                     <div class="col-sm-2">{{commit.name}}</div>
                     <div class="col-sm-3">{{commit.fromNow}}</div>
@@ -146,7 +147,7 @@
                                         <button class="btn btn-sm commit-dialog-btn btn-outline-warning" ng-click="vm.showResetUnstagedFilesModal()">Reset unstaged changes</button>
                                     </div>
                                     <div class="col-sm-8" id="commit-dialog-message">
-                                        <textarea class="form-control" palceholder="Enter commit message here." ng-model="vm.commitMessage" id="commit-message-textarea"></textarea>
+                                        <textarea class="form-control" placeholder="Commit message (required)" ng-model="vm.commitMessage" id="commit-message-textarea"></textarea>
                                     </div>
                                 </div>
                             </div>
