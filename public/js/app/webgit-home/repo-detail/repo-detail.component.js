@@ -424,6 +424,7 @@
                         for(j = 0; j < currCommit.parentHashes.length; j++) {
                             currParent = vm.commitMap[currCommit.parentHashes[j]];
                             if(!currParent) {
+                                // ideally, this case should'nt ever come because of the temp commits.
                                 continue;
                             }
 
@@ -797,6 +798,7 @@
                     }
                     parseCommits(commits);
                     vm.commits = commits;
+                    resetCommitMap();
                     $timeout(loadGraph);
                     return vm.commits;
                   });
@@ -810,13 +812,11 @@
                     parseCommits(commits);
                     vm.commits = vm.commits || [];
 
-
-                    // remove temp commits from vm.commits as the real commits might have arrived.
-                    vm.commits = vm.commits.filter(function(c) {
-                        return !c.isTemp;
-                    });
+                    resetTempCommits();
 
                     Array.prototype.push.apply(vm.commits, commits);
+
+                    resetCommitMap();
                     return vm.commits;
                   });
                 }
@@ -838,6 +838,21 @@
                       $responseModalBody.html(err.join('<br />'));
                       $responseModal.modal('show');
                     });
+                }
+
+                function resetTempCommits() {
+                    // remove temp commits from vm.commits as the real commits might have arrived.
+                    vm.commitMap = {};
+                    vm.commits = vm.commits.filter(function(c) {
+                        return !c.isTemp;
+                    });
+                }
+
+                function resetCommitMap() {
+                    vm.commitMap = {};
+                    for(var i = 0; i < vm.commits.length; i++) {
+                        vm.commitMap[vm.commits[i].hash] = vm.commits[i];
+                    }
                 }
 
                 function parseCommits(commits) {
@@ -870,7 +885,6 @@
                         idx = null,
                         first = null,
                         t = null,
-                        // maxX = branchLevel,
                         tempCommit = null;
 
                     var branchIdx = null;
@@ -888,12 +902,30 @@
                                 // Then the parent should be on branch-1. 
                                 // It should look as if branch-2 is coming out of branch-1. Therefore the parent will be on branch-1;
                                 t = vm.commitMap[openBranches[idx]];
-                                if(t && typeof t.x != 'undefined' && t.x > currCommit.x) {
+                                if(!t) {
+                                    tempCommit = {
+                                        hash: openBranches[idx],
+                                        isTemp: true,
+                                        parentHashes: []
+                                    };
+                                    vm.commitMap[openBranches[idx]] = tempCommit;
+                                    vm.commits.push(tempCommit);
+
+                                    t = tempCommit;
+                                }
+
+                                if(typeof t.x != 'undefined') {
+                                    if(t.x > currCommit.x) {
+                                        t.x = currCommit.x;
+                                    }
+                                    else {
+                                        // keep t.x as it is.
+                                    }
+                                }
+                                else {
                                     t.x = currCommit.x;
                                 }
-                                // openBranches.splice(idx, 1);
                                 openBranches[idx] = false;
-                                // branchLevel--;
                             }
                             else if(typeof currCommit.x == 'undefined') {
                                 // new branch!
@@ -911,12 +943,7 @@
 
 
                                 currCommit.x = branchIdx;
-                                // openBranches[branchLevel] = currCommit.hash;
                                 j--;
-                                // maxX is the max branch level.
-                                // if(branchLevel > maxX) {
-                                //     maxX = branchLevel;
-                                // }
                                 continue;
                             }
                             else if(first) {
@@ -925,14 +952,20 @@
                                 // openBranches.splice(openBranches.indexOf(currCommit.hash), 1, currCommit.parentHashes[j]);
                                 branchIdx = openBranches.indexOf(currCommit.hash);
                                 openBranches[branchIdx] = currCommit.parentHashes[j];
-                                if(vm.commitMap[currCommit.parentHashes[j]]) {
-                                    vm.commitMap[currCommit.parentHashes[j]].x = currCommit.x;
+
+                                if(!vm.commitMap[currCommit.parentHashes[j]]) {
+                                    tempCommit = {
+                                        hash: currCommit.parentHashes[j],
+                                        isTemp: true,
+                                        parentHashes: []
+                                    };
+                                    vm.commitMap[currCommit.parentHashes[j]] = tempCommit;
+                                    vm.commits.push(tempCommit);
                                 }
+
+                                vm.commitMap[currCommit.parentHashes[j]].x = currCommit.x;
                             }
                             else {
-                                // openBranches[++branchLevel] = currCommit.parentHashes[j];
-
-
                                 branchIdx = openBranches.indexOf(false);
                                 if(branchIdx > -1) {
                                     openBranches[branchIdx] = currCommit.parentHashes[j];
@@ -954,10 +987,6 @@
                                     vm.commits.push(tempCommit);
                                 }
                                 vm.commitMap[currCommit.parentHashes[j]].x = branchIdx;
-                                // maxX is the max branch level.
-                                // if(branchLevel > maxX) {
-                                //     maxX = branchLevel;
-                                // }
                             }
                         }
                     }
