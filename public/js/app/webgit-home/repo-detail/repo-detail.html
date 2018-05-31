@@ -62,7 +62,8 @@
                             <div>Author: {{vm.commitDetails.author}}</div>
                             <div>Date: ({{vm.commitDetails.date | date : 'medium'}})</div>
                             <div>Commit hash: {{vm.commitDetails.hash}}</div>
-                            <div>Parent(s): <span class="btn-link parent-hash" ng-click="vm.selectCommit(parentHash)" ng-repeat="parentHash in vm.commitDetails.parentHashes">{{parentHash}} </span></div>
+                            <div>Parent(s): <span class="btn-link parent-hash" ng-click="vm.selectCommit(parentHash)" ng-repeat="parentHash in vm.commitDetails.parentHashes track by $index">{{parentHash}} </span></div>
+                            <div>Children: <span class="btn-link child-hash" ng-click="vm.selectCommit(childHash)" ng-repeat="childHash in vm.commitDetails.children track by $index">{{childHash}} </span></div>
                             <div class="commit-message">{{vm.commitDetails.message}}</div>
                             <div>Contained in branches: ???</div>
                             <div>Contained in tags: ???</div>

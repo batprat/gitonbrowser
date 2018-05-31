@@ -160,7 +160,7 @@
     overflow: auto;
 }
 
-.parent-hash {
+.parent-hash, .child-hash {
     cursor: pointer;
 }
 

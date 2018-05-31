@@ -907,15 +907,6 @@
 
                     var branchIdx = null;
 
-                    var createTempCommit = function(hash) {
-                        return {
-                            children: [],
-                            hash: hash,
-                            isTemp: true,
-                            parentHashes: []
-                        };
-                    };
-
                     for(var i = 0; i < commits.length; i++) {
                         
                         currCommit = commits[i];
@@ -930,10 +921,6 @@
                                 // It should look as if branch-2 is coming out of branch-1. Therefore the parent will be on branch-1;
                                 t = vm.commitMap[openBranches[idx]];
                                 if(!t) {
-                                    //tempCommit = createTempCommit(openBranches[idx]);
-                                    //vm.commitMap[openBranches[idx]] = tempCommit;
-                                    //vm.commits.push(tempCommit);
-
                                     t = tempCommit;
                                 }
 
@@ -976,12 +963,6 @@
                                 branchIdx = openBranches.indexOf(currCommit.hash);
                                 openBranches[branchIdx] = currCommit.parentHashes[j];
 
-                                if(!vm.commitMap[currCommit.parentHashes[j]]) {
-                                    //tempCommit = createTempCommit(currCommit.parentHashes[j]);
-                                    //vm.commitMap[currCommit.parentHashes[j]] = tempCommit;
-                                    //vm.commits.push(tempCommit);
-                                }
-
                                 vm.commitMap[currCommit.parentHashes[j]].x = currCommit.x;
                             }
                             else {
@@ -992,14 +973,6 @@
                                 else {
                                     openBranches.push(currCommit.parentHashes[j]);
                                     branchIdx = openBranches.length - 1;
-                                }
-
-                                // the parent hash is not present in the set that we have pulled.
-                                // create it and store its x value.
-                                if(!vm.commitMap[currCommit.parentHashes[j]]) {
-                                    //tempCommit = createTempCommit(currCommit.parentHashes[j]);
-                                    //vm.commitMap[currCommit.parentHashes[j]] = tempCommit;
-                                    //vm.commits.push(tempCommit);
                                 }
                                 vm.commitMap[currCommit.parentHashes[j]].x = branchIdx;
                             }
@@ -1167,6 +1140,7 @@
                         }
 
                         vm.commitDetails.parentHashes = commit.parentHashes;
+                        vm.commitDetails.children = commit.children;
 
                         var i = isMergeCommit ? 4 : 3,
                             str = d[i],
