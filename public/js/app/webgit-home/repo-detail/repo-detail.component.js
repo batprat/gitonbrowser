@@ -870,8 +870,10 @@
                         idx = null,
                         first = null,
                         t = null,
-                        maxX = branchLevel,
+                        // maxX = branchLevel,
                         tempCommit = null;
+
+                    var branchIdx = null;
 
                     for(var i = 0; i < commits.length; i++) {
                         
@@ -889,30 +891,57 @@
                                 if(t && typeof t.x != 'undefined' && t.x > currCommit.x) {
                                     t.x = currCommit.x;
                                 }
-                                openBranches.splice(idx, 1);
-                                branchLevel--;
+                                // openBranches.splice(idx, 1);
+                                openBranches[idx] = false;
+                                // branchLevel--;
                             }
                             else if(typeof currCommit.x == 'undefined') {
                                 // new branch!
-                                currCommit.x = ++branchLevel;
-                                openBranches[branchLevel] = currCommit.hash;
+                                // check if openBranches has a vacancy. if yes, fill it.
+
+                                branchIdx = openBranches.indexOf(false);
+                                if(branchIdx > -1) {
+                                    openBranches[branchIdx] = currCommit.hash;
+                                }
+                                else {
+                                    openBranches.push(currCommit.hash);
+                                    branchIdx = openBranches.length - 1;
+                                }
+
+
+
+                                currCommit.x = branchIdx;
+                                // openBranches[branchLevel] = currCommit.hash;
                                 j--;
                                 // maxX is the max branch level.
-                                if(branchLevel > maxX) {
-                                    maxX = branchLevel;
-                                }
+                                // if(branchLevel > maxX) {
+                                //     maxX = branchLevel;
+                                // }
                                 continue;
                             }
                             else if(first) {
                                 // replace the openBranch with current parent.
                                 first = false;
-                                openBranches.splice(openBranches.indexOf(currCommit.hash), 1, currCommit.parentHashes[j]);
+                                // openBranches.splice(openBranches.indexOf(currCommit.hash), 1, currCommit.parentHashes[j]);
+                                branchIdx = openBranches.indexOf(currCommit.hash);
+                                openBranches[branchIdx] = currCommit.parentHashes[j];
                                 if(vm.commitMap[currCommit.parentHashes[j]]) {
                                     vm.commitMap[currCommit.parentHashes[j]].x = currCommit.x;
                                 }
                             }
                             else {
-                                openBranches[++branchLevel] = currCommit.parentHashes[j];
+                                // openBranches[++branchLevel] = currCommit.parentHashes[j];
+
+
+                                branchIdx = openBranches.indexOf(false);
+                                if(branchIdx > -1) {
+                                    openBranches[branchIdx] = currCommit.parentHashes[j];
+                                }
+                                else {
+                                    openBranches.push(currCommit.parentHashes[j]);
+                                    branchIdx = openBranches.length - 1;
+                                }
+
                                 // the parent hash is not present in the set that we have pulled.
                                 // create it and store its x value.
                                 if(!vm.commitMap[currCommit.parentHashes[j]]) {
@@ -924,16 +953,16 @@
                                     vm.commitMap[currCommit.parentHashes[j]] = tempCommit;
                                     vm.commits.push(tempCommit);
                                 }
-                                vm.commitMap[currCommit.parentHashes[j]].x = branchLevel;
+                                vm.commitMap[currCommit.parentHashes[j]].x = branchIdx;
                                 // maxX is the max branch level.
-                                if(branchLevel > maxX) {
-                                    maxX = branchLevel;
-                                }
+                                // if(branchLevel > maxX) {
+                                //     maxX = branchLevel;
+                                // }
                             }
                         }
                     }
                     // maxX will be used to set the width of the canvas.
-                    vm.maxX = maxX;
+                    vm.maxX = openBranches.length;
                 }
 
                 function unstageAllFiles() {
