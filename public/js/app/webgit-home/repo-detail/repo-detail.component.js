@@ -440,7 +440,7 @@
                             else if(currParent.x > currCommit.x) {
                                 // curve to lane to right, then straight down.
                                 ctx.beginPath();
-                                ctx.strokeStyle= colors[currParent.x];
+                                ctx.strokeStyle= colors[currParent.x % colors.length];
                                 ctx.moveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i);
                                 ctx.bezierCurveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, 
                                     halfy + y * i + y , 
@@ -454,7 +454,7 @@
                             }
                             else if(currParent.x < currCommit.x) {
                                 ctx.beginPath();
-                                ctx.strokeStyle= colors[currCommit.x];
+                                ctx.strokeStyle= colors[currCommit.x % colors.length];
                                 ctx.moveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i);
                                 ctx.lineTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * (hashes.indexOf(currParent.hash) - 1));
                                 ctx.moveTo(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * (hashes.indexOf(currParent.hash) - 1));
@@ -488,7 +488,7 @@
                         currCommit = commits[i];
 
                         ctx.beginPath();
-                        ctx.fillStyle = colors[currCommit.x];
+                        ctx.fillStyle = colors[currCommit.x % colors.length];
                         ctx.arc(currCommit.x * logGraphDefaults.distanceBetweenBranches + c, halfy + y * i, logGraphDefaults.commitRadius, 0, PIx2);
                         ctx.fill();
                         ctx.stroke();
@@ -849,18 +849,36 @@
                 }
 
                 function resetCommitMap() {
+                    var createTempCommit = function(hash) {
+                        return {
+                            children: [],
+                            hash: hash,
+                            isTemp: true,
+                            parentHashes: []
+                        };
+                    };
+
                     vm.commitMap = {};
                     for(var i = 0; i < vm.commits.length; i++) {
                         vm.commitMap[vm.commits[i].hash] = vm.commits[i];
+                    }
+
+                    for(var i = 0; i < vm.commits.length; i++) { 
+                        for(var j = 0; j < vm.commits[i].parentHashes.length; j++) {
+                            if(!vm.commitMap[vm.commits[i].parentHashes[j]]) {
+                                vm.commitMap[vm.commits[i].parentHashes[j]] = createTempCommit(vm.commits[i].parentHashes[j]);
+                                vm.commits.push(vm.commitMap[vm.commits[i].parentHashes[j]]);
+                            }
+                            vm.commitMap[vm.commits[i].parentHashes[j]].children.push(vm.commits[i].hash);
+                        }
                     }
                 }
 
                 function parseCommits(commits) {
                     commits = commits.map(function(c) {
                         c.parentHashes = c.parentHashes.split(' ');
-                        c.branches = [];
-                        c.branchLevels = [];
                         c.fromNow = moment(c.date).fromNow();
+                        c.children = [];
 
                         vm.commitMap[c.hash] = c;
                         return c;
@@ -889,6 +907,15 @@
 
                     var branchIdx = null;
 
+                    var createTempCommit = function(hash) {
+                        return {
+                            children: [],
+                            hash: hash,
+                            isTemp: true,
+                            parentHashes: []
+                        };
+                    };
+
                     for(var i = 0; i < commits.length; i++) {
                         
                         currCommit = commits[i];
@@ -903,13 +930,9 @@
                                 // It should look as if branch-2 is coming out of branch-1. Therefore the parent will be on branch-1;
                                 t = vm.commitMap[openBranches[idx]];
                                 if(!t) {
-                                    tempCommit = {
-                                        hash: openBranches[idx],
-                                        isTemp: true,
-                                        parentHashes: []
-                                    };
-                                    vm.commitMap[openBranches[idx]] = tempCommit;
-                                    vm.commits.push(tempCommit);
+                                    //tempCommit = createTempCommit(openBranches[idx]);
+                                    //vm.commitMap[openBranches[idx]] = tempCommit;
+                                    //vm.commits.push(tempCommit);
 
                                     t = tempCommit;
                                 }
@@ -954,13 +977,9 @@
                                 openBranches[branchIdx] = currCommit.parentHashes[j];
 
                                 if(!vm.commitMap[currCommit.parentHashes[j]]) {
-                                    tempCommit = {
-                                        hash: currCommit.parentHashes[j],
-                                        isTemp: true,
-                                        parentHashes: []
-                                    };
-                                    vm.commitMap[currCommit.parentHashes[j]] = tempCommit;
-                                    vm.commits.push(tempCommit);
+                                    //tempCommit = createTempCommit(currCommit.parentHashes[j]);
+                                    //vm.commitMap[currCommit.parentHashes[j]] = tempCommit;
+                                    //vm.commits.push(tempCommit);
                                 }
 
                                 vm.commitMap[currCommit.parentHashes[j]].x = currCommit.x;
@@ -978,13 +997,9 @@
                                 // the parent hash is not present in the set that we have pulled.
                                 // create it and store its x value.
                                 if(!vm.commitMap[currCommit.parentHashes[j]]) {
-                                    tempCommit = {
-                                        hash: currCommit.parentHashes[j],
-                                        isTemp: true,
-                                        parentHashes: []
-                                    };
-                                    vm.commitMap[currCommit.parentHashes[j]] = tempCommit;
-                                    vm.commits.push(tempCommit);
+                                    //tempCommit = createTempCommit(currCommit.parentHashes[j]);
+                                    //vm.commitMap[currCommit.parentHashes[j]] = tempCommit;
+                                    //vm.commits.push(tempCommit);
                                 }
                                 vm.commitMap[currCommit.parentHashes[j]].x = branchIdx;
                             }
