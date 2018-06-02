@@ -76,7 +76,7 @@
                 <div class="container-fluid height100" ng-if="vm.commitDetails">
                     <div class="row height100">
                         <div class="col-sm-4 height100 diff-files-list">
-                            <div class="file list-item-selector" ng-repeat="file in vm.commitDetails.diffDetails" ng-click="vm.selectFileInLog(file)" ng-class="{'selected': vm.selectedFileDiffRaw === file.diff}"><span class="fa" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span> <span title="{{file.fileName}}">{{file.fileName}}</span></div>
+                            <div class="file list-item-selector" ng-repeat="file in vm.commitDetails.diffDetails" ng-click="vm.selectFileInLog(file)" ng-class="{'selected': vm.selectedFileDiffRaw === file.diff}"><div><span class="fa" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span> <span title="{{file.fileName}}">{{file.fileName}}</span></div></div>
                         </div>
                         <div class="col-sm-8 file-diff-column height100">
                             <div ng-bind-html="vm.selectedFileDiff" class="diff"></div>
@@ -104,7 +104,7 @@
                                         <div class="container-fluid unstaged-files-list">
                                             <div class="row list-item-selector" ng-repeat="unstagedFile in vm.localStatus | filter: {tags: 'unstaged'}: true" ng-click="vm.showDiffForFileOnCommitModal(unstagedFile)" ng-class="{'selected': vm.diffOnCommitModal.file === unstagedFile }">
                                                 <div class="col-sm-12">
-                                                    <span class="file-status" ng-class="{'untracked': unstagedFile.tags.indexOf('addedunstaged') > -1, 'modified': unstagedFile.tags.indexOf('modifiedunstaged') > -1, 'deleted': unstagedFile.tags.indexOf('deletedunstaged') > -1}"></span>
+                                                    <span class="file-status fa" ng-class="{'untracked fa-plus': unstagedFile.tags.indexOf('addedunstaged') > -1, 'modified fa-edit': unstagedFile.tags.indexOf('modifiedunstaged') > -1, 'deleted fa-minus': unstagedFile.tags.indexOf('deletedunstaged') > -1}"></span>
                                                     {{unstagedFile.name}}
                                                 </div>
                                             </div>
@@ -125,7 +125,7 @@
                                         <div class="container-fluid staged-files-list">
                                             <div class="row list-item-selector" ng-repeat="stagedFile in vm.localStatus | filter: {tags: 'staged'}: true"ng-click="vm.showDiffForFileOnCommitModal(stagedFile)" ng-class="{'selected': vm.diffOnCommitModal.file === stagedFile }">
                                                 <div class="col-sm-12">
-                                                    <span class="file-status" ng-class="{'added': stagedFile.tags.indexOf('addedstaged') > -1, 'modified': stagedFile.tags.indexOf('modifiedstaged') > -1, 'deleted': stagedFile.tags.indexOf('deletedstaged') > -1}"></span>
+                                                    <span class="file-status fa" ng-class="{'added fa-plus': stagedFile.tags.indexOf('addedstaged') > -1, 'modified fa-edit': stagedFile.tags.indexOf('modifiedstaged') > -1, 'deleted fa-minus': stagedFile.tags.indexOf('deletedstaged') > -1}"></span>
                                                     {{stagedFile.name}}
                                                 </div>
                                             </div>
@@ -286,10 +286,12 @@
                     </div>
                     <div class="row selected-stash-files-list">
                         <div class="col-12">
-                            <div class="row list-item-selector" ng-repeat="file in vm.selectedStash.diffDetails" ng-click="vm.selectFileInStash(file)" ng-class="{'selected': vm.selectedStash.selectedFile == file}">
-                                <div class="col-12">
-                                    <span class="file-status" ng-class="{'new': file.commitType == 'new', 'modified': file.commitType == 'modified', 'deleted': file.commitType == 'deleted', 'rename': file.commitType == 'rename'}"></span>
-                                    {{file.fileName}}
+                            <div class="stash-files-list">
+                                <div class="row list-item-selector" ng-repeat="file in vm.selectedStash.diffDetails" ng-click="vm.selectFileInStash(file)" ng-class="{'selected': vm.selectedStash.selectedFile == file}">
+                                    <div class="col-12">
+                                        <span class="file-status fa" ng-class="{'new fa-plus': file.commitType == 'new', 'modified fa-edit': file.commitType == 'modified', 'deleted fa-minus': file.commitType == 'deleted', 'rename fa-refresh': file.commitType == 'rename'}"></span>
+                                        {{file.fileName}}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -317,7 +319,9 @@
                         </div>
                     </div>
                   </div>
-                  <div class="col-7 diff" ng-bind-html="vm.selectedStash.selectedFile.safeDiff"></div>
+                  <div class="col-7">
+                      <div class="diff" ng-bind-html="vm.selectedStash.selectedFile.safeDiff"></div>
+                  </div>
                 </div>
               </div>
             </div>

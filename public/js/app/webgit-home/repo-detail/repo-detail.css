@@ -92,9 +92,10 @@
 }
 
 .diff {
-    white-space: pre-line;
+    white-space: pre;
     font-family: monospace;
     background: #ffffff;
+    overflow: auto;
 }
 
 .line-added {
@@ -112,7 +113,7 @@
 #commit-modal .modal-dialog {
     max-width: 90%;
 }
-
+/*
 .file-status.untracked::after {
     content: '?'
 }
@@ -127,7 +128,7 @@
 
 .file-status.deleted::after {
     content: 'D'
-}
+}*/
 
 .staging-action-buttons-container {
     padding: 15px 0;
@@ -158,6 +159,11 @@
 
 .diff-files-list {
     overflow: auto;
+}
+
+.diff-files-list .list-item-selector, .stash-files-list .list-item-selector, .unstaged-files-list .list-item-selector, .staged-files-list .list-item-selector {
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .parent-hash, .child-hash {
@@ -255,6 +261,10 @@
     margin-bottom: 15px;
     margin-top: 15px;
     min-height: 150px;
+}
+
+.stash-files-list {
+    overflow: auto;
 }
 
 .btn-group-stash-local-changes {
