@@ -13,6 +13,10 @@
     text-overflow: ellipsis;
 }
 
+#btn-refresh-local-changes {
+    display: none;
+}
+
 .commit {
     background: #FFF;
     border-bottom: 1px solid #CCC;
