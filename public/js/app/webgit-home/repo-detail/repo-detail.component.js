@@ -641,6 +641,11 @@
                 function selectStash() {
                     // TODO: Show loading dialog.
                     var stash = vm.selectedStash;
+
+                    if(!stash.name) {
+                        return;
+                    }
+
                     if(stash.name === 'Local Changes') {
                         // show local changes.
                         if(repoDetailService.selectStash.canceler) {
