@@ -35,3 +35,8 @@ This is the list of features in this git client. There might be some features I 
 12. Create branches
 13. Commit and/or push to branches
 14. View stash, delete or stash changes
+15. Rebase commits
+16. Merge branches
+17. Handle Rebase conflicts (show conflicts, one click mark as resolved)
+18. Handle Merge conflicts
+19. Search for SHAs
