@@ -36,8 +36,16 @@ let git = {
     removeFile,
     mergeIntoCurrent,
     abortMerge,
-    testGit
+    testGit,
+    searchForHash
 };
+
+function searchForHash({req, res, repo}) {
+    return logRepo({req, res, repo, options: {
+        searchFor: 'hash',
+        searchTerm: req.body.hash
+    }});
+}
 
 function testGit({req, res}) {
     const child = spawnGitProcess();
@@ -540,7 +548,7 @@ function logRepo3({repo, req, res}) {
   redirectIO(child, req, res);
 }
 
-function logRepo(repo, req, res) {
+function logRepo({req, res, repo, options}) {
 /*
 C:\E\projects\webgit-server\git-checkouts\d3>git log --all --graph --decorate --pretty=oneline --abbrev-commit
 */
@@ -560,15 +568,32 @@ git log -n 100 --format=format:'<commit><hash>%H</hash><author_name>%an</author_
 log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
 
 */
-
+    let term = null;
+    if(options) {
+        switch(options.searchFor) {
+            case 'hash': {
+                term = {}
+                break;
+            }
+        }
+    }
     let randomSeperator = utils.getRandomSeparator();
     // let logFormat = `--format=format:%H${randomSeperator}%an${randomSeperator}%ae${randomSeperator}%aD${randomSeperator}%s${randomSeperator}%P`;
 
     let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s%n${randomSeperator}`;
 
-    let logArgs = ['log', '-n 100', logFormat, '--branches', '--tags'];
+    let logArgs = ['log', logFormat];
 
-    let page = req.query.page || 1;
+    if(options) {
+        if(options.searchFor == 'hash') {
+            logArgs.push('-1', options.searchTerm);
+        }
+    }
+    else {
+        logArgs.push('-n 100', '--branches', '--tags');
+    }
+
+    let page = req.query && req.query.page ? req.query.page : 1;
 
     if(page > 1) {
       logArgs.push('--skip=' + ((page - 1) * 100));

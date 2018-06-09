@@ -166,7 +166,6 @@
 }
 
 .diff-files-list .list-item-selector, .stash-files-list .list-item-selector, .unstaged-files-list .list-item-selector, .staged-files-list .list-item-selector {
-    display: inline-block;
     white-space: nowrap;
 }
 
@@ -397,4 +396,17 @@
 .label-heading {
     font-weight: bold;
     font-size: 25px;
+}
+
+#log-rows-container {
+    background: #fff;
+}
+
+.no-commits-msg {
+    height: calc(100% - 37px);
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }

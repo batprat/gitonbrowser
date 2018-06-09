@@ -11,7 +11,6 @@
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
-    var $logRowsContainer = null;
     var $conflictModal = null;
 
     var $sce = null;
@@ -39,8 +38,6 @@
                 var vm = this;
                 var $mainLogContainer = $('#main-log-container');
                 var $mainLogLoadingIndicator = $('#main-log-loading-indicator');
-
-                $logRowsContainer = $('#log-rows-container');
 
                 $commitModal = $('#commit-modal');
                 $pullModal = $('#pull-modal');
@@ -90,6 +87,7 @@
                 vm.continueMerge = continueMerge;
                 vm.abortMerge = abortMerge;
                 vm.mergeConflictCommitMessage = '';
+                vm.mainSearch = mainSearch;
 
                 vm.commitMessage = '';
                 vm.remote = null;
@@ -112,6 +110,10 @@
                 };
 
                 vm.diffOnConflictModal = null;
+
+                var commitsBackup = null;
+                var commitMapBackup = null;
+                var graphBackup = null;
 
                 $scope.$on('windowfocus', function() {
                     if(($commitModal.data('bs.modal') || {})._isShown) {
@@ -139,6 +141,79 @@
                 window.vm = vm;
 
                 return;
+
+                function mainSearch() {
+                    console.log(vm.mainSearchInp);
+
+                    var searchText = vm.mainSearchInp;
+
+                    if(typeof searchText == 'undefined' || searchText.length == 0 || (searchText = searchText.trim()).length == 0) {
+                        restoreCommits();
+                        return;
+                    }
+
+                    var shaRegex = /\b[0-9a-f]{5,40}\b/;
+
+                    if(shaRegex.test(searchText)) {
+                        // it is probably an SHA.
+                        repoDetailService.searchForHash(searchText).then(function(commits) {
+                            vm.commitDetails = null;
+                            parseCommits(commits);
+                            vm.commits = commits;
+                            resetCommitMap();
+                            if(commits.length > 0) {
+                                $timeout(loadGraph);
+                            }
+                            return vm.commits;
+                        });
+                    }
+                }
+
+                /**
+                 * Stores commits in `commitsBackup` and `commitMapBackup`. Restore using `restoreCommits`
+                */
+                function backupCommits() {
+                    commitsBackup = vm.commits;
+                    commitMapBackup = vm.commitMap;
+                }
+
+                /**
+                 * Restores commits backed up using `backupCommits`
+                 */
+                function restoreCommits() {
+                    vm.commits = commitsBackup;
+                    vm.commitMap = commitMapBackup;
+                    $timeout(restoreGraph);
+                }
+
+                function backupGraph() {
+                    var canvas = document.getElementById('log-graph');
+
+                    graphBackup = null;
+                    graphBackup = new Image();
+                    graphBackup.src = canvas.toDataURL("image/png");
+                    // graphBackup = document.createElement('canvas');
+                    // graphBackup.width = canvas.width;
+                    // graphBackup.height = canvas.height;
+
+                    //var graphBackupCtx = graphBackup.getContext('2D');
+                    //graphBackupCtx.drawImage(canvas, 0, 0);
+                }
+
+                function restoreGraph() {
+                    // $('#graph-container').append('<canvas id="log-graph"></canvas>');
+                    var canvas = document.getElementById('log-graph');
+                    canvas.width = graphBackup.width;
+                    canvas.height = graphBackup.height;
+
+                    var varWidth = canvas.width.toString() + 'px';
+                    var ctx = canvas.getContext('2d');
+
+                    $('#graph-container').css('flex', '0 0 ' + varWidth);
+                    $('#log-rows-container').css('width', 'calc(100% - '+ varWidth +')');
+
+                    ctx.drawImage(graphBackup, 0, 0);
+                }
 
                 function abortMerge() {
                     return repoDetailService.abortMerge().then(function(d) {
@@ -382,10 +457,15 @@
                 function loadGraph() {
                     setGraphInfo();
                     var $graphContainer = $('#graph-container');
+                    var $logRowsContainer = $('#log-rows-container');
                     var varWidth = (((vm.maxX + 1) * logGraphDefaults.distanceBetweenBranches) + logGraphDefaults.distanceBetweenBranches).toString() + 'px';
                     $graphContainer.css('flex', '0 0 ' + varWidth);
                     $logRowsContainer.css('width', 'calc(100% - '+ varWidth +')');
-                    $graphContainer.empty().append('<canvas id="log-graph" height="'+ $graphContainer.height() +'" width="'+ $graphContainer.width() +'"></canvas>');
+                    // $graphContainer.empty().append('<canvas id="log-graph" height="'+ $graphContainer.height() +'" width="'+ $graphContainer.width() +'"></canvas>');
+                    var $canvas = $('#log-graph').attr({
+                        width: $graphContainer.width(),
+                        height: $graphContainer.height()
+                    });
 
                     var graph = document.getElementById('log-graph');
                     var ctx = graph.getContext("2d");
@@ -785,7 +865,9 @@
                           noMoreCommits = true;
                         }
                         else {
-                            $timeout(loadGraph);
+                            $timeout(loadGraph).then(function() {
+                                backupGraph();
+                            });
                         }
                       });
                     }
@@ -804,7 +886,10 @@
                     parseCommits(commits);
                     vm.commits = commits;
                     resetCommitMap();
-                    $timeout(loadGraph);
+                    backupCommits();
+                    $timeout(loadGraph).then(function() {
+                        backupGraph();
+                    });
                     return vm.commits;
                   });
                 }
@@ -822,6 +907,9 @@
                     Array.prototype.push.apply(vm.commits, commits);
 
                     resetCommitMap();
+
+                    backupCommits();
+
                     return vm.commits;
                   });
                 }
@@ -894,6 +982,11 @@
 
                 function setGraphInfo() {
                     var commits = vm.commits;
+
+                    if(commits.length == 0) {
+                        return;
+                    }
+
                     var openBranches = [];
                     var branchLevel = 0;
 
@@ -1213,8 +1306,15 @@
         this.skipRebase = skipRebase;
         this.mergeIntoCurrent = mergeIntoCurrent;
         this.abortMerge = abortMerge;
+        this.searchForHash = searchForHash;
 
         return;
+
+        function searchForHash(hash) {
+            return $http.post('/repo/' + repoName + '/searchforhash', {hash: hash}).then(function(res) {
+                return res.data;
+            });
+        }
 
         function abortMerge() {
             return $http.post('/repo/' + repoName + '/abortmerge').then(function(res) {

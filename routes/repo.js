@@ -23,7 +23,7 @@ router.get('/:id', function(req, res) {
 router.get('/:id/getrepolog', function(req, res) {
     // get all commits in that repo.
     let repo = req.params.id;
-    git.logRepo(repo, req, res);
+    git.logRepo({req, res, repo});
 });
 
 router.get('/:id/getcommit/:commitHash', function(req, res) {
@@ -209,6 +209,12 @@ router.post('/:id/abortmerge', (req, res) => {
     let repo = req.params.id;
 
     git.abortMerge({repo, req, res});
+});
+
+router.post('/:id/searchforhash', (req, res) => {
+    let repo = req.params.id;
+
+    git.searchForHash({repo, req, res});
 });
 
 module.exports = router;

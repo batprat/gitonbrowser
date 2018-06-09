@@ -7,17 +7,27 @@
         <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i> Push...</button>
         <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()"><i class="fa fa-database"></i> Stash...</button>
 
+        <div id="log-search-container" class="pull-right">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <div class="input-group-text"><i class="fa fa-search" aria-hidden="true"></i></div>
+                </div>
+                <input type="text" class="form-control" id="main-search-inp" ng-model-options='{ debounce: 800 }' ng-model="vm.mainSearchInp" ng-change="vm.mainSearch()" placeholder="Search anything">
+            </div>
+        </div>
         <button class="btn btn-danger pull-right" ng-show="vm.progress" ng-click="vm.showModalToHandleConflict()">{{ vm.progress.message }}</button>
     </div>
     <div id="main-log-context-menu" style="display: none;"></div>
     <div id="main-log-container" class="commit-container container-fluid" ng-class="{'details-visible': vm.commitDetails}" data-page-num="1">
         <div class="row">
             <div class="col-12">
-                <span class="label-heading">Repository log</span> <span class="label-caption"> - Select a commit to view details.</span>
+                <span class="label-heading">Repository log</span> <span class="label-caption"> - Select a commit to view details or right click on a commit for more.</span>
             </div>
         </div>
-        <div class="row">
-            <div id="graph-container" class="col"></div>
+        <div class="row" ng-if="vm.commits.length > 0">
+            <div id="graph-container" class="col">
+                <canvas id="log-graph" width="1" height="1"></canvas>
+            </div>
             <div class="col" id="log-rows-container">
                 <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits | filter:{ isTemp:'!true'}" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
                     <div class="col-sm-7 log-commit-message-container">
@@ -38,6 +48,9 @@
                 </div>
                 <div id="main-log-loading-indicator">Loading next batch of commits...</div>
             </div>
+        </div>
+        <div class="no-commits-msg" ng-if="vm.commits.length == 0">
+            There's no commits here
         </div>
     </div>
     <div class="details-container" ng-show="vm.commitDetails">
