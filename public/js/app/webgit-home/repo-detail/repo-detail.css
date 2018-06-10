@@ -117,22 +117,6 @@
 #commit-modal .modal-dialog {
     max-width: 90%;
 }
-/*
-.file-status.untracked::after {
-    content: '?'
-}
-
-.file-status.added::after {
-    content: 'A'
-}
-
-.file-status.modified::after {
-    content: 'M'
-}
-
-.file-status.deleted::after {
-    content: 'D'
-}*/
 
 .staging-action-buttons-container {
     padding: 15px 0;
@@ -409,4 +393,12 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+.btn-stage-all-files {
+    margin-right: 10px;
+}
+
+.btn-unstage-files {
+    margin-left: 10px;
 }

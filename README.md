@@ -40,3 +40,4 @@ This is the list of features in this git client. There might be some features I 
 17. Handle Rebase conflicts (show conflicts, one click mark as resolved)
 18. Handle Merge conflicts
 19. Search for SHAs
+20. Search for commit messages

@@ -1,4 +1,5 @@
 . Handle cherrypick
+. Revert commit
 . Delete local branch
 . Delete remote branch
 . Handle passwords for cloning
@@ -9,7 +10,7 @@
 . Select multiple files while staging, unstaging, rebase modal, etc.
 . Prevent CSRF attacks.
 . Handle CRLF errors.
-. Implement searching for commits/hashes/authors/commit messages
+. Implement searching for commits/authors/file changes/file
 . Implement copy path for all paths (file-selector)
 . Modularize file selectors
 . Git bisect
@@ -21,7 +22,6 @@
  . Move service into different file
  . Move modals into their own files
  . Convert all get requests to post
-. Revert commit
 . Squash commits
 . Handle conflicts from merge, stash
 . Handle Rebase Cases       // https://git-scm.com/docs/git-status
@@ -73,3 +73,5 @@
 -. encodeURIComponent instead of complex >>> structure.
 -. Add loaders to all git operations
 -. Start program using custom port
+-. Search for commit hashes
+-. Search for commit messages
