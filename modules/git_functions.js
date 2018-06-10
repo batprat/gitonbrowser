@@ -37,8 +37,16 @@ let git = {
     mergeIntoCurrent,
     abortMerge,
     testGit,
-    searchForHash
+    searchForHash,
+    searchForCommitMessage
 };
+
+function searchForCommitMessage({req, res, repo}) {
+    return logRepo({ req, res, repo, options: {
+        searchFor: 'commitmessage',
+        searchTerm: req.body.text
+    } });
+}
 
 function searchForHash({req, res, repo}) {
     return logRepo({req, res, repo, options: {
@@ -568,19 +576,12 @@ git log -n 100 --format=format:'<commit><hash>%H</hash><author_name>%an</author_
 log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
 
 */
-    let term = null;
-    if(options) {
-        switch(options.searchFor) {
-            case 'hash': {
-                term = {}
-                break;
-            }
-        }
-    }
     let randomSeperator = utils.getRandomSeparator();
     // let logFormat = `--format=format:%H${randomSeperator}%an${randomSeperator}%ae${randomSeperator}%aD${randomSeperator}%s${randomSeperator}%P`;
 
     let logFormat = `--format=format:%d%n%H%n%an%n%ae%n%aD%n%P%n%s%n${randomSeperator}`;
+
+    let commitsInOnePageCount = 100;
 
     let logArgs = ['log', logFormat];
 
@@ -588,16 +589,22 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
         if(options.searchFor == 'hash') {
             logArgs.push('-1', options.searchTerm);
         }
+
+        if(options.searchFor == 'commitmessage') {
+            logArgs.push('--grep='+ decodeURIComponent(options.searchTerm) +'', '-i', '-n ' + commitsInOnePageCount);
+        }
     }
     else {
-        logArgs.push('-n 100', '--branches', '--tags');
+        logArgs.push('-n ' + commitsInOnePageCount, '--branches', '--tags');
     }
 
     let page = req.query && req.query.page ? req.query.page : 1;
 
     if(page > 1) {
-      logArgs.push('--skip=' + ((page - 1) * 100));
+      logArgs.push('--skip=' + ((page - 1) * commitsInOnePageCount));
     }
+
+    console.log(logArgs);
 
     const child = spawn('git', logArgs, {
         cwd: _getCwd(repo),

@@ -217,4 +217,10 @@ router.post('/:id/searchforhash', (req, res) => {
     git.searchForHash({repo, req, res});
 });
 
+router.post('/:id/searchforcommitmessage', (req, res) => {
+    let repo = req.params.id;
+
+    git.searchForCommitMessage({repo, req, res});
+});
+
 module.exports = router;

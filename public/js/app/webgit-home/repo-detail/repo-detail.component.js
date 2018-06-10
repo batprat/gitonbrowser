@@ -143,8 +143,6 @@
                 return;
 
                 function mainSearch() {
-                    console.log(vm.mainSearchInp);
-
                     var searchText = vm.mainSearchInp;
 
                     if(typeof searchText == 'undefined' || searchText.length == 0 || (searchText = searchText.trim()).length == 0) {
@@ -152,21 +150,69 @@
                         return;
                     }
 
-                    var shaRegex = /\b[0-9a-f]{5,40}\b/;
+                    clearGraph();
+                    var promise = null;
 
+                    var shaRegex = /\b[0-9a-f]{5,40}\b/;
                     if(shaRegex.test(searchText)) {
                         // it is probably an SHA.
-                        repoDetailService.searchForHash(searchText).then(function(commits) {
+                        promise = repoDetailService.searchForHash(searchText).then(function(commits) {
                             vm.commitDetails = null;
                             parseCommits(commits);
                             vm.commits = commits;
                             resetCommitMap();
-                            if(commits.length > 0) {
-                                $timeout(loadGraph);
-                            }
                             return vm.commits;
                         });
                     }
+
+                    // search in commit messages.
+
+                    if(promise) {
+                        promise.then(searchByCommitMessage);
+                    }
+                    else {
+                        searchByCommitMessage();
+                    }
+
+                    function searchByCommitMessage() {
+                        return repoDetailService.searchForCommitMessage(searchText).then(function(commits) {
+                            parseCommits(commits);
+                            if(promise) {
+                                vm.commits = vm.commits || [];
+                            }
+                            else {
+                                vm.commits = [];
+                            }
+    
+                            resetTempCommits();
+    
+                            // Array.prototype.push.apply(vm.commits, commits);
+                            vm.commits = addUniqueCommits(vm.commits, commits);
+    
+                            resetCommitMap();
+                            return vm.commits;
+                        });
+                    }
+                }
+
+
+                /**
+                 * Adds commits2 to commits1. Skips duplicates. Does not modify, returns new array.
+                 */
+                function addUniqueCommits(commits1, commits2) {
+                    var commits1Copy = commits1.slice(0);
+
+                    var hashes = commits1.map(function(c) {
+                        return c.hash;
+                    });
+
+                    var uniqueCommits = commits2.filter(function(c) {
+                        return hashes.indexOf(c.hash) == -1;
+                    });
+
+                    Array.prototype.push.apply(commits1Copy, uniqueCommits);
+
+                    return commits1Copy;
                 }
 
                 /**
@@ -192,16 +238,9 @@
                     graphBackup = null;
                     graphBackup = new Image();
                     graphBackup.src = canvas.toDataURL("image/png");
-                    // graphBackup = document.createElement('canvas');
-                    // graphBackup.width = canvas.width;
-                    // graphBackup.height = canvas.height;
-
-                    //var graphBackupCtx = graphBackup.getContext('2D');
-                    //graphBackupCtx.drawImage(canvas, 0, 0);
                 }
 
                 function restoreGraph() {
-                    // $('#graph-container').append('<canvas id="log-graph"></canvas>');
                     var canvas = document.getElementById('log-graph');
                     canvas.width = graphBackup.width;
                     canvas.height = graphBackup.height;
@@ -213,6 +252,18 @@
                     $('#log-rows-container').css('width', 'calc(100% - '+ varWidth +')');
 
                     ctx.drawImage(graphBackup, 0, 0);
+                }
+
+                function clearGraph() {
+                    var canvas = document.getElementById('log-graph');
+                    if(!canvas) {
+                        return;
+                    }
+                    var ctx = canvas.getContext('2d');
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    canvas.width = 0;
+                    canvas.height = 0;
                 }
 
                 function abortMerge() {
@@ -1307,8 +1358,15 @@
         this.mergeIntoCurrent = mergeIntoCurrent;
         this.abortMerge = abortMerge;
         this.searchForHash = searchForHash;
+        this.searchForCommitMessage = searchForCommitMessage;
 
         return;
+
+        function searchForCommitMessage(searchText) {
+            return $http.post('/repo/' + repoName + '/searchforcommitmessage', {text: window.encodeURIComponent(searchText)}).then(function(res) {
+                return res.data;
+            });
+        }
 
         function searchForHash(hash) {
             return $http.post('/repo/' + repoName + '/searchforhash', {hash: hash}).then(function(res) {
