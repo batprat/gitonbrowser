@@ -402,3 +402,9 @@
 .btn-unstage-files {
     margin-left: 10px;
 }
+
+.main-log-author-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
