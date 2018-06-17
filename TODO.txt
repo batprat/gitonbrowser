@@ -4,6 +4,8 @@
 . Delete remote branch
 . Handle passwords for cloning
 . Handle passwords for pushing
+. Reset single file
+. Select default branch that matches the current branch name in push modal
 . Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
 . Checkout remote branch        // git checkout -B "master" "origin/master"
 . Checkout commit
@@ -12,6 +14,7 @@
 . Handle CRLF errors.
 . Implement searching for commits/authors/file changes/file
 . Implement copy path for all paths (file-selector)
+.[bug] Show untracked files in stash
 . Modularize file selectors
 . Git bisect
 . In the push modal, show which commits/files that are gonna be pushed.

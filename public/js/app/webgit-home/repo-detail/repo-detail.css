@@ -408,3 +408,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.commit-message {
+    white-space: pre-wrap;
+}
