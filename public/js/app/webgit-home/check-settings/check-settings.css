@@ -1,0 +1,41 @@
+#settings-modal {
+    font-size: 1rem;
+    text-align: left;
+    font-weight: normal;
+}
+
+.home-settings-icon {
+    cursor: pointer;
+    color: #007bff;
+    font-size: 25px;
+    vertical-align: middle;
+}
+
+.home-settings-icon.show-on-error-only {
+    display: none;
+}
+
+.home-settings-icon.show-on-error-only.has-error {
+    display: inline-block;
+}
+  
+.home-settings-icon:hover {
+    color: #6c757d;
+}
+  
+.home-settings-icon.has-error {
+    color: #dc3545;
+}
+  
+.settings-obj .fix-this-error {
+    display: none;
+    cursor: pointer;
+}
+  
+.settings-obj .failed-setting .fix-this-error {
+    display: block;
+}
+  
+.settings-obj-fix.hidden {
+    display: none;
+}

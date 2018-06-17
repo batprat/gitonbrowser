@@ -1,6 +1,6 @@
 // TODO: Handle error codes.
 (function() {
-    var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
+    var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute', 'WebgitHomeModule']);
     var repoName = null;
     var $commitModal = null;
     var $pushModal = null;

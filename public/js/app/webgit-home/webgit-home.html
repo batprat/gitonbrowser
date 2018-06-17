@@ -2,7 +2,7 @@
   <link href="/js/app/webgit-home/webgit-home.css" rel="stylesheet" />
   <div class="row">
     <div class="col-12">
-      <h1 class="main-title">gitonbrowser <span ng-click="vm.viewSettingsModal()" class="fa fa-gear home-settings-icon"></span></h1>
+      <h1 class="main-title">gitonbrowser <check-settings></check-settings></h1>
     </div>
   </div>
   <div class="row">
@@ -46,36 +46,6 @@
               <button class="btn btn-primary" id="btn-browse" ng-click="vm.browse()">Browse</button>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="modal fade" id="settings-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title">Settings</h5>
-            <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>   
-        </div>
-        <div class="modal-body">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="settings-obj">
-                            <div class="alert" ng-class="vm.settings.gitExists.err ? 'failed-setting alert-danger' : 'alert-success'">{{vm.settings.gitExists.err ? vm.settings.gitExists.msg : 'Yay! I found GIT.'}}<span class="fix-this-error pull-right btn-link">Fix</span></div>
-                            <div class="settings-obj-fix hidden" ng-if="vm.settings.gitExists.err">
-                                <form class="form-inline">
-                                    <div class="form-group mx-sm-3 mb-2">
-                                        <label for="git-exec-path" class="">Path to GIT executible:&nbsp;</label>
-                                        <input type="text" class="form-control" ng-model="vm.settings.gitExists.path" id="git-exec-path" placeholder="/usr/local/bin OR C:/Program Files/Git">
-                                    </div>
-                                    <button ng-click="vm.saveGitExecutablePath()" class="btn btn-primary mb-2">Save and Recheck</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
       </div>
     </div>
