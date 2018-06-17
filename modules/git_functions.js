@@ -1,5 +1,7 @@
 const utils = require('./utils');
 const { spawn } = require('child_process');
+const commandExists = require('command-exists');
+const {stat} = require('fs');
 
 let showAllLogs = false;
 
@@ -38,8 +40,57 @@ let git = {
     abortMerge,
     testGit,
     searchForHash,
-    searchForCommitMessage
+    searchForCommitMessage,
+    getSettings
 };
+
+let gitExecutablePath = 'git';
+
+function getSettings({req, res}) {
+  // 1. get git path from local storage.
+  // 2a. if git path, check if the command exists.
+  // 2b. if not git path, check if git exists in the PATH
+  // 3. Either local storage git path OR git in PATH must exist.
+
+  let reqBody = req.body;
+  let gitFnName = reqBody && reqBody.gitExecutablePath ? reqBody.gitExecutablePath + '/git.exe' : 'git';
+ 
+  gitFnName = gitFnName.replace(/\\/g, '/');      // replace back slashes with forward slashes
+  
+
+  if(gitFnName === 'git') {
+    commandExists(gitFnName, callback);
+  }
+  else {
+    stat(gitFnName, callback)
+  }
+
+  return;
+
+  function callback(err, exists) {
+    if(!exists) {
+      sendResponse(res, {
+        errorCode: 1,
+        msg: 'I could not find GIT',
+        description: 'You have two options here.. Add your git installation directory OR Add git to your PATH.'
+      });
+      return;
+    }
+    
+    setGitFn(gitFnName);
+    sendResponse(res, {
+      msg: 'Everything is fine'
+    });
+  };
+}
+
+function setGitFn(gitFnName) {
+  gitExecutablePath = gitFnName;
+}
+
+function getGitFn() {
+  return gitExecutablePath;
+}
 
 function searchForCommitMessage({req, res, repo}) {
     return logRepo({ req, res, repo, options: {
@@ -305,7 +356,6 @@ function getLocalProgressStatus(repo) {
   // no way yet to see stash in progress.
   // we'll detect these by checking UU on file status.
   return Promise.all([rebaseHeadPromise, mergeHeadPromise, revertHeadPromise, interactiveRebaseHeadPromise]).then((heads)=> {
-    console.log('heads = ' + heads);
     if(heads[0] || heads[1] || heads[2]) {
       // there is something in progress!
       if(heads[0]) {
@@ -419,8 +469,6 @@ function unstageFile({req, res, repo}) {
 
   gitOptions.push(fileName);
 
-  console.log(gitOptions);
-
   const child = spawnGitProcess(repo, gitOptions);
   redirectIO(child, req, res);
 }
@@ -439,8 +487,6 @@ function stageFile({req, res, repo}) {
   }
 
   gitOptions.push(fileName);
-
-  console.log(gitOptions);
 
   const child = spawnGitProcess(repo, gitOptions);
   redirectIO(child, req, res);
@@ -512,8 +558,10 @@ function getCommit(options) {
 }
 
 function spawnGitProcess(repo, processOptions) {
-    // console.log('path = ' + utils.decodePath(repo));
-    return spawn('git', processOptions, {
+  if(showAllLogs) {
+    console.log('git arguments', processOptions);
+  }
+    return spawn(gitExecutablePath, processOptions, {
         cwd: _getCwd(repo),
         stdio: [0, 'pipe', 'pipe']
     });
@@ -548,7 +596,7 @@ function logRepo3({repo, req, res}) {
   let logFormat = `--format=format:%H%n%an%n%ae%n%aD%n%s%n%P`;
   let logArgs = ['log', '-n 100', logFormat, '--branches'];
 
-  const child = spawn('git', logArgs, {
+  const child = spawn(gitExecutablePath, logArgs, {
       cwd: utils.getCheckoutsDir() + '/' + repo,
       stdio: [0, 'pipe', 'pipe']
   });
@@ -604,9 +652,7 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
       logArgs.push('--skip=' + ((page - 1) * commitsInOnePageCount));
     }
 
-    console.log(logArgs);
-
-    const child = spawn('git', logArgs, {
+    const child = spawn(gitExecutablePath, logArgs, {
         cwd: _getCwd(repo),
         stdio: [0, 'pipe', 'pipe']
     });
@@ -625,7 +671,7 @@ function clone({req, res}) {
       cloneOptions.push(cloneSubdirectoryName);
     }
     
-    const child = spawn('git', cloneOptions, {
+    const child = spawn(gitExecutablePath, cloneOptions, {
       cwd: destinationDir,
       stdio: [0, 'pipe', 'pipe']
     });

@@ -31,6 +31,16 @@ router.post('/testgit', function(req, res, next) {
   git.testGit({req, res});
 });
 
+router.post('/settings', function(req, res, next) {
+  // version of git running
+  // git is in PATH?
+  // path to installed git
+  // username is configured for GIT
+  // email is configured for GIT
+
+  git.getSettings({req, res});
+});
+
 router.get('/browserepo', function(req, res) {
   let path = req.query.path,
       encodedPath = utils.encodePath(path);
