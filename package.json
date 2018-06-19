@@ -15,7 +15,8 @@
     "jade": "~1.11.0",
     "morgan": "~1.9.0",
     "serve-favicon": "~2.4.5",
-    "command-exists": "latest"
+    "command-exists": "latest",
+    "moment": "latest"
   },
   "nodemonConfig": {
     "ignore": [

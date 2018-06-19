@@ -151,68 +151,14 @@
                     }
 
                     clearGraph();
-                    var promise = null;
 
-                    var shaRegex = /\b[0-9a-f]{5,40}\b/;
-                    if(shaRegex.test(searchText)) {
-                        // it is probably an SHA.
-                        promise = repoDetailService.searchForHash(searchText).then(function(commits) {
-                            vm.commitDetails = null;
-                            parseCommits(commits);
-                            vm.commits = commits;
-                            resetCommitMap();
-                            return vm.commits;
-                        });
-                    }
-
-                    // search in commit messages.
-
-                    if(promise) {
-                        promise.then(searchByCommitMessage);
-                    }
-                    else {
-                        searchByCommitMessage();
-                    }
-
-                    function searchByCommitMessage() {
-                        return repoDetailService.searchForCommitMessage(searchText).then(function(commits) {
-                            parseCommits(commits);
-                            if(promise) {
-                                vm.commits = vm.commits || [];
-                            }
-                            else {
-                                vm.commits = [];
-                            }
-    
-                            resetTempCommits();
-    
-                            // Array.prototype.push.apply(vm.commits, commits);
-                            vm.commits = addUniqueCommits(vm.commits, commits);
-    
-                            resetCommitMap();
-                            return vm.commits;
-                        });
-                    }
-                }
-
-
-                /**
-                 * Adds commits2 to commits1. Skips duplicates. Does not modify, returns new array.
-                 */
-                function addUniqueCommits(commits1, commits2) {
-                    var commits1Copy = commits1.slice(0);
-
-                    var hashes = commits1.map(function(c) {
-                        return c.hash;
+                    return repoDetailService.searchForText(searchText).then(function(commits) {
+                        vm.commitDetails = null;
+                        parseCommits(commits);
+                        vm.commits = commits;
+                        resetCommitMap();
+                        return vm.commits;
                     });
-
-                    var uniqueCommits = commits2.filter(function(c) {
-                        return hashes.indexOf(c.hash) == -1;
-                    });
-
-                    Array.prototype.push.apply(commits1Copy, uniqueCommits);
-
-                    return commits1Copy;
                 }
 
                 /**
@@ -1357,19 +1303,13 @@
         this.skipRebase = skipRebase;
         this.mergeIntoCurrent = mergeIntoCurrent;
         this.abortMerge = abortMerge;
-        this.searchForHash = searchForHash;
-        this.searchForCommitMessage = searchForCommitMessage;
+
+        this.searchForText = searchForText;
 
         return;
 
-        function searchForCommitMessage(searchText) {
-            return $http.post('/repo/' + repoName + '/searchforcommitmessage', {text: window.encodeURIComponent(searchText)}).then(function(res) {
-                return res.data;
-            });
-        }
-
-        function searchForHash(hash) {
-            return $http.post('/repo/' + repoName + '/searchforhash', {hash: hash}).then(function(res) {
+        function searchForText(searchText) {
+            return $http.post('/repo/' + repoName + '/searchfortext', {text: window.encodeURIComponent(searchText)}).then(function(res) {
                 return res.data;
             });
         }

@@ -2,8 +2,11 @@ const utils = require('./utils');
 const { spawn } = require('child_process');
 const commandExists = require('command-exists');
 const {stat} = require('fs');
+const moment = require('moment');
 
 let showAllLogs = false;
+// let logCommits = [];
+let gitExecutablePath = 'git';
 
 let git = {
     clone: clone,
@@ -41,10 +44,51 @@ let git = {
     testGit,
     searchForHash,
     searchForCommitMessage,
-    getSettings
+    getSettings,
+    searchForText
 };
 
-let gitExecutablePath = 'git';
+module.exports = git;
+
+return;
+
+function searchForText({req, res, repo}) {
+  let text = req.body.text;
+
+  // it can be SHA, author name/ author email, file name, commit message, part of diff in commit, branch name
+  // lets start one by one.
+
+  // check if it is an SHA.
+
+  var shaRegex = /\b[0-9a-f]{5,40}\b/;
+
+  var promises = [];
+  var promise = null;
+
+  if(shaRegex.test(text)) {
+    promise = searchForHash({repo, hash: text});
+    promises.push(promise);
+  }
+
+  promise = searchForCommitMessage({repo, text});
+  promises.push(promise);
+
+
+  Promise.all(promises).then((promiseResponses) => {
+    let responseCommits = [];
+
+    promiseResponses.forEach((commits) => {
+      Array.prototype.push.apply(responseCommits, commits);
+    });
+
+    // sort commits by date.
+    responseCommits.sort((a, b) => {
+      return moment(b.date) - moment(a.date);
+    });
+
+    sendResponse(res, responseCommits);
+  });
+}
 
 function getSettings({req, res}) {
   // 1. get git path from local storage.
@@ -92,17 +136,17 @@ function getGitFn() {
   return gitExecutablePath;
 }
 
-function searchForCommitMessage({req, res, repo}) {
+function searchForCommitMessage({req, res, repo, text}) {
     return logRepo({ req, res, repo, options: {
         searchFor: 'commitmessage',
-        searchTerm: req.body.text
+        searchTerm: text || req.body.text
     } });
 }
 
-function searchForHash({req, res, repo}) {
+function searchForHash({req, res, repo, hash}) {
     return logRepo({req, res, repo, options: {
         searchFor: 'hash',
-        searchTerm: req.body.hash
+        searchTerm: hash || req.body.hash
     }});
 }
 
@@ -646,18 +690,20 @@ log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset)
         logArgs.push('-n ' + commitsInOnePageCount, '--branches', '--tags');
     }
 
-    let page = req.query && req.query.page ? req.query.page : 1;
+    let page = req && req.query && req.query.page ? req.query.page : 1;
 
     if(page > 1) {
       logArgs.push('--skip=' + ((page - 1) * commitsInOnePageCount));
     }
 
-    const child = spawn(gitExecutablePath, logArgs, {
-        cwd: _getCwd(repo),
-        stdio: [0, 'pipe', 'pipe']
-    });
+    // const child = spawn(gitExecutablePath, logArgs, {
+    //     cwd: _getCwd(repo),
+    //     stdio: [0, 'pipe', 'pipe']
+    // });
 
-    redirectIOForLog(child, req, res, randomSeperator);
+    const child = spawnGitProcess(repo, logArgs);
+
+    return redirectIOForLog(child, req, res, randomSeperator);
 }
 
 function clone({req, res}) {
@@ -766,130 +812,94 @@ function sendResponse(res, op) {
   res.end();
 }
 
-let logCommits = [];
-
 function redirectIOForLog(child, req, res, splitter) {
-    let errors = [];
-    child.stdout.on('data', function(data) {
-        if(showAllLogs)
-        console.log( `stdout===========================: ${data}` );
-        // let commits = data.toString().split('\n');
+  return redirectIO(child).then((op) => {
+    return new Promise((resolve, reject) => {
+      if(op.errorCode) {
 
-        let commits = data.toString();
+        if(res) {
+          sendResponse(res, op);
+        }
 
-        // Array.prototype.push.apply(logCommits, commits);
-        logCommits.push(commits);
-        if(showAllLogs)
-        console.log( `stdout: ${data}` );
-    });
+        return reject(op);
+      }
   
-      child.stderr.on('data', function(data) {
-        if(showAllLogs) {
-          console.log( `stderr: ${data}` );
-        }
-      });
-    
-      child.on('error', function(err) {
-        if(showAllLogs) {
-          console.log('error event output');
-          console.log(err);
-        }
-        // res.write(JSON.stringify(err));
-        errors.push(JSON.stringify(err));
-      });
-    
-      child.on('exit', function(code, signal) {
-        if(showAllLogs) {
-        console.log('code = ' + code);
-        console.log('signal = ' + signal);
-        }
-      });
-    
-      child.on('close', function(code, signal) {
-        if(showAllLogs) {
-        console.log('event -- close');
-        console.log('code = ' + code);
-        console.log('signal = ' + signal);
-        }
-
-        if(errors.length) {
-            return sendResponse(res, {errors});
-        }
-
-        let commitData = {};
-        let log = [];
-        let aCommit = null;
-        logCommits = logCommits.join('');
-
-        logCommits = logCommits.split(splitter);
-
-        logCommits.forEach(function(commit, idx) {
-            aCommit = commit.trim().split('\n');
-
-            if(aCommit.length < 6) {
-              return;
+      // parse the output.
+  
+      let commitData = {};
+      let log = [];
+      let aCommit = null;
+      let logCommits = op.output.join('');
+  
+      logCommits = logCommits.split(splitter);
+  
+      logCommits.forEach(function(commit, idx) {
+          aCommit = commit.trim().split('\n');
+  
+          if(aCommit.length < 6) {
+            return;
+          }
+          
+          var i = aCommit[0].indexOf('(') == 0 ? 1 : 0;
+  
+          var refs = '';
+          var hasRefs = false;
+          if(i == 1) {
+            hasRefs = true;
+          }
+          commitData = {
+              hash: aCommit[i++],
+              name: aCommit[i++],
+              email: aCommit[i++],
+              date: aCommit[i++],
+              parentHashes: aCommit[i++]
+          };
+  
+          if(hasRefs) {
+            let match = aCommit[0].match(/^\((.+)\)$/);   // has brackets
+            // var match = aCommit[0].match(/\(([A-Za-z0-9\/]+)\s\-\>\s([A-Za-z0-9\/]+)\)/);
+            let refs = match[1];    // brackets removed.
+            
+            refs = refs.split(', ');
+            let localHead = refs.filter(function(s) {
+              return s.indexOf('HEAD -> ') === 0;
+            });
+            
+            if(localHead && localHead.length > 0) {
+              commitData.localHead = localHead[0].substring('HEAD -> '.length);
+              refs.splice(refs.indexOf(localHead[0]), 1);   // remove local head from the refs.
             }
             
-            var i = aCommit[0].indexOf('(') == 0 ? 1 : 0;
-
-            var refs = '';
-            var hasRefs = false;
-            if(i == 1) {
-              hasRefs = true;
+            let localBranches = refs.filter(function(s) {
+              return s.indexOf('origin/') !== 0;      // remote branches' names in tags/refs start with `origin/`. This will fail for those who name their local branches `origin/mybranch` :|
+            });
+  
+            if(localBranches && localBranches.length > 0) {
+              commitData.localBranches = localBranches;
             }
-            commitData = {
-                hash: aCommit[i++],
-                name: aCommit[i++],
-                email: aCommit[i++],
-                date: aCommit[i++],
-                parentHashes: aCommit[i++]
-            };
-
-            if(hasRefs) {
-              let match = aCommit[0].match(/^\((.+)\)$/);   // has brackets
-              // var match = aCommit[0].match(/\(([A-Za-z0-9\/]+)\s\-\>\s([A-Za-z0-9\/]+)\)/);
-              let refs = match[1];    // brackets removed.
-              
-              refs = refs.split(', ');
-              let localHead = refs.filter(function(s) {
-                return s.indexOf('HEAD -> ') === 0;
-              });
-              
-              if(localHead && localHead.length > 0) {
-                commitData.localHead = localHead[0].substring('HEAD -> '.length);
-                refs.splice(refs.indexOf(localHead[0]), 1);   // remove local head from the refs.
-              }
-              
-              let localBranches = refs.filter(function(s) {
-                return s.indexOf('origin/') !== 0;      // remote branches' names in tags/refs start with `origin/`. This will fail for those who name their local branches `origin/mybranch` :|
-              });
-
-              if(localBranches && localBranches.length > 0) {
-                commitData.localBranches = localBranches;
-              }
-
-              let remoteBranches = refs.filter(function(s) {
-                return s.indexOf('origin/') == 0 && s !== 'origin/HEAD';
-              });
-
-              if(remoteBranches && remoteBranches.length > 0) {
-                commitData.remoteBranches = remoteBranches;
-              }
+  
+            let remoteBranches = refs.filter(function(s) {
+              return s.indexOf('origin/') == 0 && s !== 'origin/HEAD';
+            });
+  
+            if(remoteBranches && remoteBranches.length > 0) {
+              commitData.remoteBranches = remoteBranches;
             }
-
-            commitData.subject = aCommit.slice(i).join('\n');
-            log.push(commitData);
-        });
-
-        res.setHeader('Content-Type', 'application/json');
-        res.write(JSON.stringify(log));
-        logCommits = [];       // reset the log data.
-        res.end();
+          }
+  
+          commitData.subject = aCommit.slice(i).join('\n');
+          log.push(commitData);
       });
+  
+      if(res) {
+        sendResponse(res, log);
+      }
+
+      return resolve(log);
+    });
+  });
 }
 
 function _getCwd(repo) {
   return utils.decodePath(repo);
 }
-
-module.exports = git;

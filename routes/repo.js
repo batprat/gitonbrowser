@@ -211,16 +211,10 @@ router.post('/:id/abortmerge', (req, res) => {
     git.abortMerge({repo, req, res});
 });
 
-router.post('/:id/searchforhash', (req, res) => {
+router.post('/:id/searchfortext', (req, res) => {
     let repo = req.params.id;
 
-    git.searchForHash({repo, req, res});
-});
-
-router.post('/:id/searchforcommitmessage', (req, res) => {
-    let repo = req.params.id;
-
-    git.searchForCommitMessage({repo, req, res});
+    git.searchForText({repo, req, res});
 });
 
 module.exports = router;
