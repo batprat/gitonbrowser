@@ -5,216 +5,216 @@ const utils = require('../modules/utils');
 const git = require('../modules/git_functions');
 
 /* GET repositories listing. */
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
     console.log('inside /');
     let allRepos = utils.getAllDirectories(utils.getCheckoutsDir());
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify({
-      allRepos: allRepos
+        allRepos: allRepos
     }));
     res.end();
 });
 
-router.get('/:id', function(req, res) {
+router.get('/:id', function (req, res) {
     let repo = req.params.id;
     res.render('repo', { title: repo });
 });
 
-router.get('/:id/getrepolog', function(req, res) {
+router.get('/:id/getrepolog', function (req, res) {
     // get all commits in that repo.
     let repo = req.params.id;
-    git.logRepo({req, res, repo});
+    git.logRepo({ req, res, repo });
 });
 
-router.get('/:id/getcommit/:commitHash', function(req, res) {
+router.get('/:id/getcommit/:commitHash', function (req, res) {
     let repo = req.params.id;
     let hash = req.params.commitHash;
 
-    if(!hash) {
+    if (!hash) {
         return res.send('Error: commit hash required.');
     }
-    git.getCommit({repo, hash, req, res});
+    git.getCommit({ repo, hash, req, res });
 });
 
-router.get('/:id/refreshlocal', function(req, res) {
+router.get('/:id/refreshlocal', function (req, res) {
     let repo = req.params.id;
 
-    git.getStatus({repo, req, res});
+    git.getStatus({ repo, req, res });
 });
 
-router.get('/:id/getfilediff', function(req, res) {
+router.get('/:id/getfilediff', function (req, res) {
     let repo = req.params.id;
 
-    git.getFileDiff({repo, req, res});
+    git.getFileDiff({ repo, req, res });
 });
 
-router.get('/:id/stagefile', function(req, res) {
-    let repo = req.params.id;
-    
-    git.stageFile({repo, req, res});
-});
-
-router.get('/:id/unstagefile', function(req, res) {
-    let repo = req.params.id;
-    
-    git.unstageFile({repo, req, res});
-});
-
-router.get('/:id/stageallfiles', function(req, res) {
-    let repo = req.params.id;
-    
-    git.stageAllFiles({repo, req, res});
-});
-
-router.get('/:id/unstageallfiles', function(req, res) {
-    let repo = req.params.id;
-    
-    git.unstageAllFiles({repo, req, res});
-});
-
-router.get('/:id/diffbetweencommits', function(req, res) {
+router.get('/:id/stagefile', function (req, res) {
     let repo = req.params.id;
 
-    git.getDiffBetweenCommits({repo, req, res});
+    git.stageFile({ repo, req, res });
 });
 
-router.get('/:id/commit', function(req, res) {
+router.get('/:id/unstagefile', function (req, res) {
     let repo = req.params.id;
 
-    git.commit({repo, req, res});
+    git.unstageFile({ repo, req, res });
+});
+
+router.get('/:id/stageallfiles', function (req, res) {
+    let repo = req.params.id;
+
+    git.stageAllFiles({ repo, req, res });
+});
+
+router.get('/:id/unstageallfiles', function (req, res) {
+    let repo = req.params.id;
+
+    git.unstageAllFiles({ repo, req, res });
+});
+
+router.get('/:id/diffbetweencommits', function (req, res) {
+    let repo = req.params.id;
+
+    git.getDiffBetweenCommits({ repo, req, res });
+});
+
+router.get('/:id/commit', function (req, res) {
+    let repo = req.params.id;
+
+    git.commit({ repo, req, res });
 });
 
 
-router.get('/:id/initrepo', function(req, res) {
-  let repo = req.params.id;
+router.get('/:id/initrepo', function (req, res) {
+    let repo = req.params.id;
 
-  git.initRepo({repo, req, res});
+    git.initRepo({ repo, req, res });
 });
 
-router.get('/:id/pull', function(req, res) {
-  let repo = req.params.id;
+router.get('/:id/pull', function (req, res) {
+    let repo = req.params.id;
 
-  git.pull({repo, req, res});
+    git.pull({ repo, req, res });
 });
 
-router.get('/:id/push', function(req, res) {
-  let repo = req.params.id;
+router.get('/:id/push', function (req, res) {
+    let repo = req.params.id;
 
-  git.push({repo, req, res});
+    git.push({ repo, req, res });
 });
 
 router.get('/:id/getstashlist', (req, res) => {
     let repo = req.params.id;
 
-    git.getStashList({repo, req, res});
+    git.getStashList({ repo, req, res });
 });
 
 router.get('/:id/selectstash', (req, res) => {
     let repo = req.params.id;
 
-    git.selectStash({repo, req, res});
+    git.selectStash({ repo, req, res });
 });
 
 router.post('/:id/stashlocal', (req, res) => {
     let repo = req.params.id;
 
-    git.stashLocalChanges({repo, req, res});
+    git.stashLocalChanges({ repo, req, res });
 });
 
 router.delete('/:id/dropstash/:stashName', (req, res) => {
     let repo = req.params.id;
 
-    git.dropStash({repo, req, res});
+    git.dropStash({ repo, req, res });
 });
 
 router.post('/:id/applystash', (req, res) => {
     let repo = req.params.id;
 
-    git.applyStash({repo, req, res});
+    git.applyStash({ repo, req, res });
 });
 
 router.post('/:id/resetall', (req, res) => {
     let repo = req.params.id;
 
-    git.resetAllChanges({repo, req, res});
+    git.resetAllChanges({ repo, req, res });
 });
 
 router.post('/:id/resetunstaged', (req, res) => {
     let repo = req.params.id;
 
-    git.resetUnstagedChanges({repo, req, res});
+    git.resetUnstagedChanges({ repo, req, res });
 });
 
 router.post('/:id/createnewbranch', (req, res) => {
     let repo = req.params.id;
 
-    git.createNewBranch({repo, req, res});
+    git.createNewBranch({ repo, req, res });
 });
 
 router.post('/:id/checkoutlocalbranch', (req, res) => {
     let repo = req.params.id;
 
-    git.checkoutLocalBranch({repo, req, res});
+    git.checkoutLocalBranch({ repo, req, res });
 });
 
 router.post('/:id/pushnewbranch', (req, res) => {
     let repo = req.params.id;
 
-    git.pushNewBranch({repo, req, res});
+    git.pushNewBranch({ repo, req, res });
 });
 
 router.post('/:id/rebasecurrentbranchon', (req, res) => {
     let repo = req.params.id;
 
-    git.rebaseCurrentBranchOn({repo, req, res});
+    git.rebaseCurrentBranchOn({ repo, req, res });
 });
 
 router.post('/:id/resetheadfile', (req, res) => {
     let repo = req.params.id;
 
-    git.doResetHEADFile({repo, req, res});
+    git.doResetHEADFile({ repo, req, res });
 });
 
 router.post('/:id/abortrebase', (req, res) => {
     let repo = req.params.id;
 
-    git.abortRebase({repo, req, res});
+    git.abortRebase({ repo, req, res });
 });
 
 router.post('/:id/continuerebase', (req, res) => {
     let repo = req.params.id;
 
-    git.continueRebase({repo, req, res});
+    git.continueRebase({ repo, req, res });
 });
 
 router.post('/:id/removefile', (req, res) => {
     let repo = req.params.id;
 
-    git.removeFile({repo, req, res});
+    git.removeFile({ repo, req, res });
 });
 
 router.post('/:id/skiprebase', (req, res) => {
     let repo = req.params.id;
 
-    git.skipRebase({repo, req, res});
+    git.skipRebase({ repo, req, res });
 });
 
 router.post('/:id/merge', (req, res) => {
     let repo = req.params.id;
 
-    git.mergeIntoCurrent({repo, req, res});
+    git.mergeIntoCurrent({ repo, req, res });
 });
 
 router.post('/:id/abortmerge', (req, res) => {
     let repo = req.params.id;
 
-    git.abortMerge({repo, req, res});
+    git.abortMerge({ repo, req, res });
 });
 
 router.post('/:id/searchfortext', (req, res) => {
     let repo = req.params.id;
 
-    git.searchForText({repo, req, res});
+    git.searchForText({ repo, req, res });
 });
 
 module.exports = router;

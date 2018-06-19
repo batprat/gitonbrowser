@@ -8,7 +8,7 @@ angular.module('WebgitHomeModule').component('checkSettings', {
         // debugger;
         var vm = this;
 
-        if($attrs.showOnErrorOnly) {
+        if ($attrs.showOnErrorOnly) {
             $element.find('.home-settings-icon').addClass('show-on-error-only');
         }
 
