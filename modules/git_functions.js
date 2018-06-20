@@ -76,11 +76,23 @@ function searchForText({ req, res, repo }) {
     promise = searchForAuthor({ repo, author: text });
     promises.push(promise);
 
+    promise = searchInDiff({ repo, code: text });
+    promises.push(promise);
+
     Promise.all(promises).then((promiseResponses) => {
         let responseCommits = [];
 
         promiseResponses.forEach((commits) => {
             Array.prototype.push.apply(responseCommits, commits);
+        });
+
+        var uniqueHashes = [];
+        responseCommits = responseCommits.filter(function(c) {
+            if(uniqueHashes.indexOf(c.hash) == -1) {
+                uniqueHashes.push(c.hash);
+                return true;
+            }
+            return false;
         });
 
         // sort commits by date.
@@ -89,6 +101,15 @@ function searchForText({ req, res, repo }) {
         });
 
         sendResponse(res, responseCommits);
+    });
+}
+
+function searchInDiff({ req, res, repo, code }) {
+    return logRepo({
+        req, res, repo, options: {
+            searchFor: 'diff',
+            searchTerm: code || req.body.code
+        }
     });
 }
 
@@ -667,6 +688,10 @@ function logRepo({ req, res, repo, options }) {
             }
             case 'author': {
                 logArgs.push('--author='+ decodeURIComponent(options.searchTerm) +'');
+                break;
+            }
+            case 'diff': {
+                logArgs.push('-S'+ decodeURIComponent(options.searchTerm) +'');
                 break;
             }
         }

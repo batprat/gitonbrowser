@@ -78,3 +78,5 @@
 -. Start program using custom port
 -. Search for commit hashes
 -. Search for commit messages
+-. Search for author
+-. Search in diff
