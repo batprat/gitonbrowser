@@ -73,6 +73,8 @@ function searchForText({ req, res, repo }) {
     promise = searchForCommitMessage({ repo, text });
     promises.push(promise);
 
+    promise = searchForAuthor({ repo, author: text });
+    promises.push(promise);
 
     Promise.all(promises).then((promiseResponses) => {
         let responseCommits = [];
@@ -87,6 +89,15 @@ function searchForText({ req, res, repo }) {
         });
 
         sendResponse(res, responseCommits);
+    });
+}
+
+function searchForAuthor({ req, res, repo, author }) {
+    return logRepo({
+        req, res, repo, options: {
+            searchFor: 'author',
+            searchTerm: author || req.body.author
+        }
     });
 }
 
@@ -615,43 +626,6 @@ function spawnGitProcess(repo, processOptions) {
     });
 }
 
-function logRepoNew(repo, req, res) {
-
-    //string formatString =
-    ///* <COMMIT>       */ CommitBegin + "%n" +
-    ///* Hash           */ "%H%n" +
-    ///* Parents        */ "%P%n";
-    // if (!ShaOnly)
-    // {
-    //     formatString +=
-    //         /* Tree                    */ "%T%n" +
-    //         /* Author Name             */ "%aN%n" +
-    //         /* Author Email            */ "%aE%n" +
-    //         /* Author Date             */ "%at%n" +
-    //         /* Committer Name          */ "%cN%n" +
-    //         /* Committer Email         */ "%cE%n" +
-    //         /* Committer Date          */ "%ct%n" +
-    //         /* Commit message encoding */ "%e%x00" + //there is a bug: git does not recode commit message when format is given
-    //         /* Commit Subject          */ "%s%x00" +
-    //         /* Commit Body             */ "%B%x00";
-    // }
-
-
-    // log -z --pretty=format:\"{formatString}\" --branches --date-order --all --
-}
-
-function logRepo3({ repo, req, res }) {
-    let logFormat = `--format=format:%H%n%an%n%ae%n%aD%n%s%n%P`;
-    let logArgs = ['log', '-n 100', logFormat, '--branches'];
-
-    const child = spawn(gitExecutablePath, logArgs, {
-        cwd: utils.getCheckoutsDir() + '/' + repo,
-        stdio: [0, 'pipe', 'pipe']
-    });
-
-    redirectIO(child, req, res);
-}
-
 function logRepo({ req, res, repo, options }) {
     /*
     C:\E\projects\webgit-server\git-checkouts\d3>git log --all --graph --decorate --pretty=oneline --abbrev-commit
@@ -682,12 +656,19 @@ function logRepo({ req, res, repo, options }) {
     let logArgs = ['log', logFormat];
 
     if (options) {
-        if (options.searchFor == 'hash') {
-            logArgs.push('-1', options.searchTerm);
-        }
-
-        if (options.searchFor == 'commitmessage') {
-            logArgs.push('--grep=' + decodeURIComponent(options.searchTerm) + '', '-i', '-n ' + commitsInOnePageCount);
+        switch(options.searchFor) {
+            case 'hash': {
+                logArgs.push('-1', options.searchTerm);
+                break;
+            }
+            case 'commitmessage': {
+                logArgs.push('--grep=' + decodeURIComponent(options.searchTerm) + '', '-i', '-n ' + commitsInOnePageCount);
+                break;
+            }
+            case 'author': {
+                logArgs.push('--author='+ decodeURIComponent(options.searchTerm) +'');
+                break;
+            }
         }
     }
     else {
@@ -699,11 +680,6 @@ function logRepo({ req, res, repo, options }) {
     if (page > 1) {
         logArgs.push('--skip=' + ((page - 1) * commitsInOnePageCount));
     }
-
-    // const child = spawn(gitExecutablePath, logArgs, {
-    //     cwd: _getCwd(repo),
-    //     stdio: [0, 'pipe', 'pipe']
-    // });
 
     const child = spawnGitProcess(repo, logArgs);
 
