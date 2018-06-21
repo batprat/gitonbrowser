@@ -798,6 +798,7 @@
                             $pushModal.modal('hide');
                         });
                         $responseModalTitle.text('Pushing ' + vm.currentLocalBranch + ' to ' + vm.remote + '/' + vm.pushOptions.remoteBranch);
+                        $responseModalBody.html('Please wait... Response will come here.');
                         $responseModal.modal('show');
                         return repoDetailService.push(vm.remote, vm.pushOptions.remoteBranch, vm.pushOptions.newRemoteBranchName).then(function (data) {
                             $responseModalBody.html(data.errors.join('<br />').replace('\n', '<br />'));
