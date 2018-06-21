@@ -55,10 +55,7 @@ return;
 function searchForText({ req, res, repo }) {
     let text = req.body.text;
 
-    // it can be SHA, author name/ author email, file name, commit message, part of diff in commit, branch name
-    // lets start one by one.
-
-    // check if it is an SHA.
+    // TODO: search for branch name
 
     var shaRegex = /\b[0-9a-f]{5,40}\b/;
 
@@ -77,6 +74,9 @@ function searchForText({ req, res, repo }) {
     promises.push(promise);
 
     promise = searchInDiff({ repo, code: text });
+    promises.push(promise);
+
+    promise = searchFileName({ repo, name: text });
     promises.push(promise);
 
     Promise.all(promises).then((promiseResponses) => {
@@ -101,6 +101,17 @@ function searchForText({ req, res, repo }) {
         });
 
         sendResponse(res, responseCommits);
+    }).catch((err) => {
+        console.log(err);
+    });
+}
+
+function searchFileName({ req, res, repo, name }) {
+    return logRepo({
+        req, res, repo, options: {
+            searchFor: 'filename',
+            searchTerm: name || req.body.name
+        }
     });
 }
 
@@ -694,11 +705,17 @@ function logRepo({ req, res, repo, options }) {
                 logArgs.push('-S'+ decodeURIComponent(options.searchTerm) +'');
                 break;
             }
+            case 'filename': {
+                logArgs.push('--', decodeURIComponent(options.searchTerm));
+                break;
+            }
         }
     }
     else {
         logArgs.push('-n ' + commitsInOnePageCount, '--branches', '--tags');
     }
+
+    // console.log(logArgs);
 
     let page = req && req.query && req.query.page ? req.query.page : 1;
 

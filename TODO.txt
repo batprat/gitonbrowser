@@ -5,6 +5,7 @@
 . Handle passwords for cloning
 . Handle passwords for pushing
 . Reset single file
+. Show file history
 . Select default branch that matches the current branch name in push modal
 . Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
 . Checkout remote branch        // git checkout -B "master" "origin/master"
@@ -80,3 +81,4 @@
 -. Search for commit messages
 -. Search for author
 -. Search in diff
+-. Search for file name in modified files
