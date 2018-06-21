@@ -13,7 +13,7 @@
 . Select multiple files while staging, unstaging, rebase modal, etc.
 . Prevent CSRF attacks.
 . Handle CRLF errors.
-. Implement searching for commits/authors/file changes/file/branch name
+. Implement searching for branch name
 . Implement copy path for all paths (file-selector)
 .[bug] Show untracked files in stash
 . Modularize file selectors

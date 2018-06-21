@@ -1,6 +1,6 @@
 {
-  "name": "webgit-server",
-  "version": "0.0.0",
+  "name": "gitonbrowser",
+  "version": "1.2.1",
   "private": true,
   "scripts": {
     "postinstall": "bower install",
