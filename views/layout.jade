@@ -14,6 +14,7 @@ html
     script(src='/bower_components/angular-route/angular-route.js')
     script(src='/bower_components/moment/moment.js')
     base(href='/')
+    block headcontent
   body(ng-app="webgitApp" ng-controller="AppController")
     block content
     div(class="modal fade", id="response-modal", tabindex="-1", role="dialog", aria-hidden="true")
@@ -37,3 +38,4 @@ html
     script(src='/js/app/webgit-home/check-settings/check-settings.component.js')
     script(src='/js/app/webgit-home/repositories.component.js')
     script(src='/js/app/webgit-home/repo-detail/repo-detail.component.js')
+    script(src='/js/app/webgit-home/repo-detail/files-list/files-list.component.js')

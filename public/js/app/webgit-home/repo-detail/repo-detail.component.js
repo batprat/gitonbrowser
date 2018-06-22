@@ -445,7 +445,12 @@
                         $responseModalTitle.text('Merging');
                         $responseModal.modal('show');
                         return repoDetailService.mergeIntoCurrent(branchName).then(function (d) {
-                            $responseModalBody.html(d.output.join('\n').trim().replace('\n', '<br />'));
+                            if(d.errorCode) {
+                                $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
+                            }
+                            else {
+                                $responseModalBody.html(d.output.join('\n').trim().replace('\n', '<br />'));
+                            }
                             refreshLocalChanges();
                             refreshLog();
                         });
@@ -702,7 +707,7 @@
                     function selectFileInStash(file) {
                         if (vm.selectedStash.name === 'Local Changes') {
                             vm.selectedStash.selectedFile = file;
-                            repoDetailService.getFileDiff(file.fileName, file.tags).then(function (diff) {
+                            repoDetailService.getFileDiff(file.name, file.tags).then(function (diff) {
                                 var parsedDiff = parseDiff(diff);
                                 vm.selectedStash.selectedFile.safeDiff = parsedDiff[0].safeDiff;
                             });
@@ -731,7 +736,8 @@
                             if (vm.localStatus) {
                                 vm.selectedStash.diffDetails = vm.localStatus.map(function (f) {
                                     return {
-                                        fileName: f.name,
+                                        // fileName: f.name,
+                                        name: f.name,
                                         commitType: f.tags.indexOf('added') > -1 ? 'new' : (f.tags.indexOf('deleted') > -1 ? 'deleted' : 'modified'),
                                         tags: f.tags
                                     };
@@ -1136,6 +1142,7 @@
                                 diff = diff.output.join('\n').trim();
                                 // TODO: Handle errors here.. probably CRLF errors.
                             }
+                            file.diff = diff;
                             var commitDetails = parseDiff(diff);
                             vm.diffOnCommitModal.safeDiff = $sce.trustAsHtml(commitDetails[0].diff);
                         });
@@ -1587,13 +1594,15 @@
                         fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'bothmodified');
                         t.push({
                             name: f.substring(3),
-                            tags: fileTags
+                            tags: fileTags,
+                            commitType: 'modifiedconflicted'
                         });
                         fileTags = [];
                         fileTags.push('staged', 'conflicted', 'conflictedstaged', 'unmerged', 'bothmodified');
                         t.push({
                             name: f.substring(3),
-                            tags: fileTags
+                            tags: fileTags,
+                            commitType: 'modifiedconflicted'
                         });
                         break;
                     }
@@ -1602,7 +1611,8 @@
                         fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'deletedbyus');
                         t.push({
                             name: f.substring(3),
-                            tags: fileTags
+                            tags: fileTags,
+                            commitType: 'deletedconflicted'
                         });
                         break;
                     }
@@ -1611,7 +1621,8 @@
                         fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'deletedbythem');
                         t.push({
                             name: f.substring(3),
-                            tags: fileTags
+                            tags: fileTags,
+                            commitType: 'deletedconflicted'
                         });
                         break;
                     }
@@ -1641,7 +1652,8 @@
             if (f[0].trim().length && f[0] != '?') {     // `?` == untracked, will be handled below.
                 t.push({
                     name: f.substring(3),
-                    tags: fileTags
+                    tags: fileTags,
+                    commitType: fileTags.indexOf('modified') > -1 ? 'modified' : (fileTags.indexOf('deleted') > -1 ? 'deleted' : (fileTags.indexOf('added') > -1 ? 'new' : 'ignored'))
                 });
             }
 
@@ -1670,7 +1682,8 @@
             if (f[1].trim().length) {
                 t.push({
                     name: f.substring(3),
-                    tags: fileTags
+                    tags: fileTags,
+                    commitType: fileTags.indexOf('modified') > -1 ? 'modified' : (fileTags.indexOf('deleted') > -1 ? 'deleted' : (fileTags.indexOf('added') > -1 ? 'new' : 'ignored'))
                 });
             }
 
@@ -1691,7 +1704,7 @@
 
             if (line.indexOf('diff') === 0) {
                 currDiff = {
-                    fileName: line.substring(line.indexOf('b/') + 2),
+                    name: line.substring(line.indexOf('b/') + 2),
                     commitType: diff[i + 1].indexOf('new') === 0 ? 'new' : (diff[i + 1].indexOf('similarity') === 0 ? 'rename' : (diff[i + 1].indexOf('deleted') === 0 ? 'deleted' : 'modified'))
                 };
 

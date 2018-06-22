@@ -35,7 +35,6 @@ webgitApp.factory('loaderInterceptor', [function () {
     return {
         request: function (config) {
             requestCount++;
-            console.log('a request is made.');
             showLoader();
             return config;
         },
@@ -45,7 +44,6 @@ webgitApp.factory('loaderInterceptor', [function () {
                 requestCount = 0;
                 hideLoader();
             }
-            console.log('a response has arrived.');
             return response;
         },
 

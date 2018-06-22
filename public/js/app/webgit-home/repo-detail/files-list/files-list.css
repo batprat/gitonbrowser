@@ -1,0 +1,22 @@
+.files-list .conflict-badge, .files-list  .file-type-badge {
+    margin-left: 10px;
+}
+
+.files-list .list-item-selector {
+    transition: all 0.2s ease 0s;
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+.files-list .list-item-selector:hover {
+    background: #d3d3d3;
+}
+
+.files-list .list-item-selector.selected {
+    background: steelblue !important;
+    color: #fff;
+}
+
+.files-list .file {
+    padding: 5px 0;
+}

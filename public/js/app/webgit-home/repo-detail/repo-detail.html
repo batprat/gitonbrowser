@@ -1,5 +1,4 @@
 <div class="repo-detail">
-    <link href="/js/app/webgit-home/repo-detail/repo-detail.css" rel="stylesheet" />
     <div class="working-directory-details-container">
         <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
         <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">Commit {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
@@ -89,7 +88,7 @@
                 <div class="container-fluid height100" ng-if="vm.commitDetails">
                     <div class="row height100">
                         <div class="col-sm-4 height100 diff-files-list">
-                            <div class="file list-item-selector" ng-repeat="file in vm.commitDetails.diffDetails" ng-click="vm.selectFileInLog(file)" ng-class="{'selected': vm.selectedFileDiffRaw === file.diff}"><div><span class="fa" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span> <span title="{{file.fileName}}">{{file.fileName}}</span></div></div>
+                            <files-list files="vm.commitDetails.diffDetails" on-select="vm.selectFileInLog(file)" selected-file="vm.selectedFileDiffRaw"></files-list>
                         </div>
                         <div class="col-sm-8 file-diff-column height100">
                             <div ng-bind-html="vm.selectedFileDiff" class="diff"></div>
@@ -114,14 +113,7 @@
                                 <div class="row">
                                     <div class="col-sm-12" id="commit-dialog-unstaged-files">
                                         <div class="panel-name">Unstaged Files</div>
-                                        <div class="container-fluid unstaged-files-list">
-                                            <div class="row list-item-selector" ng-repeat="unstagedFile in vm.localStatus | filter: {tags: 'unstaged'}: true" ng-click="vm.showDiffForFileOnCommitModal(unstagedFile)" ng-class="{'selected': vm.diffOnCommitModal.file === unstagedFile }">
-                                                <div class="col-sm-12">
-                                                    <span class="file-status fa" ng-class="{'untracked fa-plus': unstagedFile.tags.indexOf('addedunstaged') > -1, 'modified fa-edit': unstagedFile.tags.indexOf('modifiedunstaged') > -1, 'deleted fa-minus': unstagedFile.tags.indexOf('deletedunstaged') > -1}"></span>
-                                                    {{unstagedFile.name}}
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <files-list tag-to-filter="'unstaged'" selected-file="vm.diffOnCommitModal.file.diff" on-select="vm.showDiffForFileOnCommitModal(file)" files="vm.localStatus"></files-list>
                                     </div>
                                 </div>
                                 <div class="row staging-action-buttons-container">
@@ -135,14 +127,7 @@
                                 <div class="row">
                                     <div class="col-sm-12" id="commit-dialog-staged-files">
                                         <div class="panel-name">Staged Files</div>
-                                        <div class="container-fluid staged-files-list">
-                                            <div class="row list-item-selector" ng-repeat="stagedFile in vm.localStatus | filter: {tags: 'staged'}: true"ng-click="vm.showDiffForFileOnCommitModal(stagedFile)" ng-class="{'selected': vm.diffOnCommitModal.file === stagedFile }">
-                                                <div class="col-sm-12">
-                                                    <span class="file-status fa" ng-class="{'added fa-plus': stagedFile.tags.indexOf('addedstaged') > -1, 'modified fa-edit': stagedFile.tags.indexOf('modifiedstaged') > -1, 'deleted fa-minus': stagedFile.tags.indexOf('deletedstaged') > -1}"></span>
-                                                    {{stagedFile.name}}
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <files-list tag-to-filter="'staged'" selected-file="vm.diffOnCommitModal.file.diff" on-select="vm.showDiffForFileOnCommitModal(file)" files="vm.localStatus"></files-list>
                                     </div>
                                 </div>
                             </div>
@@ -299,14 +284,7 @@
                     </div>
                     <div class="row selected-stash-files-list">
                         <div class="col-12">
-                            <div class="stash-files-list">
-                                <div class="row list-item-selector" ng-repeat="file in vm.selectedStash.diffDetails" ng-click="vm.selectFileInStash(file)" ng-class="{'selected': vm.selectedStash.selectedFile == file}">
-                                    <div class="col-12">
-                                        <span class="file-status fa" ng-class="{'new fa-plus': file.commitType == 'new', 'modified fa-edit': file.commitType == 'modified', 'deleted fa-minus': file.commitType == 'deleted', 'rename fa-refresh': file.commitType == 'rename'}"></span>
-                                        {{file.fileName}}
-                                    </div>
-                                </div>
-                            </div>
+                            <files-list selected-file="vm.selectedStash.selectedFile.diff" on-select="vm.selectFileInStash(file)" files="vm.selectedStash.diffDetails"></files-list>
                         </div>
                     </div>
                     <div class="row stash-message">
@@ -463,13 +441,14 @@
                                     <div class="card-body">
                                         <h6 ng-if="filteredConflictedFiles.length > 0" class="card-title">Fix conflicts in the following files using your editor.<br />Then select each file and mark it as resolved.</h6>
                                         <h6 ng-if="filteredConflictedFiles.length == 0" class="card-title">Now we can continue merging.</h6>
-                                        <div class="conflicting-files-list container-fluid">
-                                            <div class="row list-item-selector" ng-repeat="conflictedFile in vm.localStatus | filter: {tags: 'conflictedunstaged'}: true as filteredConflictedFiles" ng-click="vm.showDiffOnConflictModal(conflictedFile)" ng-class="{'selected': vm.diffOnConflictModal.file === conflictedFile }">
-                                                <div class="col-sm-12">
-                                                    <span class="badge badge-warning" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="{{vm.getMetaOfConflictedFile(conflictedFile).description}}" >{{ vm.getMetaOfConflictedFile(conflictedFile).name }}</span> {{conflictedFile.name}}
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <files-list 
+                                            tag-to-filter="'conflictedunstaged'" 
+                                            selected-file="vm.diffOnConflictModal.file.diff" 
+                                            on-select="vm.showDiffOnConflictModal(file)" 
+                                            files="vm.localStatus"
+                                            badge-type="'warning'"
+                                            badge-popover-details="vm.getMetaOfConflictedFile(file)">
+                                        </files-list>
                                         <div class="conflict-modal-selected-file-actions">
                                             <button class="btn btn-primary pull-right btn-conflict-action" ng-show="vm.diffOnConflictModal.file" ng-click="vm.markFileAsResolvedDuringConflict(true)" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="{{ vm.showRemoveFileBtnOnConflictModal() ? 'Click me if you want to keep this file.' : 'Click me after making sure you have fixed all conflicts in the selected file.' }}">{{ vm.showRemoveFileBtnOnConflictModal() ? 'Keep File' :'Mark Resolved' }}</button>
                                             <button class="btn btn-primary pull-right btn-conflict-action" ng-show="vm.showRemoveFileBtnOnConflictModal()" ng-click="vm.markFileAsResolvedDuringConflict(false)" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Click me if you want to delete this file.">Delete File</button>
