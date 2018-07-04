@@ -1,10 +1,12 @@
 <div class="files-list">
-    <div class="file list-item-selector" ng-repeat="file in files | filter:fileFilter" ng-click="select(file)" ng-class="{'selected': selectedFile === file.diff}" on-finish-render="ngRepeatFinished">
-        <div>
-            <span ng-if="!badgeType" class="fa file-type-badge" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span>
-            <span ng-if="badgeType" class="badge conflict-badge badge-{{badgeType}}" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="{{badgePopoverContent(file, 'description')}}" >{{ badgePopoverContent(file, 'name') }}</span>
-            &nbsp;
-            <span title="{{file.fileName}}">{{file.name}}</span>
+    <div>
+        <div class="file list-item-selector" ng-repeat="file in files | filter:fileFilter" ng-click="select(file)" ng-class="{'selected': selectedFile === file.diff}" on-finish-render="ngRepeatFinished">
+            <div>
+                <span ng-if="!badgeType" class="fa file-type-badge" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span>
+                <span ng-if="badgeType" class="badge conflict-badge badge-{{badgeType}}" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="{{badgePopoverContent(file, 'description')}}" >{{ badgePopoverContent(file, 'name') }}</span>
+                &nbsp;
+                <span title="{{file.fileName}}">{{file.name}}</span>
+            </div>
         </div>
     </div>
 </div>

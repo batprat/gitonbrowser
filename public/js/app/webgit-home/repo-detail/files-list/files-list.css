@@ -1,3 +1,11 @@
+.files-list {
+    overflow: auto;
+}
+
+.files-list>div {
+    display: inline-block;
+}
+
 .files-list .conflict-badge, .files-list  .file-type-badge {
     margin-left: 10px;
 }
@@ -6,6 +14,7 @@
     transition: all 0.2s ease 0s;
     cursor: pointer;
     padding: 5px 0;
+    white-space: nowrap;
 }
 
 .files-list .list-item-selector:hover {
@@ -19,4 +28,8 @@
 
 .files-list .file {
     padding: 5px 0;
+}
+
+.files-list .file>div {
+    padding-right: 10px;
 }

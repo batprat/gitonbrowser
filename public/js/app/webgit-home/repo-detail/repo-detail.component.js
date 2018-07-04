@@ -1535,6 +1535,9 @@
             }
             getFileDiff.canceler = $q.defer();
             return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(',')), { timeout: getFileDiff.canceler.promise }).then(function (res) {
+                if(!res || !res.data) {
+                    return;
+                }
                 if (!res.data.errorCode) {
                     return res.data.output.join('\n');
                 }

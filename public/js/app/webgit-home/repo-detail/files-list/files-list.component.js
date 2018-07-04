@@ -12,13 +12,12 @@
                 badgePopoverDetails: '&',
                 badgeText: '&'
             },
-            controller: ['$scope', '$timeout', function FilesListController($scope, $timeout) {
+            controller: ['$scope', '$element', 'UtilsService', function FilesListController($scope, $element, UtilsService) {
                 $scope.select = function (file) {
                     $scope.onSelect({ file: file });
                 };
 
                 $scope.fileFilter = $scope.tagToFilter ? function (f) {
-                    console.log(f);
                     return f.tags.indexOf($scope.tagToFilter) > -1;
                 } : function () {
                     // #noFilter ;)
@@ -46,15 +45,62 @@
                     //do stuff, execute functions -- whatever...
                     $('[data-toggle="popover"]').popover();
                 });
-            }]//,
-            // link: function (scope, element, attr) {
-            //     if (scope.$last) {
-            //         $timeout(function () {
-            //             element.find('[data-toggle="popover"]').popover();
-            //         });
-            //     }
 
-            // }
+                bindContextMenu();
+
+                return;
+                function bindContextMenu() {
+                    $element.on('contextmenu', '.list-item-selector', function (e) {
+                        // select this file.
+                        var file = $(e.currentTarget).scope().file;
+
+                        $scope.select(file);
+                    });
+
+                    return;
+                    
+                    $.contextMenu({
+                        selector: '.list-item-selector',
+                        build: function($trigger, e) {
+                            var file = $trigger.scope().file;
+                            var options = {
+                                items: {
+                                    copyPath: {
+                                        name: 'Copy Path',
+                                        callback: function(e) {
+                                            var name = file.name;
+                                            if(name.match(/^".+"$/)) {
+                                                // name starts and ends with double quotes. strip em off.
+                                                name = name.substring(1, name.length - 1);
+                                            }
+                                            // clipboard.copyText(name);
+                                            console.log('copying', name);
+                                            UtilsService.copyToClipboard(name);
+                                        },
+                                        className: 'copy-text',
+                                        'data-praty': 'Rocks'
+                                    }
+                                }
+                            };
+    
+                            return options;
+                        }
+                    });
+                }
+            }],
+            link: function (scope, element, attr) {
+                // debugger;
+                // element.on('contextmenu', '.list-item-selector', function() {
+                //     console.log('context menu');
+                // });
+
+                // $.contextMenu({
+                //     selector: element.find('.list-item-selector'),
+                //     build: function($trigger, e) {
+                        
+                //     }
+                // });
+            }
         };
     });
 
