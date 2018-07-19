@@ -1004,8 +1004,8 @@
                         var x = null,
                             idx = null,
                             first = null,
-                            t = null,
-                            tempCommit = null;
+                            tempCommit = null,
+                            parentCommit = null;
 
                         var branchIdx = null;
 
@@ -1017,25 +1017,45 @@
                             for (j = 0; j < currCommit.parentHashes.length; j++) {
                                 idx = openBranches.indexOf(currCommit.parentHashes[j]);
                                 if (idx > -1) {
-                                    // in case a commit is on branch-2 and there are some commits on branch-1 after (chronogically) our commit;
+                                    // in case our commit is on branch-2 (imagine to the right of the first branch) and there are some commits on branch-1 after (chronogically) our commit;
                                     // but parent of our commit is supposed to be on branch-1 (since branch-2 started from its parent).
                                     // Then the parent should be on branch-1. 
                                     // It should look as if branch-2 is coming out of branch-1. Therefore the parent will be on branch-1;
-                                    t = vm.commitMap[openBranches[idx]];
-                                    if (!t) {
-                                        t = tempCommit;
+                                    parentCommit = vm.commitMap[openBranches[idx]];
+                                    if (!parentCommit) {
+                                        parentCommit = tempCommit;
                                     }
 
-                                    if (typeof t.x != 'undefined') {
-                                        if (t.x > currCommit.x) {
-                                            t.x = currCommit.x;
+                                    if (typeof parentCommit.x != 'undefined') {
+                                        if(typeof currCommit.x == 'undefined') {
+                                            // assign the next available x to currCommit.
+                                            branchIdx = openBranches.indexOf(false);
+                                            if (branchIdx > -1) {
+                                                openBranches[branchIdx] = currCommit.hash;
+                                            }
+                                            else {
+                                                openBranches.push(currCommit.hash);
+                                                branchIdx = openBranches.length - 1;
+                                            }
+                                            currCommit.x = branchIdx;
+                                        }
+
+                                        // parentCommit.x is defined.. that means this branch's parent is merged
+                                        // so lets remove this from the openBranches array.
+
+                                        var tempIdx = openBranches.indexOf(currCommit.hash);
+                                        openBranches[tempIdx] = false;
+
+
+                                        if (parentCommit.x > currCommit.x) {
+                                            parentCommit.x = currCommit.x;
                                         }
                                         else {
                                             // keep t.x as it is.
                                         }
                                     }
                                     else {
-                                        t.x = currCommit.x;
+                                        parentCommit.x = currCommit.x;
                                     }
                                     openBranches[idx] = false;
                                 }
