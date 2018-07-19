@@ -1013,6 +1013,7 @@
 
                             currCommit = commits[i];
                             nextCommit = commits[i + 1];
+
                             first = true;
                             for (j = 0; j < currCommit.parentHashes.length; j++) {
                                 idx = openBranches.indexOf(currCommit.parentHashes[j]);
@@ -1035,7 +1036,7 @@
                                             }
                                             else {
                                                 openBranches.push(currCommit.hash);
-                                                branchIdx = openBranches.length - 1;
+                                                branchIdx = openBranches.indexOf(currCommit.hash);
                                             }
                                             currCommit.x = branchIdx;
                                         }
@@ -1069,13 +1070,13 @@
                                     }
                                     else {
                                         openBranches.push(currCommit.hash);
-                                        branchIdx = openBranches.length - 1;
+                                        branchIdx = openBranches.indexOf(currCommit.hash);
                                     }
 
 
 
                                     currCommit.x = branchIdx;
-                                    j--;
+                                    j--;            // we just asssigned x to the currCommit. We did not process its parent as we were supposed to in this iteration. So j--
                                     continue;
                                 }
                                 else if (first) {
@@ -1083,9 +1084,21 @@
                                     first = false;
                                     // openBranches.splice(openBranches.indexOf(currCommit.hash), 1, currCommit.parentHashes[j]);
                                     branchIdx = openBranches.indexOf(currCommit.hash);
-                                    openBranches[branchIdx] = currCommit.parentHashes[j];
 
-                                    vm.commitMap[currCommit.parentHashes[j]].x = currCommit.x;
+                                    if(branchIdx == -1) {
+                                        branchIdx = openBranches.indexOf(false);
+                                    }
+                                    
+                                    if(branchIdx == -1) {
+                                        // new open branch.
+                                        openBranches.push(currCommit.parentHashes[j]);
+                                        branchIdx = openBranches.indexOf(currCommit.parentHashes[j]);
+                                    }
+                                    else {
+                                        openBranches[branchIdx] = currCommit.parentHashes[j];
+                                    }
+
+                                    vm.commitMap[currCommit.parentHashes[j]].x = branchIdx;
                                 }
                                 else {
                                     branchIdx = openBranches.indexOf(false);
@@ -1094,7 +1107,7 @@
                                     }
                                     else {
                                         openBranches.push(currCommit.parentHashes[j]);
-                                        branchIdx = openBranches.length - 1;
+                                        branchIdx = openBranches.indexOf(currCommit.parentHashes[j]);
                                     }
                                     vm.commitMap[currCommit.parentHashes[j]].x = branchIdx;
                                 }
