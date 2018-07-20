@@ -1,0 +1,22 @@
+.commit {
+    background: #FFF;
+    border-bottom: 1px solid #CCC;
+    align-items: center;
+    display: flex;
+    height: 40px;
+}
+
+.commit.list-item-selector {
+    transition: all 0.2s ease 0s;
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+.list-item-selector:hover {
+    background: #d3d3d3;
+}
+
+.list-item-selector.selected {
+    background: steelblue !important;
+    color: #fff;
+}

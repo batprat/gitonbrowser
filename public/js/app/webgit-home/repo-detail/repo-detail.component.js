@@ -88,6 +88,7 @@
                     vm.abortMerge = abortMerge;
                     vm.mergeConflictCommitMessage = '';
                     vm.mainSearch = mainSearch;
+                    vm.filterOutTempCommits = filterOutTempCommits;
 
                     vm.commitMessage = '';
                     vm.remote = null;
@@ -114,6 +115,11 @@
                     var commitsBackup = null;
                     var commitMapBackup = null;
                     var graphBackup = null;
+
+                    $scope.$on('logNgRepeatFinished', function (ngRepeatFinishedEvent) {
+                        loadGraph();
+                        backupGraph();
+                    });
 
                     $scope.$on('windowfocus', function () {
                         if (($commitModal.data('bs.modal') || {})._isShown) {
@@ -142,6 +148,10 @@
 
                     return;
 
+                    function filterOutTempCommits(hash) {
+                        return !vm.commitMap[hash].isTemp;
+                    }
+
                     function mainSearch() {
                         var searchText = vm.mainSearchInp;
 
@@ -156,6 +166,7 @@
                             vm.commitDetails = null;
                             parseCommits(commits);
                             vm.commits = commits;
+                            vm.hashes = vm.commits.map(function(c) { return c.hash; });
                             resetCommitMap();
                             return vm.commits;
                         });
@@ -175,6 +186,7 @@
                     function restoreCommits() {
                         vm.commits = commitsBackup;
                         vm.commitMap = commitMapBackup;
+                        vm.hashes = vm.commits.map(function(c) { return c.hash; });
                         $timeout(restoreGraph);
                     }
 
@@ -868,11 +880,6 @@
                                     if (commits === false) {
                                         noMoreCommits = true;
                                     }
-                                    else {
-                                        $timeout(loadGraph).then(function () {
-                                            backupGraph();
-                                        });
-                                    }
                                 });
                             }
                         });
@@ -889,11 +896,9 @@
                             }
                             parseCommits(commits);
                             vm.commits = commits;
+                            vm.hashes = vm.commits.map(function(c) { return c.hash; });
                             resetCommitMap();
                             backupCommits();
-                            $timeout(loadGraph).then(function () {
-                                backupGraph();
-                            });
                             return vm.commits;
                         });
                     }
@@ -905,10 +910,12 @@
                             }
                             parseCommits(commits);
                             vm.commits = vm.commits || [];
+                            vm.hashes = vm.commits.map(function(c) { return c.hash; });
 
                             resetTempCommits();
 
                             Array.prototype.push.apply(vm.commits, commits);
+                            Array.prototype.push.apply(vm.hashes, commits.map(function(c) { return c.hash }));
 
                             resetCommitMap();
 
@@ -943,6 +950,7 @@
                         vm.commits = vm.commits.filter(function (c) {
                             return !c.isTemp;
                         });
+                        vm.hashes = vm.commits.map(function(c) { return c.hash; });
                     }
 
                     function resetCommitMap() {

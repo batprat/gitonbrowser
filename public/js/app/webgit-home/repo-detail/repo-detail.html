@@ -28,23 +28,7 @@
                 <canvas id="log-graph" width="1" height="1"></canvas>
             </div>
             <div class="col" id="log-rows-container">
-                <div class="row commit list-item-selector" id="{{commit.hash}}" ng-repeat="commit in vm.commits | filter:{ isTemp:'!true'}" ng-click="vm.selectCommit(commit)" ng-class="{'selected': vm.selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
-                    <div class="col-sm-7 log-commit-message-container">
-                        <span class="tags-container">
-                            <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
-                            <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
-                                {{localBranch}}
-                            </span>
-                            <span class="remote-branch tags-refs" ng-if="commit.remoteBranches" ng-repeat="remoteBranch in commit.remoteBranches">
-                                {{remoteBranch}}
-                            </span>
-                        </span>
-                        &nbsp;
-                        <span class="log-commit-message"><span class="commit-message-div">{{commit.subject}}</span></span>
-                    </div>
-                    <div class="col-sm-2 main-log-author-name">{{commit.name}}</div>
-                    <div class="col-sm-3">{{commit.fromNow}}</div>
-                </div>
+                <a-commit ng-repeat="hash in vm.hashes | filter:vm.filterOutTempCommits" hash="hash" select-commit="vm.selectCommit(commit)" selected-commit="vm.selectedCommit" on-finish-render="logNgRepeatFinished"></a-commit>
                 <div id="main-log-loading-indicator">Loading next batch of commits...</div>
             </div>
         </div>

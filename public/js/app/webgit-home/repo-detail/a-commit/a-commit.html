@@ -1,0 +1,17 @@
+<div class="row commit list-item-selector" id="{{commit.hash}}" ng-click="select(hash)" ng-class="{'selected': selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
+    <div class="col-sm-7 log-commit-message-container">
+        <span class="tags-container">
+            <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>
+            <span class="local-branch tags-refs" ng-if="commit.localBranches" ng-repeat="localBranch in commit.localBranches">
+                {{localBranch}}
+            </span>
+            <span class="remote-branch tags-refs" ng-if="commit.remoteBranches" ng-repeat="remoteBranch in commit.remoteBranches">
+                {{remoteBranch}}
+            </span>
+        </span>
+        &nbsp;
+        <span class="log-commit-message"><span class="commit-message-div">{{commit.subject}}</span></span>
+    </div>
+    <div class="col-sm-2 main-log-author-name">{{commit.name}}</div>
+    <div class="col-sm-3">{{commit.fromNow}}</div>
+</div>
