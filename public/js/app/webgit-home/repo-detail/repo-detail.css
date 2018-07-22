@@ -386,3 +386,15 @@
 .commit-message {
     white-space: pre-wrap;
 }
+
+.commit-in-branch, .commit-in-tag {
+    font-family: monospace;
+}
+
+.commit-in-branch-local{
+    background: #F6ECEC;
+}
+
+.commit-in-branch-remote {
+    background: #ECF5EC;
+}

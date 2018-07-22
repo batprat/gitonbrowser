@@ -643,9 +643,23 @@ function getCommit(options) {
     let res = options.res;
     let repo = options.repo;
 
-    const child = spawnGitProcess(repo, ['show', hash]);
+    const branchInfoChild = spawnGitProcess(repo, ['branch', '--all', '--contains', hash]);
+    const commitShowChild = spawnGitProcess(repo, ['show', hash]);
+    const tagsInfoChild = spawnGitProcess(repo, ['tag', '--contains', hash]);
 
-    redirectIO(child, req, res);
+    let branchInfoPromise = redirectIO(branchInfoChild);
+    let commitShowPromise = redirectIO(commitShowChild);
+    let tagInfoPromise = redirectIO(tagsInfoChild);
+
+    Promise.all([commitShowPromise, branchInfoPromise, tagInfoPromise]).then((arrayOfInfo) => {
+        let commitShowOp = arrayOfInfo[0];
+        let branchInfoOp = arrayOfInfo[1];
+        let tagInfoOp = arrayOfInfo[2];
+
+        sendResponse(res, { commitDetails: commitShowOp, commitBranchDetails: branchInfoOp, tagDetails: tagInfoOp });
+    }).catch((e) => {
+        console.log(e);
+    });
 }
 
 function spawnGitProcess(repo, processOptions) {

@@ -53,7 +53,10 @@
         <div class="tab-content tab-content-details">
             <div class="tab-pane active" id="tab-commit" role="tabpanel">
                 <div ng-if="vm.commitDetails" class="container-fluid">
-                    <div class="row">
+                    <div ng-if="vm.commitDetails == 'loading'" class="row">
+                        <div class="col-sm-12">Fetching commit details. Please wait...</div>
+                    </div>
+                    <div class="row" ng-if="vm.commitDetails != 'loading'">
                         <div class="col-sm-12">
                             <div>Author: {{vm.commitDetails.author}}</div>
                             <div>Date: ({{vm.commitDetails.date | date : 'medium'}})</div>
@@ -61,8 +64,9 @@
                             <div>Parent(s): <span class="btn-link parent-hash" ng-click="vm.selectCommit(parentHash)" ng-repeat="parentHash in vm.commitDetails.parentHashes track by $index">{{parentHash}} </span></div>
                             <div>Children: <span class="btn-link child-hash" ng-click="vm.selectCommit(childHash)" ng-repeat="childHash in vm.commitDetails.children track by $index">{{childHash}} </span></div>
                             <div class="commit-message">{{vm.commitDetails.message}}</div>
-                            <div>Contained in branches: ???</div>
-                            <div>Contained in tags: ???</div>
+                            <div>Contained in branches: <span ng-repeat="branch in vm.commitDetails.branches"><span class="commit-in-branch commit-in-branch-{{branch.type}}">{{branch.name}}</span>{{$last ? '' : ', '}}</span></div>
+                            <div ng-if="vm.commitDetails.tags.length">Contained in tags: <span ng-repeat="tag in vm.commitDetails.tags"><span class="commit-in-tag">{{tag}}</span>{{$last ? '' : ', '}}</span></div>
+                            <div ng-if="vm.commitDetails.tags.length == 0">This commit is not contained in any tags.</div>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 // TODO: Handle error codes.
 (function () {
-    var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute', 'WebgitHomeModule']);
+    var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
     var $commitModal = null;
     var $pushModal = null;
@@ -1257,9 +1257,12 @@
                         }
                         var hash = commit.hash;
                         vm.selectedCommit = hash;
+                        vm.commitDetails = 'loading';        // reset the commitDetails.
 
                         repoDetailService.getCommit(hash).then(function (data) {
-                            var d = data.split('\n');
+                            var commitBranchDetails = data.commitBranchDetails.output.join('\n').trim().split('\n');
+                            var tagDetails = data.tagDetails.output.join('\n').trim().split('\n');
+                            var d = data.commitDetails.output.join('\n').trim().split('\n');
 
                             var isMergeCommit = false;
 
@@ -1313,6 +1316,38 @@
                                     // pre select the first file of the commit.
                                     vm.selectFileInLog(vm.commitDetails.diffDetails[0]);
                                 });
+                            }
+
+                            var branch = null;
+                            vm.commitDetails.branches = [];
+                            for(var i = 0; i < commitBranchDetails.length; i++) {
+                                branch = commitBranchDetails[i];
+                                if(branch[0] == "*") {
+                                    // local branch
+                                    vm.commitDetails.branches.push({
+                                        type: 'local',
+                                        name: branch.substring('* '.length)
+                                    });
+                                }
+                                else {
+                                    // remote branch
+                                    if(branch.indexOf(' -> ') > -1) {
+                                        // skip this branch as it will get repeated
+                                        continue;
+                                    }
+
+                                    vm.commitDetails.branches.push({
+                                        type: 'remote',
+                                        name: branch.substring('  remotes/'.length)
+                                    });
+                                }
+                            }
+
+                            if(tagDetails && tagDetails.length && tagDetails[0].length > 0) {
+                                vm.commitDetails.tags = tagDetails;
+                            }
+                            else {
+                                vm.commitDetails.tags = [];
                             }
                         });
                     }
@@ -1544,7 +1579,7 @@
         function getCommit(hash) {
             return $http.get('/repo/' + repoName + '/getcommit/' + hash).then(function (res) {
                 if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
+                    return res.data;
                 }
                 return res.data;
             });
