@@ -45,12 +45,29 @@ let git = {
     searchForHash,
     searchForCommitMessage,
     getSettings,
-    searchForText
+    searchForText,
+    cherrypick
 };
 
 module.exports = git;
 
 return;
+
+function cherrypick({ req, res, repo }) {
+    let hash = req.body.hash,
+        noCommit = req.body.noCommit;
+
+    let options = ['cherry-pick'];
+
+    if(noCommit) {
+        options.push('--no-commit');
+    }
+
+    options.push(hash);
+
+    const child = spawnGitProcess(repo, options);
+    redirectIO(child, req, res);
+}
 
 function searchForText({ req, res, repo }) {
     let text = req.body.text;

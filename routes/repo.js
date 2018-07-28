@@ -217,4 +217,10 @@ router.post('/:id/searchfortext', (req, res) => {
     git.searchForText({ repo, req, res });
 });
 
+router.post('/:id/cherrypick', (req, res) => {
+    let repo = req.params.id;
+
+    git.cherrypick({ repo, req, res });
+});
+
 module.exports = router;

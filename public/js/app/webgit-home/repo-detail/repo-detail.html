@@ -14,7 +14,8 @@
                 <input type="text" class="form-control" id="main-search-inp" ng-model-options='{ debounce: 800 }' ng-model="vm.mainSearchInp" ng-change="vm.mainSearch()" placeholder="Search anything">
             </div>
         </div>
-        <button class="btn btn-danger pull-right" ng-show="vm.progress" ng-click="vm.showModalToHandleConflict()">{{ vm.progress.message }}</button>
+        <!-- <button class="btn btn-danger pull-right" ng-show="vm.progress" ng-click="vm.showModalToHandleConflict()">{{ vm.progress.message }}</button> -->
+        <button ng-show="vm.conflict" class="btn btn-danger pull-right" ng-click="vm.showModalToHandleConflict()">Resolve Conflict</button>
     </div>
     <div id="main-log-context-menu" style="display: none;"></div>
     <div id="main-log-container" class="commit-container container-fluid" ng-class="{'details-visible': vm.commitDetails}" data-page-num="1">
@@ -423,7 +424,7 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="conflict-explaination">
-                                    Mark all conflicts as resolved to continue your {{vm.progress.type}}. You may abort at any time.
+                                    Mark all conflicts as resolved to continue. You may abort at any time.
                                 </div>
                                 <div class="card">
                                     <div class="card-body">
@@ -445,9 +446,9 @@
                                 </div>
                                 <div class="container-fluid conflict-modal-action-btns-container">
                                     <div class="row">
-                                        <div class="col">
+                                        <div class="col" ng-if="vm.progress.type == 'merge'">
                                             <label class="" for="conflict-commit-message">Commit Message</label>
-                                            <textarea ng-if="vm.progress.type == 'merge'" id="conflict-commit-message" class="form-control" ng-model="vm.mergeConflictCommitMessage"></textarea>
+                                            <textarea id="conflict-commit-message" class="form-control" ng-model="vm.mergeConflictCommitMessage"></textarea>
                                         </div>
                                         <div class="col" ng-if="vm.progress.type == 'rebase'">
                                             <div class="conflict-actions">
@@ -467,6 +468,33 @@
                             <div class="col-6">
                                 <div id="conflict-dialog-diff" class="card-body diff" ng-if="vm.diffOnConflictModal.safeDiff" ng-bind-html="vm.diffOnConflictModal.safeDiff"></div>
                                 <div class="conflict-dialog-diff-placeholder" ng-if="!vm.diffOnConflictModal.safeDiff"><span>Select conflicted file to view diff</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="cherrypick-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cherrypick</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                Are you sure you want to cherry-pick this commit?
+                            </div>
+                            <div class="col-12">
+                                <label><input type="checkbox" ng-model="vm.cherrypick.doNotCommit" /> Do not commit</label>
+                            </div>
+                        </div>
+                        <div class="row row-vertical-margin">
+                            <div class="col-12">
+                                <button class="btn btn-primary pull-right" ng-click="vm.cherrypickCommit()">Cherrypick</button>
                             </div>
                         </div>
                     </div>

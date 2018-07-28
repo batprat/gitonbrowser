@@ -1,4 +1,3 @@
-. Handle cherrypick
 . Revert commit
 . Show remote on push modal
 . Delete local branch
@@ -84,3 +83,4 @@
 -. Search for author
 -. Search in diff
 -. Search for file name in modified files
+-. Handle cherrypick

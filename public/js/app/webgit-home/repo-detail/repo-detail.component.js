@@ -8,6 +8,7 @@
     var $resetAllFilesModal = null;
     var $resetUnstagedFilesModal = null;
     var $newBranchModal = null;
+    var $cherrypickModal = null;
     var $responseModal = $('#response-modal');
     var $responseModalTitle = $responseModal.find('#response-title');
     var $responseModalBody = $responseModal.find('#response-body');
@@ -47,6 +48,7 @@
                     $resetUnstagedFilesModal = $('#reset-unstaged-modal');
                     $newBranchModal = $('#new-branch-modal');
                     $conflictModal = $('#conflict-modal');
+                    $cherrypickModal = $('#cherrypick-modal');
                     vm.selectedCommit = null;
                     vm.modifiedFileNames = [];
 
@@ -89,6 +91,7 @@
                     vm.mergeConflictCommitMessage = '';
                     vm.mainSearch = mainSearch;
                     vm.filterOutTempCommits = filterOutTempCommits;
+                    vm.cherrypickCommit = cherrypickCommit;
 
                     vm.commitMessage = '';
                     vm.remote = null;
@@ -108,6 +111,10 @@
                         atRevision: '',
                         name: '',
                         checkout: true
+                    };
+
+                    vm.cherrypick = {
+                        doNotCommit: true
                     };
 
                     vm.diffOnConflictModal = null;
@@ -147,6 +154,24 @@
                     window.vm = vm;
 
                     return;
+
+                    function cherrypickCommit() {
+                        $responseModalTitle.text('Cherry picking');
+                        $responseModal.modal('show');
+                        return repoDetailService.cherrypickCommit(vm.cherrypick.hash, vm.cherrypick.doNotCommit).then(function(d) {
+                            $cherrypickModal.modal('hide');
+                            if(d.errorCode) {
+                                $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
+                            }
+                            else {
+                                $responseModalBody.html('Done!');
+                            }
+                            refreshLocalChanges();
+                            if(!vm.cherrypick.doNotCommit) {
+                                refreshLog();
+                            }
+                        });
+                    }
 
                     function filterOutTempCommits(hash) {
                         return !vm.commitMap[hash].isTemp;
@@ -262,17 +287,17 @@
                         switch (true) {
                             case tags.indexOf('deletedbyus') > -1: {
                                 name = 'DU';
-                                description = 'This file is deleted in the other branch and modified on your branch.';
+                                description = '"They" have deleted this file and "We" have modified it.';
                                 break;
                             }
                             case tags.indexOf('bothmodified') > -1: {
                                 name = 'UU';
-                                description = 'This file is modified on both the branches.';
+                                description = 'This file is modified by "Us" as well as "Them".';
                                 break;
                             }
                             case tags.indexOf('deletedbythem') > -1: {
                                 name = 'UD';
-                                description = 'This file is deleted on your branch and probably edited on the other.';
+                                description = '"We" have deleted this file and "They" have modified it.';
                                 break;
                             }
                         }
@@ -369,13 +394,7 @@
                     }
 
                     function showModalToHandleConflict() {
-                        switch (vm.progress.type) {
-                            case 'rebase':
-                            case 'merge': {
-                                $conflictModal.modal('show');
-                                break;
-                            }
-                        }
+                        $conflictModal.modal('show');
                     }
 
                     function initLogContextMenu() {
@@ -409,6 +428,12 @@
                                         mergeIntoCurrent: {
                                             name: 'Merge into current branch',
                                             items: {}
+                                        },
+                                        cherrypick: {
+                                            name: 'Cherry pick commit',
+                                            callback: function() {
+                                                showCherrypickModal(commitHash);
+                                            }
                                         }
                                     }
                                 };
@@ -451,6 +476,11 @@
                                 return options;
                             }
                         });
+                    }
+
+                    function showCherrypickModal(hash) {
+                        vm.cherrypick.hash = hash;
+                        $cherrypickModal.modal('show');
                     }
 
                     function mergeLocalBranch(branchName) {
@@ -722,6 +752,7 @@
                             repoDetailService.getFileDiff(file.name, file.tags).then(function (diff) {
                                 var parsedDiff = parseDiff(diff);
                                 vm.selectedStash.selectedFile.safeDiff = parsedDiff[0].safeDiff;
+                                vm.selectedStash.selectedFile.diff = parsedDiff[0].diff;
                             });
                         }
                         else {
@@ -764,6 +795,9 @@
                         }
 
                         return repoDetailService.selectStash(stash).then(function (op) {
+                            if(!op) {
+                                return;
+                            }
                             vm.selectedStash.diffDetails = parseDiff(op.output.join(''));
                             vm.selectedStash.selectedFile = vm.selectedStash.diffDetails[0];
                             vm.diffSelectedStashFile = vm.selectedStash.diffDetails[0].safeDiff;
@@ -1162,6 +1196,9 @@
                     }
 
                     function showDiffForFileOnCommitModal(file) {
+                        if(!file) {
+                            return;
+                        }
                         if (file.tags.indexOf('bothmodified') > -1 && file.tags.indexOf('staged') > -1) {
                             // no diff for this.
                             // TODO: Should we show a conflict message here?
@@ -1389,8 +1426,18 @@
         this.abortMerge = abortMerge;
 
         this.searchForText = searchForText;
+        this.cherrypickCommit = cherrypickCommit;
 
         return;
+
+        function cherrypickCommit(hash, noCommit) {
+            return $http.post('/repo/' + repoName + '/cherrypick', {
+                hash: hash,
+                noCommit: noCommit
+            }).then(function(res) {
+                return res.data;
+            });
+        }
 
         function searchForText(searchText) {
             return $http.post('/repo/' + repoName + '/searchfortext', { text: window.encodeURIComponent(searchText) }).then(function (res) {
@@ -1617,6 +1664,10 @@
                 if (!res.data.errorCode) {
                     return res.data.output.join('\n');
                 }
+                else if(res.data.output){
+                    // TODO: Handle CRLF errors here.
+                    return res.data.output.join('\n');
+                }
                 return res.data;
             });
         }
@@ -1661,6 +1712,7 @@
 
 
         var t = [];
+        vm.conflict = false;
         data.forEach(function (f) {
             var fileTags = [];
 
