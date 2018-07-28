@@ -6,7 +6,6 @@
             refreshLocalChanges: '&',
             currentLocalBranch: '<',
             localStatus: '=',
-            getFileDiff: '&',
             parseDiff: '&',
             stagedFiles: '=',
             unstagedFiles: '=',
@@ -155,7 +154,7 @@
                 };
 
                 ctrl.fileSelectedOnCommitModal = file;
-                ctrl.getFileDiff({ file: file.name, tags: file.tags}).then(function (diff) {
+                gitfunctions.getFileDiff(file.name, file.tags).then(function (diff) {
                     if (typeof diff == 'object') {
                         diff = diff.output.join('\n').trim();
                         // TODO: Handle errors here.. probably CRLF errors.

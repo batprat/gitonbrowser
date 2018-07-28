@@ -2,7 +2,6 @@
 (function () {
     var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
-    var $stashModal = null;
     var $newBranchModal = null;
     var $cherrypickModal = null;
     var $conflictModal = null;
@@ -38,16 +37,14 @@
 
                     
                     $pullModal = $('#pull-modal');
-                    $pushModal = $('#push-modal');
-                    $stashModal = $('#stash-modal');
-                    $resetUnstagedFilesModal = $('#reset-unstaged-modal');
                     $newBranchModal = $('#new-branch-modal');
                     $conflictModal = $('#conflict-modal');
                     $cherrypickModal = $('#cherrypick-modal');
 
                     vm.modals = {
                         commit: null,
-                        push: null
+                        push: null,
+                        stash: null
                     };
 
                     vm.selectedCommit = null;
@@ -60,13 +57,7 @@
                     vm.showCommitDialog = showCommitDialog;
                     vm.showPullDialog = showPullDialog;
                     vm.showStashDialog = showStashDialog;
-                    vm.selectStash = selectStash;
                     vm.pull = pull;
-                    vm.selectedStash = null;
-                    vm.selectFileInStash = selectFileInStash;
-                    vm.stashLocalChanges = stashLocalChanges;
-                    vm.dropSelectedStash = dropSelectedStash;
-                    vm.applyStash = applyStash;
                     vm.createNewBranch = createNewBranch;
                     vm.showModalToHandleConflict = showModalToHandleConflict;
                     vm.showDiffOnConflictModal = showDiffOnConflictModal;
@@ -93,12 +84,9 @@
                     vm.pullOptions = {
                         mergeOption: 'merge'
                     };
-                    vm.stashLocalIncludeUntracked = true;
-                    vm.popStash = false;
                     
 
                     vm.commitMap = {};
-                    vm.stashes = [];
                     vm.newBranch = {
                         atRevision: '',
                         name: '',
@@ -371,7 +359,7 @@
                             return;
                         }
 
-                        return repoDetailService.getFileDiff(conflictedFile.name, conflictedFile.tags).then(function (diff) {
+                        return gitfunctions.getFileDiff(conflictedFile.name, conflictedFile.tags).then(function (diff) {
                             if (typeof diff == 'object') {
                                 diff = diff.output.join('\n').trim();
                                 // TODO: Handle errors here.. probably CRLF errors.
@@ -652,130 +640,13 @@
                         $scope.$apply();                        // guilty :(
                     }
 
-                    function applyStash() {
-                        $responseModal.title('Applying Stash ' + vm.selectedStash.name);
-                        $responseModal.show();
-                        return repoDetailService.applyStash(vm.selectedStash.name, vm.popStash).then(function (d) {
-                            if (d.errorCode) {
-                                $responseModal.bodyHtml(d.errors.join('<br />').replace(/\n/g, '<br />'));
-                            }
-                            else {
-                                $responseModal.bodyHtml(d.output.join('<br />').replace(/\n/g, '<br />'));
-                            }
+                    
 
-                            if (!d.errorCode) {
-                                if (vm.popStash) {
-                                    updateStashes();
-                                }
-                                refreshLocalChanges();
-                            }
-                        });
-                    }
-
-                    function dropSelectedStash() {
-                        $responseModal.title('Dropping Stash ' + vm.selectedStash.name);
-                        $responseModal.show();
-                        return repoDetailService.dropSelectedStash(vm.selectedStash.name).then(function (d) {
-                            $responseModal.bodyHtml(d.output.join('<br />'));
-                            updateStashes();
-                        });
-                    }
-
-                    function stashLocalChanges() {
-                        $responseModal.title('Saving Local Changes...');
-                        $responseModal.show();
-                        return repoDetailService.stashLocalChanges(vm.stashLocalIncludeUntracked).then(function (d) {
-                            $responseModal.bodyHtml(d.output.join('<br />'));
-                            refreshLocalChanges();
-                            updateStashes();
-                        });
-                    }
-
-                    function selectFileInStash(file) {
-                        if (vm.selectedStash.name === 'Local Changes') {
-                            vm.selectedStash.selectedFile = file;
-                            repoDetailService.getFileDiff(file.name, file.tags).then(function (diff) {
-                                var parsedDiff = parseDiff(diff);
-                                vm.selectedStash.selectedFile.safeDiff = parsedDiff[0].safeDiff;
-                                vm.selectedStash.selectedFile.diff = parsedDiff[0].diff;
-                            });
-                        }
-                        else {
-                            vm.selectedStash.selectedFile = file;
-                        }
-                    }
-
-                    /*
-                        Select a stash from list of stashes. And select the first file in the list.
-                    */
-                    function selectStash() {
-                        // TODO: Show loading dialog.
-                        var stash = vm.selectedStash;
-
-                        if (!stash.name) {
-                            return;
-                        }
-
-                        if (stash.name === 'Local Changes') {
-                            // show local changes.
-                            if (repoDetailService.selectStash.canceler) {
-                                repoDetailService.selectStash.canceler.resolve();
-                            }
-                            if (vm.localStatus) {
-                                vm.selectedStash.diffDetails = vm.localStatus.map(function (f) {
-                                    return {
-                                        // fileName: f.name,
-                                        name: f.name,
-                                        commitType: f.tags.indexOf('added') > -1 ? 'new' : (f.tags.indexOf('deleted') > -1 ? 'deleted' : 'modified'),
-                                        tags: f.tags
-                                    };
-                                });
-
-                                vm.selectedStash.selectedFile = vm.selectedStash.diffDetails[0];
-
-                                selectFileInStash(vm.selectedStash.selectedFile);
-                            }
-
-                            return;
-                        }
-
-                        return repoDetailService.selectStash(stash).then(function (op) {
-                            if(!op) {
-                                return;
-                            }
-                            vm.selectedStash.diffDetails = parseDiff(op.output.join(''));
-                            vm.selectedStash.selectedFile = vm.selectedStash.diffDetails[0];
-                            vm.diffSelectedStashFile = vm.selectedStash.diffDetails[0].safeDiff;
-                        });
-                    }
+                    
 
                     function showStashDialog() {
                         // TODO: Show loading dialog.
-                        updateStashes();
-                        $stashModal.modal('show');
-                    }
-
-                    function updateStashes() {
-                        return repoDetailService.getStashList().then(function (stashList) {
-                            stashList = stashList.output.join('').trim().split('\n');
-
-                            vm.stashes = stashList.map(function (s) {
-                                s = s.split(/:(.+)/);
-
-                                return {
-                                    name: s[0],
-                                    description: s[1]
-                                };
-                            });
-
-                            // TODO: if no local changes, show no local changes in description.
-                            var local = { name: 'Local Changes', description: 'Local changes.' };
-                            vm.selectedStash = vm.stashes.length > 0 ? vm.stashes[0] : local;
-
-                            vm.stashes.splice(0, 0, local);
-
-                            vm.selectStash();
-                        });
+                        vm.modals.stash.modal('show');
                     }
 
                     function pull() {
@@ -1219,18 +1090,12 @@
         });
 
     repoDetailModule.service('repoDetailService', ['$http', '$q', function ($http, $q) {
-        this.getFileDiff = getFileDiff;
         this.refreshLocalChanges = refreshLocalChanges;
         this.getCommits = getCommits;
         this.getCommit = getCommit;
         this.getDiff = getDiffBetweenCommits;
         this.initRepo = initRepo;
         this.pull = pull;
-        this.selectStash = selectStash;
-        this.getStashList = getStashList;
-        this.stashLocalChanges = stashLocalChanges;
-        this.dropSelectedStash = dropSelectedStash;
-        this.applyStash = applyStash;
         this.createNewBranch = createNewBranch;
         this.checkoutLocalBranch = checkoutLocalBranch;
         this.rebaseCurrentBranchOn = rebaseCurrentBranchOn;
@@ -1322,41 +1187,6 @@
             });
         }
 
-        function applyStash(name, pop) {
-            return $http.post('/repo/' + repoName + '/applystash', { pop: pop, name: name }).then(function (res) {
-                return res.data;
-            });
-        }
-
-        function dropSelectedStash(stashName) {
-            return $http.delete('/repo/' + repoName + '/dropstash/' + stashName).then(function (res) {
-                return res.data;
-            });
-        }
-
-        function stashLocalChanges(includeUntracked) {
-            return $http.post('/repo/' + repoName + '/stashlocal', { includeUntracked: includeUntracked }).then(function (res) {
-                return res.data;
-            });
-        }
-
-        function getStashList() {
-            return $http.get('/repo/' + repoName + '/getstashlist').then(function (res) {
-                return res.data;
-            });
-        }
-
-        function selectStash(stash) {
-            if (selectStash.canceler) {
-                // if this request already exists, cancel the request;
-                selectStash.canceler.resolve();
-            }
-            selectStash.canceler = $q.defer();
-            return $http.get('/repo/' + repoName + '/selectstash?name=' + stash.name, { timeout: selectStash.canceler.promise }).then(function (res) {
-                return res.data;
-            });
-        }
-
         function pull(options) {
             var remoteBranch = options.remoteBranch,
                 mergeOption = options.mergeOption;
@@ -1407,27 +1237,6 @@
                         progress: res.data.extraInfo && res.data.extraInfo.progress,
                         localStatus: res.data.output.join('\n')
                     };
-                }
-                return res.data;
-            });
-        }
-
-        function getFileDiff(file, tags) {
-            if (getFileDiff.canceler) {
-                // if this request already exists, cancel the request;
-                getFileDiff.canceler.resolve();
-            }
-            getFileDiff.canceler = $q.defer();
-            return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(',')), { timeout: getFileDiff.canceler.promise }).then(function (res) {
-                if(!res || !res.data) {
-                    return;
-                }
-                if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
-                }
-                else if(res.data.output){
-                    // TODO: Handle CRLF errors here.
-                    return res.data.output.join('\n');
                 }
                 return res.data;
             });

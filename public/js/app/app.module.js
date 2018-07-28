@@ -39,19 +39,23 @@ webgitApp.factory('loaderInterceptor', [function () {
             return config;
         },
         response: function (response) {
-            requestCount--;
-            if (requestCount <= 0) {     // shouldn't go less than but still..
-                requestCount = 0;
-                hideLoader();
-            }
+            checkRequestCount();
             return response;
         },
 
         responseError: function (rejection) {
-            console.log('an error has arrived as response');
+            checkRequestCount();
             return rejection;
         }
     };
+
+    function checkRequestCount() {
+        requestCount--;
+        if (requestCount <= 0) {     // shouldn't go less than but still..
+            requestCount = 0;
+            hideLoader();
+        }
+    }
 }]);
 
 webgitApp.config(['$httpProvider', function ($httpProvider) {

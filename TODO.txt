@@ -16,8 +16,6 @@
 . Implement searching for branch name
 . Implement copy path for all paths (file-selector)
 .[bug] Show untracked files in stash
-.[bug] Investigate why "Repo in conflict" did not come up when I had a conflict while applying stash.
-. Modularize file selectors
 . Git bisect
 . In the push modal, show which commits/files that are gonna be pushed.
 . Show popover on the commit, push buttons about details on the numbers.
@@ -84,3 +82,5 @@
 -. Search in diff
 -. Search for file name in modified files
 -. Handle cherrypick
+-.[bug] Investigate why "Repo in conflict" did not come up when I had a conflict while applying stash.
+-. Modularize file selectors
