@@ -2,16 +2,9 @@
 (function () {
     var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
-    var $commitModal = null;
-    var $pushModal = null;
     var $stashModal = null;
-    var $resetAllFilesModal = null;
-    var $resetUnstagedFilesModal = null;
     var $newBranchModal = null;
     var $cherrypickModal = null;
-    var $responseModal = $('#response-modal');
-    var $responseModalTitle = $responseModal.find('#response-title');
-    var $responseModalBody = $responseModal.find('#response-body');
     var $conflictModal = null;
 
     var $sce = null;
@@ -29,55 +22,51 @@
     repoDetailModule
         .component('repoDetail', {
             templateUrl: '/js/app/webgit-home/repo-detail/repo-detail.html',
-            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService', '$timeout',
-                function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService, $timeout) {
+            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService', '$timeout', 'gitfunctions', '$responseModal',
+                function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService, $timeout, gitfunctions, $responseModal) {
                     $sce = $sceLocal;
                     repoName = encodeURIComponent(decodeURIComponent($routeParams.repoName));
 
                     this.repoName = repoName;
 
                     var vm = this;
+
+                    vm.repoDetailService = repoDetailService;
+
                     var $mainLogContainer = $('#main-log-container');
                     var $mainLogLoadingIndicator = $('#main-log-loading-indicator');
 
-                    $commitModal = $('#commit-modal');
+                    
                     $pullModal = $('#pull-modal');
                     $pushModal = $('#push-modal');
                     $stashModal = $('#stash-modal');
-                    $resetAllFilesModal = $('#reset-all-modal');
                     $resetUnstagedFilesModal = $('#reset-unstaged-modal');
                     $newBranchModal = $('#new-branch-modal');
                     $conflictModal = $('#conflict-modal');
                     $cherrypickModal = $('#cherrypick-modal');
+
+                    vm.modals = {
+                        commit: null,
+                        push: null
+                    };
+
                     vm.selectedCommit = null;
                     vm.modifiedFileNames = [];
 
+                    vm.parseDiff = parseDiff;
                     vm.selectCommit = selectCommit;
                     vm.selectFileInLog = selectFileInLog;
                     vm.refreshLocalChanges = refreshLocalChanges;
                     vm.showCommitDialog = showCommitDialog;
-                    vm.showDiffForFileOnCommitModal = showDiffForFileOnCommitModal;
-                    vm.stageFile = stageFile;
-                    vm.unstageFile = unstageFile;
-                    vm.stageAllFiles = stageAllFiles;
-                    vm.unstageAllFiles = unstageAllFiles;
                     vm.showPullDialog = showPullDialog;
-                    vm.showPushDialog = showPushDialog;
                     vm.showStashDialog = showStashDialog;
                     vm.selectStash = selectStash;
-                    vm.commit = commit;
-                    vm.commitAndPush = commitAndPush;
                     vm.pull = pull;
-                    vm.push = push;
                     vm.selectedStash = null;
                     vm.selectFileInStash = selectFileInStash;
                     vm.stashLocalChanges = stashLocalChanges;
                     vm.dropSelectedStash = dropSelectedStash;
                     vm.applyStash = applyStash;
-                    vm.showResetAllFilesModal = showResetAllFilesModal;
-                    vm.resetAllChanges = resetAllChanges;
-                    vm.showResetUnstagedFilesModal = showResetUnstagedFilesModal;
-                    vm.resetUnstagedChanges = resetUnstagedChanges;
                     vm.createNewBranch = createNewBranch;
                     vm.showModalToHandleConflict = showModalToHandleConflict;
                     vm.showDiffOnConflictModal = showDiffOnConflictModal;
@@ -92,6 +81,9 @@
                     vm.mainSearch = mainSearch;
                     vm.filterOutTempCommits = filterOutTempCommits;
                     vm.cherrypickCommit = cherrypickCommit;
+                    vm.refreshLog = refreshLog;
+                    vm.onPush = onPush;
+                    vm.showPushDialog = showPushDialog;
 
                     vm.commitMessage = '';
                     vm.remote = null;
@@ -103,7 +95,7 @@
                     };
                     vm.stashLocalIncludeUntracked = true;
                     vm.popStash = false;
-                    vm.resetAllDeleteUntracked = false;
+                    
 
                     vm.commitMap = {};
                     vm.stashes = [];
@@ -129,16 +121,11 @@
                     });
 
                     $scope.$on('windowfocus', function () {
-                        if (($commitModal.data('bs.modal') || {})._isShown) {
+                        if ((vm.modals.commit.data('bs.modal') || {})._isShown) {
                             // do not refresh when the modal window is open. use the refresh button instead.
                             return;
                         }
                         vm.refreshLocalChanges();
-                    });
-
-                    $responseModal.on('hide.bs.modal', function (e) {
-                        $responseModalBody.html('');
-                        $responseModalTitle.html('');
                     });
 
                     initializeRemote();
@@ -155,16 +142,20 @@
 
                     return;
 
+                    function onPush() {
+                        initializeRemote();
+                    }
+
                     function cherrypickCommit() {
-                        $responseModalTitle.text('Cherry picking');
-                        $responseModal.modal('show');
+                        $responseModal.title('Cherry picking');
+                        $responseModal.show();
                         return repoDetailService.cherrypickCommit(vm.cherrypick.hash, vm.cherrypick.doNotCommit).then(function(d) {
                             $cherrypickModal.modal('hide');
                             if(d.errorCode) {
-                                $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
+                                $responseModal.bodyHtml(d.errors.join('\n').trim().replace('\n', '<br />'));
                             }
                             else {
-                                $responseModalBody.html('Done!');
+                                $responseModal.bodyHtml('Done!');
                             }
                             refreshLocalChanges();
                             if(!vm.cherrypick.doNotCommit) {
@@ -261,7 +252,7 @@
 
                     function continueMerge() {
                         // continue merge means commit.
-                        return repoDetailService.commit(vm.mergeConflictCommitMessage).then(function (d) {
+                        return gitfunctions.commit(vm.mergeConflictCommitMessage).then(function (d) {
                             if (typeof d == 'string') {
                                 // the commit was successful.
                                 // close the conflict modal.
@@ -272,10 +263,7 @@
                         });
                     }
 
-                    function unselectFilesAfterLocalRefresh() {
-                        vm.diffOnConflictModal = null;
-                        showDefaultFileOnCommitModalDialog();
-                    }
+                    
 
                     function getMetaOfConflictedFile(conflictedFile) {
                         if (!conflictedFile) {
@@ -354,7 +342,7 @@
 
                     function markFileAsResolvedDuringConflict(add) {
                         if (add) {
-                            return repoDetailService.stageFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function (res) {
+                            return gitfunctions.stageFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function (res) {
                                 // TODO: Handle errors here. Probably CRLF errors.
                                 if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                                     vm.diffOnConflictModal = null;
@@ -484,14 +472,14 @@
                     }
 
                     function mergeLocalBranch(branchName) {
-                        $responseModalTitle.text('Merging');
-                        $responseModal.modal('show');
+                        $responseModal.title('Merging');
+                        $responseModal.show();
                         return repoDetailService.mergeIntoCurrent(branchName).then(function (d) {
                             if(d.errorCode) {
-                                $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
+                                $responseModal.bodyHtml(d.errors.join('\n').trim().replace('\n', '<br />'));
                             }
                             else {
-                                $responseModalBody.html(d.output.join('\n').trim().replace('\n', '<br />'));
+                                $responseModal.bodyHtml(d.output.join('\n').trim().replace('\n', '<br />'));
                             }
                             refreshLocalChanges();
                             refreshLog();
@@ -620,10 +608,10 @@
                     }
 
                     function rebaseCurrentBranchOn(branchNameOrRevision) {
-                        $responseModalTitle.text('Rebasing');
-                        $responseModal.modal('show');
+                        $responseModal.title('Rebasing');
+                        $responseModal.show();
                         return repoDetailService.rebaseCurrentBranchOn(branchNameOrRevision).then(function (d) {
-                            $responseModalBody.html(d.output.join('\n').trim().replace('\n', '<br />'));
+                            $responseModal.bodyHtml(d.output.join('\n').trim().replace('\n', '<br />'));
                             refreshLocalChanges();
                             refreshLog();
                         });
@@ -634,9 +622,9 @@
                             initializeRemote();
                             refreshLog();
                             refreshLocalChanges();
-                            $responseModalTitle.html('Checkout Branch');
-                            $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
-                            $responseModal.modal('show');
+                            $responseModal.title('Checkout Branch');
+                            $responseModal.bodyHtml(d.errors.join('\n').trim().replace('\n', '<br />'));
+                            $responseModal.show();
                         });
                     }
 
@@ -648,9 +636,9 @@
                             $newBranchModal.modal('hide');
                             var text = d.errors.join('\n').trim();
                             if (text.length) {
-                                $responseModalTitle.html('Create New Branch');
-                                $responseModalBody.html(text.replace('\n', '<br />'));
-                                $responseModal.modal('show');
+                                $responseModal.title('Create New Branch');
+                                $responseModal.bodyHtml(text.replace('\n', '<br />'));
+                                $responseModal.show();
                             }
                             refreshLog();
                         });
@@ -664,58 +652,15 @@
                         $scope.$apply();                        // guilty :(
                     }
 
-                    function showResetUnstagedFilesModal() {
-                        $resetUnstagedFilesModal.modal('show');
-                    }
-
-                    function showResetAllFilesModal() {
-                        $resetAllFilesModal.modal('show');
-                    }
-
-                    function resetUnstagedChanges() {
-                        var deleteUntrackedFiles = vm.resetUnstagedDeleteUntracked;
-
-                        return repoDetailService.resetUnstagedChanges(deleteUntrackedFiles).then(function (d) {
-                            $resetUnstagedFilesModal.modal('hide');
-                            refreshLocalChanges();
-
-                            if (!d.errorCode) {
-                                return;
-                            }
-
-                            $responseModalTitle.html('Reset output');
-                            $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
-                            $responseModalBody.modal('show');
-                        });
-                    }
-
-                    function resetAllChanges() {
-                        var deleteUntrackedFiles = vm.resetAllDeleteUntracked;
-
-                        return repoDetailService.resetAllChanges(deleteUntrackedFiles).then(function (d) {
-                            $resetAllFilesModal.modal('hide');
-                            refreshLocalChanges();
-                            vm.diffOnCommitModal.safeDiff = '';     // reset the text on the commit modal.
-
-                            if (!d.errorCode) {
-                                return;
-                            }
-
-                            $responseModalTitle.html('Reset output');
-                            $responseModalBody.html(d.errors.join('\n').trim().replace('\n', '<br />'));
-                            $responseModalBody.modal('show');
-                        });
-                    }
-
                     function applyStash() {
-                        $responseModalTitle.text('Applying Stash ' + vm.selectedStash.name);
-                        $responseModal.modal('show');
+                        $responseModal.title('Applying Stash ' + vm.selectedStash.name);
+                        $responseModal.show();
                         return repoDetailService.applyStash(vm.selectedStash.name, vm.popStash).then(function (d) {
                             if (d.errorCode) {
-                                $responseModalBody.html(d.errors.join('<br />').replace(/\n/g, '<br />'));
+                                $responseModal.bodyHtml(d.errors.join('<br />').replace(/\n/g, '<br />'));
                             }
                             else {
-                                $responseModalBody.html(d.output.join('<br />').replace(/\n/g, '<br />'));
+                                $responseModal.bodyHtml(d.output.join('<br />').replace(/\n/g, '<br />'));
                             }
 
                             if (!d.errorCode) {
@@ -728,19 +673,19 @@
                     }
 
                     function dropSelectedStash() {
-                        $responseModalTitle.text('Dropping Stash ' + vm.selectedStash.name);
-                        $responseModal.modal('show');
+                        $responseModal.title('Dropping Stash ' + vm.selectedStash.name);
+                        $responseModal.show();
                         return repoDetailService.dropSelectedStash(vm.selectedStash.name).then(function (d) {
-                            $responseModalBody.html(d.output.join('<br />'));
+                            $responseModal.bodyHtml(d.output.join('<br />'));
                             updateStashes();
                         });
                     }
 
                     function stashLocalChanges() {
-                        $responseModalTitle.text('Saving Local Changes...');
-                        $responseModal.modal('show');
+                        $responseModal.title('Saving Local Changes...');
+                        $responseModal.show();
                         return repoDetailService.stashLocalChanges(vm.stashLocalIncludeUntracked).then(function (d) {
-                            $responseModalBody.html(d.output.join('<br />'));
+                            $responseModal.bodyHtml(d.output.join('<br />'));
                             refreshLocalChanges();
                             updateStashes();
                         });
@@ -833,39 +778,14 @@
                         });
                     }
 
-                    function commitAndPush() {
-                        commit().then(function () {
-                            vm.showPushDialog();
-                        });
-                    }
-
-                    function showPushDialog() {
-                        vm.pushOptions = {};
-                        $pushModal.modal('show');
-                    }
-
-                    function push() {
-                        $responseModal.one('hide.bs.modal', function () {
-                            refreshLog();
-                            $pushModal.modal('hide');
-                        });
-                        $responseModalTitle.text('Pushing ' + vm.currentLocalBranch + ' to ' + vm.remote + '/' + vm.pushOptions.remoteBranch);
-                        $responseModalBody.html('Please wait... Response will come here.');
-                        $responseModal.modal('show');
-                        return repoDetailService.push(vm.remote, vm.pushOptions.remoteBranch, vm.pushOptions.newRemoteBranchName).then(function (data) {
-                            $responseModalBody.html(data.errors.join('<br />').replace('\n', '<br />'));
-                            initializeRemote();
-                        });
-                    }
-
                     function pull() {
-                        $responseModalTitle.text('Pulling');
-                        $responseModal.modal('show');
+                        $responseModal.title('Pulling');
+                        $responseModal.show();
                         return repoDetailService.pull({
                             remoteBranch: vm.pullOptions.remoteBranch,
                             mergeOption: vm.pullOptions.mergeOption
                         }).then(function (response) {
-                            $responseModalBody.html(response.errors.join('').replace(/\n/g, '<br />') + response.output.join('').replace(/\n/g, '<br />'));
+                            $responseModal.bodyHtml(response.errors.join('').replace(/\n/g, '<br />') + response.output.join('').replace(/\n/g, '<br />'));
                             // TODO: refresh the main log.
                         });
                     }
@@ -959,24 +879,7 @@
                         });
                     }
 
-                    function commit() {
-                        return repoDetailService.commit(vm.commitMessage).then(function (res) {
-                            vm.commitMessage = '';      // reset the commit message.
-                            // close the modal.
-                            // TODO: An error must throw an exception and be handled in the catch statement.
-                            $commitModal.modal('hide');
-
-                            // refresh the log so that new commits now appear in it.
-                            return refreshLog().then(function () {
-                                // refresh local to remove committed files from modified files' list.
-                                return vm.refreshLocalChanges();
-                            });
-                        }).catch(function (err) {
-                            $responseModalTitle.text('Error!');
-                            $responseModalBody.html(err.join('<br />'));
-                            $responseModal.modal('show');
-                        });
-                    }
+                    
 
                     function resetTempCommits() {
                         // remove temp commits from vm.commits as the real commits might have arrived.
@@ -1159,88 +1062,12 @@
                         vm.maxX = openBranches.length;
                     }
 
-                    function unstageAllFiles() {
-                        repoDetailService.unstageAllFiles().then(function (res) {
-                            // TODO: Handle errors here. Probably CRLF errors.
-                            if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                                vm.refreshLocalChanges();
-                            }
-                        });
-                    }
-
-                    function stageAllFiles() {
-                        repoDetailService.stageAllFiles().then(function (res) {
-                            // TODO: Handle errors here. Probably CRLF errors.
-                            if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                                vm.refreshLocalChanges();
-                            }
-                        });
-                    }
-
-                    function unstageFile() {
-                        repoDetailService.unstageFile(vm.fileSelectedOnCommitModal.name, vm.fileSelectedOnCommitModal.tags).then(function (res) {
-                            // TODO: Handle errors here. Probably CRLF errors.
-                            if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                                vm.refreshLocalChanges();
-                            }
-                        });
-                    }
-
-                    function stageFile() {
-                        repoDetailService.stageFile(vm.fileSelectedOnCommitModal.name, vm.fileSelectedOnCommitModal.tags).then(function (res) {
-                            // TODO: Handle errors here. Probably CRLF errors.
-                            if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                                vm.refreshLocalChanges();
-                            }
-                        });
-                    }
-
-                    function showDiffForFileOnCommitModal(file) {
-                        if(!file) {
-                            return;
-                        }
-                        if (file.tags.indexOf('bothmodified') > -1 && file.tags.indexOf('staged') > -1) {
-                            // no diff for this.
-                            // TODO: Should we show a conflict message here?
-                            vm.diffOnCommitModal.safeDiff = '';
-                            vm.diffOnCommitModal.file = file;
-                            return;
-                        }
-                        if (!file) {
-                            vm.diffOnCommitModal.safeDiff = '';
-                            return;
-                        }
-                        vm.diffOnCommitModal = {
-                            file: file
-                        };
-
-                        vm.fileSelectedOnCommitModal = file;
-                        repoDetailService.getFileDiff(file.name, file.tags).then(function (diff) {
-                            if (typeof diff == 'object') {
-                                diff = diff.output.join('\n').trim();
-                                // TODO: Handle errors here.. probably CRLF errors.
-                            }
-                            file.diff = diff;
-                            var commitDetails = parseDiff(diff);
-                            vm.diffOnCommitModal.safeDiff = $sce.trustAsHtml(commitDetails[0].diff);
-                        });
-                    }
-
                     function showCommitDialog() {
-                        // use vm.localStatus
-                        $commitModal.modal('show');
-                        $commitModal.one('shown.bs.modal', function () {
-                            // select the first commit to show the diff.
-                            showDefaultFileOnCommitModalDialog();
-                        });
-                        $commitModal.one('hide.bs.modal', function () {
-                            vm.diffOnCommitModal = null;
-                        });
+                        vm.modals.commit.modal('show');
                     }
 
-                    function showDefaultFileOnCommitModalDialog() {
-                        var fileToSelect = vm.unstagedFiles.length > 0 ? vm.unstagedFiles[0] : vm.stagedFiles[0];
-                        showDiffForFileOnCommitModal(fileToSelect);
+                    function showPushDialog() {
+                        vm.modals.push.modal('show');
                     }
 
                     function refreshLocalChanges() {
@@ -1277,9 +1104,7 @@
                             vm.stagedFiles = $filter('filter')(vm.localStatus, { tags: 'staged' }, true);
                             vm.unstagedFiles = $filter('filter')(vm.localStatus, { tags: 'unstaged' }, true);
 
-                            if (($commitModal.data('bs.modal') || {})._isShown) {
-                                unselectFilesAfterLocalRefresh();
-                            }
+                            return vm.localStatus;
                         });
                     }
 
@@ -1394,26 +1219,18 @@
         });
 
     repoDetailModule.service('repoDetailService', ['$http', '$q', function ($http, $q) {
-        this.unstageFile = unstageFile;
-        this.stageFile = stageFile;
         this.getFileDiff = getFileDiff;
         this.refreshLocalChanges = refreshLocalChanges;
         this.getCommits = getCommits;
         this.getCommit = getCommit;
-        this.stageAllFiles = stageAllFiles;
-        this.unstageAllFiles = unstageAllFiles;
         this.getDiff = getDiffBetweenCommits;
-        this.commit = commit;
         this.initRepo = initRepo;
         this.pull = pull;
-        this.push = push;
         this.selectStash = selectStash;
         this.getStashList = getStashList;
         this.stashLocalChanges = stashLocalChanges;
         this.dropSelectedStash = dropSelectedStash;
         this.applyStash = applyStash;
-        this.resetAllChanges = resetAllChanges;
-        this.resetUnstagedChanges = resetUnstagedChanges;
         this.createNewBranch = createNewBranch;
         this.checkoutLocalBranch = checkoutLocalBranch;
         this.rebaseCurrentBranchOn = rebaseCurrentBranchOn;
@@ -1505,18 +1322,6 @@
             });
         }
 
-        function resetUnstagedChanges(deleteUntracked) {
-            return $http.post('/repo/' + repoName + '/resetunstaged', { deleteUntracked: deleteUntracked }).then(function (res) {
-                return res.data;
-            });
-        }
-
-        function resetAllChanges(deleteUntracked) {
-            return $http.post('/repo/' + repoName + '/resetall', { deleteUntracked: deleteUntracked }).then(function (res) {
-                return res.data;
-            });
-        }
-
         function applyStash(name, pop) {
             return $http.post('/repo/' + repoName + '/applystash', { pop: pop, name: name }).then(function (res) {
                 return res.data;
@@ -1552,20 +1357,6 @@
             });
         }
 
-        function push(remoteName, remoteBranch, newRemoteBranchName) {
-            if (remoteBranch == 'create-new-branch') {
-                return $http.post('/repo/' + repoName + '/pushnewbranch', {
-                    remoteName: remoteName,
-                    newRemoteBranchName: newRemoteBranchName
-                }).then(function (res) {
-                    return res.data;
-                })
-            }
-            return $http.get('/repo/' + repoName + '/push?remotename=' + remoteName + '&remotebranch=' + remoteBranch).then(function (res) {
-                return res.data;
-            });
-        }
-
         function pull(options) {
             var remoteBranch = options.remoteBranch,
                 mergeOption = options.mergeOption;
@@ -1584,41 +1375,11 @@
             });
         }
 
-        function commit(message) {
-            return $http.get('/repo/' + repoName + '/commit?message=' + window.encodeURIComponent(message)).then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
-                }
-                else {
-                    // alert('there was an error');
-                    return Promise.reject(res.data.errors);
-                }
-            });
-        }
-
         function getDiffBetweenCommits(commits) {
             return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function (res) {
                 if (!res.data.errorCode) {
                     return res.data.output.join('\n');
                 } y
-                return res.data;
-            });
-        }
-
-        function unstageAllFiles() {
-            return $http.get('/repo/' + repoName + '/unstageallfiles').then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
-                }
-                return res.data;
-            });
-        }
-
-        function stageAllFiles() {
-            return $http.get('/repo/' + repoName + '/stageallfiles').then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
-                }
                 return res.data;
             });
         }
@@ -1679,24 +1440,6 @@
             }).then(function (res) {
                 if (!res.data.errorCode) {
                     return res.data;
-                }
-                return res.data;
-            });
-        }
-
-        function stageFile(file, tags) {
-            return $http.get('/repo/' + repoName + '/stagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
-                }
-                return res.data;
-            });
-        }
-
-        function unstageFile(file, tags) {
-            return $http.get('/repo/' + repoName + '/unstagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
                 }
                 return res.data;
             });

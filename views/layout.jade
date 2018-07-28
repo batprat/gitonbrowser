@@ -17,16 +17,6 @@ html
     block headcontent
   body(ng-app="webgitApp" ng-controller="AppController")
     block content
-    div(class="modal fade", id="response-modal", tabindex="-1", role="dialog", aria-hidden="true")
-      div(class="modal-dialog", role="document")
-        div(class="modal-content")
-          div(class="modal-header")
-            h5(class="modal-title", id="response-title")
-            button(type="button", class="close", data-dismiss="modal", aria-label="Close")
-              span(aria-hidden="true") &times;
-          div(class="modal-body", id="response-body")
-          div(class="modal-footer")
-            button(type="button", class="btn btn-primary", data-dismiss="modal") Close
     div(id="loader-modal", class="loader-hidden")
       div(id="loader-body")
         div(id="loader-icon")
@@ -38,7 +28,13 @@ html
     script(src='/js/app/webgit-home/check-settings/check-settings.component.js')
     script(src='/js/app/webgit-home/repositories.component.js')
     script(src='/js/app/webgit-home/repo-detail/repo-detail.component.js')
+    script(src='/js/app/webgit-home/repo-detail/gitfunctions.service.js')
     script(src='/js/app/webgit-home/repo-detail/on-finish-render.directive.js')
     script(src='/js/app/webgit-home/repo-detail/files-list/files-list.component.js')
     script(src='/js/app/webgit-home/repo-detail/a-commit/a-commit.component.js')
+    script(src='/js/app/webgit-home/repo-detail/push-modal/push-modal.js')
+    script(src='/js/app/webgit-home/repo-detail/commit-modal/commit-modal.js')
+    script(src='/js/app/webgit-home/repo-detail/reset-all-modal/reset-all-modal.js')
+    script(src='/js/app/webgit-home/repo-detail/reset-unstaged-modal/reset-unstaged-modal.js')
+    script(src='/js/app/webgit-home/repo-detail/response-modal/response-modal.service.js')
     

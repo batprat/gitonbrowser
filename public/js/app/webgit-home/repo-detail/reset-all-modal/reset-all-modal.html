@@ -1,0 +1,31 @@
+<div class="modal fade" id="reset-all-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">[Alert!]Reset All Changes</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div>Are you sure you want to Reset All Changes?</div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="resetAllDeleteUntracked" ng-model="$ctrl.resetAllDeleteUntracked">
+                                <label class="form-check-label" for="resetAllDeleteUntracked">Also Delete Untracked Files</label>
+                            </div>
+                            <div class="alert alert-danger" role="alert">
+                                Caution! This will reset all files (revert all your changes) even if they are staged.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <button class="btn btn-danger pull-right" ng-click="$ctrl.resetAllChanges()">Reset All Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

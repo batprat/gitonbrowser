@@ -1,0 +1,68 @@
+<div class="modal fade" id="commit-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button ng-click="$ctrl.onRefreshLocalChanges()" class="btn-outline-success btn btn-sm btn-commit-dialog-refresh"><i class="fa fa-refresh" title="refresh"></i></button>
+                <h5 class="modal-title">Commit to {{$ctrl.currentLocalBranch}}</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body" id="commit-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-12" id="commit-dialog-unstaged-files">
+                                    <div class="panel-name">Unstaged Files</div>
+                                    <files-list tag-to-filter="'unstaged'" selected-file="$ctrl.diffOnCommitModal.file.diff" on-select="$ctrl.showDiffForFileOnCommitModal(file)" files="$ctrl.localStatus"></files-list>
+                                </div>
+                            </div>
+                            <div class="row staging-action-buttons-container">
+                                <div class="col-sm-12 staging-actions">
+                                    <button class="btn btn-sm btn-outline-primary float-left btn-unstage-all-files" ng-class="{'disabled': !$ctrl.stagedFiles || $ctrl.stagedFiles.length == 0}" ng-disabled="!$ctrl.stagedFiles || $ctrl.stagedFiles.length == 0" ng-click="$ctrl.unstageAllFiles()">Unstage All</button>
+                                    <button class="btn btn-sm btn-outline-primary float-left btn-unstage-files" ng-class="{'disabled': $ctrl.diffOnCommitModal.file.tags.indexOf('staged') == -1}" ng-disabled="$ctrl.diffOnCommitModal.file.tags.indexOf('staged') == -1" ng-click="$ctrl.unstageFile()">Unstage</button>
+                                    <button class="btn btn-sm btn-outline-primary float-right btn-stage-files" ng-class="{'disabled': $ctrl.diffOnCommitModal.file.tags.indexOf('unstaged') == -1}" ng-disabled="$ctrl.diffOnCommitModal.file.tags.indexOf('unstaged') == -1" ng-click="$ctrl.stageFile()">Stage</button>
+                                    <button class="btn btn-sm btn-outline-primary float-right btn-stage-all-files" ng-class="{'disabled': !$ctrl.unstagedFiles || $ctrl.unstagedFiles.length == 0}" ng-disabled="!$ctrl.unstagedFiles || $ctrl.unstagedFiles.length == 0" ng-click="$ctrl.stageAllFiles()">Stage All</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12" id="commit-dialog-staged-files">
+                                    <div class="panel-name">Staged Files</div>
+                                    <files-list tag-to-filter="'staged'" selected-file="$ctrl.diffOnCommitModal.file.diff" on-select="$ctrl.showDiffForFileOnCommitModal(file)" files="$ctrl.localStatus"></files-list>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="row">
+                                <div class="col-sm-12" id="commit-dialog-diff">
+                                    <div class="panel-name">Diff</div>
+                                    <div ng-bind-html="$ctrl.diffOnCommitModal.safeDiff" class="diff"></div>
+                                </div>
+                            </div>
+                            <div class="row commit-dialog-action-container">
+                                <div class="col-sm-4" id="commit-dialog-actions">
+                                    <button class="btn btn-sm commit-dialog-btn btn-outline-info" ng-click="$ctrl.commit()">Commit</button>
+                                    <button class="btn btn-sm commit-dialog-btn btn-outline-success" ng-click="$ctrl.commitAndPush()">Commit &amp; Push</button>
+                                    <button class="btn btn-sm commit-dialog-btn btn-outline-danger" ng-click="$ctrl.showResetAllFilesModal()">Reset all changes</button>
+                                    <button class="btn btn-sm commit-dialog-btn btn-outline-warning" ng-click="$ctrl.showResetUnstagedFilesModal()">Reset unstaged changes</button>
+                                </div>
+                                <div class="col-sm-8" id="commit-dialog-message">
+                                    <textarea class="form-control" placeholder="Commit message (required)" ng-model="$ctrl.commitMessage" id="commit-message-textarea"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<reset-all-modal
+    modal="$ctrl.modals.resetAll"
+    refresh-local-changes="$ctrl.refreshLocalChanges()"
+    diff-on-commit-modal="$ctrl.diffOnCommitModal"
+></reset-all-modal>
+<reset-unstaged-modal
+    modal="$ctrl.modals.resetUnstaged"
+    refresh-local-changes="$ctrl.refreshLocalChanges()"
+    diff-on-commit-modal="$ctrl.diffOnCommitModal"
+></reset-unstaged-modal>
