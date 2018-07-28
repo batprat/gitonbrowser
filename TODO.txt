@@ -4,6 +4,7 @@
 . Delete remote branch
 . Handle passwords for cloning
 . Handle passwords for pushing
+. Keyboard shortcuts for files list
 . Reset single file
 . Show file history
 . Select default branch that matches the current branch name in push modal

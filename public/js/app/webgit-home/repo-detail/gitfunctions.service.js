@@ -15,8 +15,18 @@
             stashLocalChanges: stashLocalChanges,
             getStashList: getStashList,
             dropSelectedStash: dropSelectedStash,
-            applyStash: applyStash
+            applyStash: applyStash,
+            cherrypickCommit: cherrypickCommit
         };
+
+        function cherrypickCommit(hash, noCommit) {
+            return $http.post('/repo/' + repoName + '/cherrypick', {
+                hash: hash,
+                noCommit: noCommit
+            }).then(function(res) {
+                return res.data;
+            });
+        }
 
         function applyStash(name, pop) {
             return $http.post('/repo/' + repoName + '/applystash', { pop: pop, name: name }).then(function (res) {

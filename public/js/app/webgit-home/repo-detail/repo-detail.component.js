@@ -3,7 +3,6 @@
     var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
     var $newBranchModal = null;
-    var $cherrypickModal = null;
     var $conflictModal = null;
 
     var $sce = null;
@@ -39,12 +38,12 @@
                     $pullModal = $('#pull-modal');
                     $newBranchModal = $('#new-branch-modal');
                     $conflictModal = $('#conflict-modal');
-                    $cherrypickModal = $('#cherrypick-modal');
 
                     vm.modals = {
                         commit: null,
                         push: null,
-                        stash: null
+                        stash: null,
+                        cherrypick: null
                     };
 
                     vm.selectedCommit = null;
@@ -71,7 +70,6 @@
                     vm.mergeConflictCommitMessage = '';
                     vm.mainSearch = mainSearch;
                     vm.filterOutTempCommits = filterOutTempCommits;
-                    vm.cherrypickCommit = cherrypickCommit;
                     vm.refreshLog = refreshLog;
                     vm.onPush = onPush;
                     vm.showPushDialog = showPushDialog;
@@ -91,10 +89,6 @@
                         atRevision: '',
                         name: '',
                         checkout: true
-                    };
-
-                    vm.cherrypick = {
-                        doNotCommit: true
                     };
 
                     vm.diffOnConflictModal = null;
@@ -132,24 +126,6 @@
 
                     function onPush() {
                         initializeRemote();
-                    }
-
-                    function cherrypickCommit() {
-                        $responseModal.title('Cherry picking');
-                        $responseModal.show();
-                        return repoDetailService.cherrypickCommit(vm.cherrypick.hash, vm.cherrypick.doNotCommit).then(function(d) {
-                            $cherrypickModal.modal('hide');
-                            if(d.errorCode) {
-                                $responseModal.bodyHtml(d.errors.join('\n').trim().replace('\n', '<br />'));
-                            }
-                            else {
-                                $responseModal.bodyHtml('Done!');
-                            }
-                            refreshLocalChanges();
-                            if(!vm.cherrypick.doNotCommit) {
-                                refreshLog();
-                            }
-                        });
                     }
 
                     function filterOutTempCommits(hash) {
@@ -455,8 +431,9 @@
                     }
 
                     function showCherrypickModal(hash) {
-                        vm.cherrypick.hash = hash;
-                        $cherrypickModal.modal('show');
+                        vm.cherrypickHash = hash;
+                        vm.modals.cherrypick.modal('show');
+                        $scope.$apply();                        // guilty :( have to do this as this is a non angular event.
                     }
 
                     function mergeLocalBranch(branchName) {
@@ -1108,18 +1085,8 @@
         this.abortMerge = abortMerge;
 
         this.searchForText = searchForText;
-        this.cherrypickCommit = cherrypickCommit;
 
         return;
-
-        function cherrypickCommit(hash, noCommit) {
-            return $http.post('/repo/' + repoName + '/cherrypick', {
-                hash: hash,
-                noCommit: noCommit
-            }).then(function(res) {
-                return res.data;
-            });
-        }
 
         function searchForText(searchText) {
             return $http.post('/repo/' + repoName + '/searchfortext', { text: window.encodeURIComponent(searchText) }).then(function (res) {

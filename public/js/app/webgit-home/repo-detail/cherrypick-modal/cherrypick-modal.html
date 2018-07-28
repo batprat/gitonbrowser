@@ -1,0 +1,27 @@
+<div class="modal fade" id="cherrypick-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cherrypick</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            Are you sure you want to cherry-pick this commit?
+                        </div>
+                        <div class="col-12">
+                            <label><input type="checkbox" ng-model="$ctrl.cherrypick.doNotCommit" /> Do not commit</label>
+                        </div>
+                    </div>
+                    <div class="row row-vertical-margin">
+                        <div class="col-12">
+                            <button class="btn btn-primary pull-right" ng-click="$ctrl.cherrypickCommit()">Cherrypick</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
