@@ -16,8 +16,62 @@
             getStashList: getStashList,
             dropSelectedStash: dropSelectedStash,
             applyStash: applyStash,
-            cherrypickCommit: cherrypickCommit
+            cherrypickCommit: cherrypickCommit,
+            removeFile: removeFile,
+            refreshLocalChanges: refreshLocalChanges,
+            skipRebase: skipRebase,
+            continueRebase: continueRebase,
+            abortRebase: abortRebase,
+            abortMerge: abortMerge
         };
+
+        function abortMerge() {
+            return $http.post('/repo/' + repoName + '/abortmerge').then(function (res) {
+                return res.data;
+            });
+        }
+
+        function abortRebase() {
+            return $http.post('/repo/' + repoName + '/abortrebase').then(function (res) {
+                return res.data;
+            });
+        }
+
+        function continueRebase() {
+            return $http.post('/repo/' + repoName + '/continuerebase').then(function (res) {
+                return res.data;
+            });
+        }
+
+        function skipRebase() {
+            return $http.post('/repo/' + repoName + '/skiprebase').then(function (res) {
+                return res.data;
+            });
+        }
+
+        function refreshLocalChanges() {
+            return $http.get('/repo/' + repoName + '/refreshlocal').then(function (res) {
+                if (!res.data.errorCode) {
+                    return {
+                        progress: res.data.extraInfo && res.data.extraInfo.progress,
+                        localStatus: res.data.output.join('\n')
+                    };
+                }
+                return res.data;
+            });
+        }
+
+        function removeFile(name, tags) {
+            return $http.post('/repo/' + repoName + '/removefile', {
+                name: name,
+                tags: tags.join(',')
+            }).then(function (res) {
+                if (!res.data.errorCode) {
+                    return res.data;
+                }
+                return res.data;
+            });
+        }
 
         function cherrypickCommit(hash, noCommit) {
             return $http.post('/repo/' + repoName + '/cherrypick', {

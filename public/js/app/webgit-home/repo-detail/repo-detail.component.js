@@ -43,12 +43,14 @@
                         commit: null,
                         push: null,
                         stash: null,
-                        cherrypick: null
+                        cherrypick: null,
+                        conflict: null
                     };
 
                     vm.selectedCommit = null;
                     vm.modifiedFileNames = [];
 
+                    vm.parseLocalStatus = parseLocalStatus;
                     vm.parseDiff = parseDiff;
                     vm.selectCommit = selectCommit;
                     vm.selectFileInLog = selectFileInLog;
@@ -59,15 +61,7 @@
                     vm.pull = pull;
                     vm.createNewBranch = createNewBranch;
                     vm.showModalToHandleConflict = showModalToHandleConflict;
-                    vm.showDiffOnConflictModal = showDiffOnConflictModal;
-                    vm.markFileAsResolvedDuringConflict = markFileAsResolvedDuringConflict;
-                    vm.abortRebase = abortRebase;
-                    vm.continueRebase = continueRebase;
-                    vm.showRemoveFileBtnOnConflictModal = showRemoveFileBtnOnConflictModal;
-                    vm.getMetaOfConflictedFile = getMetaOfConflictedFile;
-                    vm.continueMerge = continueMerge;
-                    vm.abortMerge = abortMerge;
-                    vm.mergeConflictCommitMessage = '';
+                    
                     vm.mainSearch = mainSearch;
                     vm.filterOutTempCommits = filterOutTempCommits;
                     vm.refreshLog = refreshLog;
@@ -204,149 +198,8 @@
                         canvas.height = 0;
                     }
 
-                    function abortMerge() {
-                        return repoDetailService.abortMerge().then(function (d) {
-                            if (!d.errorCode) {
-                                refreshLocalChanges();
-                                refreshLog();
-                                $conflictModal.modal('hide');
-                            }
-                        });
-                    }
-
-                    function continueMerge() {
-                        // continue merge means commit.
-                        return gitfunctions.commit(vm.mergeConflictCommitMessage).then(function (d) {
-                            if (typeof d == 'string') {
-                                // the commit was successful.
-                                // close the conflict modal.
-                                refreshLocalChanges();
-                                refreshLog();
-                                $conflictModal.modal('hide');
-                            }
-                        });
-                    }
-
-                    
-
-                    function getMetaOfConflictedFile(conflictedFile) {
-                        if (!conflictedFile) {
-                            return;
-                        }
-                        var tags = conflictedFile.tags;
-                        var name = '';
-                        var description = '';
-                        switch (true) {
-                            case tags.indexOf('deletedbyus') > -1: {
-                                name = 'DU';
-                                description = '"They" have deleted this file and "We" have modified it.';
-                                break;
-                            }
-                            case tags.indexOf('bothmodified') > -1: {
-                                name = 'UU';
-                                description = 'This file is modified by "Us" as well as "Them".';
-                                break;
-                            }
-                            case tags.indexOf('deletedbythem') > -1: {
-                                name = 'UD';
-                                description = '"We" have deleted this file and "They" have modified it.';
-                                break;
-                            }
-                        }
-                        return {
-                            name: name,
-                            description: description
-                        };
-                    }
-
-                    function showRemoveFileBtnOnConflictModal() {
-                        if (vm.diffOnConflictModal && vm.diffOnConflictModal.file) {
-                            return vm.diffOnConflictModal.file.tags.indexOf('deletedbyus') > -1 || vm.diffOnConflictModal.file.tags.indexOf('deletedbythem') > -1;
-                        }
-                        return false;
-                    }
-
-                    function continueRebase() {
-                        repoDetailService.refreshLocalChanges().then(function (d) {
-                            var localStatus = parseLocalStatus(d.localStatus);
-                            if (localStatus.length == 0) {
-                                // there is nothing to apply here.
-                                // run git rebase --skip
-                                repoDetailService.skipRebase().then(function (d) {
-                                    if (!d.errorCode) {
-                                        refreshLocalChanges();
-                                        refreshLog();
-                                        $conflictModal.modal('hide');
-                                    }
-                                });
-                            }
-                            else {
-                                repoDetailService.continueRebase().then(function (d) {
-                                    if (!d.errorCode) {
-                                        $conflictModal.modal('hide');
-                                    }
-                                    refreshLocalChanges();
-                                    refreshLog();
-                                    // TODO: handle error here.
-                                });
-                            }
-                        });
-                    }
-
-                    function abortRebase() {
-                        repoDetailService.abortRebase().then(function (d) {
-                            if (d.errorCode) {
-                                // TODO: handle error here.
-                            }
-                            refreshLocalChanges();
-                            refreshLog();
-                            $conflictModal.modal('hide');
-                        });
-                    }
-
-                    function markFileAsResolvedDuringConflict(add) {
-                        if (add) {
-                            return gitfunctions.stageFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function (res) {
-                                // TODO: Handle errors here. Probably CRLF errors.
-                                if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                                    vm.diffOnConflictModal = null;
-                                    vm.refreshLocalChanges();
-                                }
-                            });
-                        }
-                        else {
-                            return repoDetailService.removeFile(vm.diffOnConflictModal.file.name, vm.diffOnConflictModal.file.tags).then(function (res) {
-                                // TODO: Handle errors here. Probably CRLF errors.
-                                if (!res.errorCode) {
-                                    vm.diffOnConflictModal = null;
-                                    vm.refreshLocalChanges();
-                                }
-                            });
-                        }
-                    }
-
-                    function showDiffOnConflictModal(conflictedFile) {
-                        vm.diffOnConflictModal = {
-                            file: conflictedFile
-                        };
-
-                        if (conflictedFile.tags.indexOf('deletedbyus') > -1 || conflictedFile.tags.indexOf('deletedbythem') > -1) {
-                            // no diff for this file. Pick an option to keep or delete this file.
-                            return;
-                        }
-
-                        return gitfunctions.getFileDiff(conflictedFile.name, conflictedFile.tags).then(function (diff) {
-                            if (typeof diff == 'object') {
-                                diff = diff.output.join('\n').trim();
-                                // TODO: Handle errors here.. probably CRLF errors.
-                            }
-                            var conflictDetails = parseDiff(diff);
-                            vm.diffOnConflictModal.safeDiff = $sce.trustAsHtml(conflictDetails[0].diff);
-                        });
-                    }
-
                     function showModalToHandleConflict() {
-                        $conflictModal.modal('show');
+                        vm.modals.conflict.modal('show');
                     }
 
                     function initLogContextMenu() {
@@ -576,7 +429,7 @@
                         $responseModal.title('Rebasing');
                         $responseModal.show();
                         return repoDetailService.rebaseCurrentBranchOn(branchNameOrRevision).then(function (d) {
-                            $responseModal.bodyHtml(d.output.join('\n').trim().replace('\n', '<br />'));
+                            $responseModal.bodyHtml(d.output.join('\n').trim().replace('\n', '<br /><br />'));
                             refreshLocalChanges();
                             refreshLog();
                         });
@@ -919,7 +772,7 @@
                     }
 
                     function refreshLocalChanges() {
-                        return repoDetailService.refreshLocalChanges().then(function (data) {
+                        return gitfunctions.refreshLocalChanges().then(function (data) {
                             if (data.progress) {
                                 vm.progress = {};
                                 switch (data.progress) {
@@ -1067,7 +920,6 @@
         });
 
     repoDetailModule.service('repoDetailService', ['$http', '$q', function ($http, $q) {
-        this.refreshLocalChanges = refreshLocalChanges;
         this.getCommits = getCommits;
         this.getCommit = getCommit;
         this.getDiff = getDiffBetweenCommits;
@@ -1077,13 +929,7 @@
         this.checkoutLocalBranch = checkoutLocalBranch;
         this.rebaseCurrentBranchOn = rebaseCurrentBranchOn;
         this.doResetHEADFile = doResetHEADFile;
-        this.abortRebase = abortRebase;
-        this.continueRebase = continueRebase;
-        this.removeFile = removeFile;
-        this.skipRebase = skipRebase;
         this.mergeIntoCurrent = mergeIntoCurrent;
-        this.abortMerge = abortMerge;
-
         this.searchForText = searchForText;
 
         return;
@@ -1094,32 +940,8 @@
             });
         }
 
-        function abortMerge() {
-            return $http.post('/repo/' + repoName + '/abortmerge').then(function (res) {
-                return res.data;
-            });
-        }
-
         function mergeIntoCurrent(branchName) {
             return $http.post('/repo/' + repoName + '/merge', { obj: branchName }).then(function (res) {
-                return res.data;
-            });
-        }
-
-        function skipRebase() {
-            return $http.post('/repo/' + repoName + '/skiprebase').then(function (res) {
-                return res.data;
-            });
-        }
-
-        function continueRebase() {
-            return $http.post('/repo/' + repoName + '/continuerebase').then(function (res) {
-                return res.data;
-            });
-        }
-
-        function abortRebase() {
-            return $http.post('/repo/' + repoName + '/abortrebase').then(function (res) {
                 return res.data;
             });
         }
@@ -1193,30 +1015,6 @@
         function getCommits(page) {
             page = page || 1;
             return $http.get('/repo/' + repoName + '/getrepolog?page=' + page).then(function (res) {
-                return res.data;
-            });
-        }
-
-        function refreshLocalChanges() {
-            return $http.get('/repo/' + repoName + '/refreshlocal').then(function (res) {
-                if (!res.data.errorCode) {
-                    return {
-                        progress: res.data.extraInfo && res.data.extraInfo.progress,
-                        localStatus: res.data.output.join('\n')
-                    };
-                }
-                return res.data;
-            });
-        }
-
-        function removeFile(name, tags) {
-            return $http.post('/repo/' + repoName + '/removefile', {
-                name: name,
-                tags: tags.join(',')
-            }).then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data;
-                }
                 return res.data;
             });
         }

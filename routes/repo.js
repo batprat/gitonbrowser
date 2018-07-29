@@ -17,7 +17,7 @@ router.get('/', function (req, res, next) {
 
 router.get('/:id', function (req, res) {
     let repo = req.params.id;
-    res.render('repo', { title: repo });
+    res.render('repo', { title: decodeURIComponent(repo) });
 });
 
 router.get('/:id/getrepolog', function (req, res) {

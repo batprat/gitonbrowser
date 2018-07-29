@@ -219,69 +219,15 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="conflict-modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Handle {{vm.progress.type}} conflict</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                </div>
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="conflict-explaination">
-                                    Mark all conflicts as resolved to continue. You may abort at any time.
-                                </div>
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h6 ng-if="filteredConflictedFiles.length > 0" class="card-title">Fix conflicts in the following files using your editor.<br />Then select each file and mark it as resolved.</h6>
-                                        <h6 ng-if="filteredConflictedFiles.length == 0" class="card-title">Now we can continue merging.</h6>
-                                        <files-list 
-                                            tag-to-filter="'conflictedunstaged'" 
-                                            selected-file="vm.diffOnConflictModal.file.diff" 
-                                            on-select="vm.showDiffOnConflictModal(file)" 
-                                            files="vm.localStatus"
-                                            badge-type="'warning'"
-                                            badge-popover-details="vm.getMetaOfConflictedFile(file)">
-                                        </files-list>
-                                        <div class="conflict-modal-selected-file-actions">
-                                            <button class="btn btn-primary pull-right btn-conflict-action" ng-show="vm.diffOnConflictModal.file" ng-click="vm.markFileAsResolvedDuringConflict(true)" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="{{ vm.showRemoveFileBtnOnConflictModal() ? 'Click me if you want to keep this file.' : 'Click me after making sure you have fixed all conflicts in the selected file.' }}">{{ vm.showRemoveFileBtnOnConflictModal() ? 'Keep File' :'Mark Resolved' }}</button>
-                                            <button class="btn btn-primary pull-right btn-conflict-action" ng-show="vm.showRemoveFileBtnOnConflictModal()" ng-click="vm.markFileAsResolvedDuringConflict(false)" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="top" data-content="Click me if you want to delete this file.">Delete File</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="container-fluid conflict-modal-action-btns-container">
-                                    <div class="row">
-                                        <div class="col" ng-if="vm.progress.type == 'merge'">
-                                            <label class="" for="conflict-commit-message">Commit Message</label>
-                                            <textarea id="conflict-commit-message" class="form-control" ng-model="vm.mergeConflictCommitMessage"></textarea>
-                                        </div>
-                                        <div class="col" ng-if="vm.progress.type == 'rebase'">
-                                            <div class="conflict-actions">
-                                                <button class="btn btn-primary pull-right" ng-click="vm.continueRebase()">Continue Rebase</button>
-                                                <button class="btn btn-danger pull-right" ng-click="vm.abortRebase()">Abort Rebase</button>
-                                            </div>
-                                        </div>
-                                        <div class="col merge-conflict-actions" ng-if="vm.progress.type == 'merge'">
-                                            <div class="conflict-actions" ng-if="vm.progress.type == 'merge'">
-                                                <button class="btn btn-primary pull-right" ng-click="vm.continueMerge()" ng-disabled="filteredConflictedFiles.length > 0 || vm.mergeConflictCommitMessage.length == 0">Continue Merge</button>
-                                                <button class="btn btn-danger pull-right" ng-click="vm.abortMerge()">Abort Merge</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div id="conflict-dialog-diff" class="card-body diff" ng-if="vm.diffOnConflictModal.safeDiff" ng-bind-html="vm.diffOnConflictModal.safeDiff"></div>
-                                <div class="conflict-dialog-diff-placeholder" ng-if="!vm.diffOnConflictModal.safeDiff"><span>Select conflicted file to view diff</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <conflict-modal
+        modal="vm.modals.conflict"
+        progress="vm.progress"
+        parse-diff="vm.parseDiff(diff)"
+        local-status="vm.localStatus"
+        refresh-local-changes="vm.refreshLocalChanges()"
+        refresh-log="vm.refreshLog()"
+        parse-local-status="vm.parseLocalStatus(data)"
+    ></conflict-modal>
     <cherrypick-modal
         modal="vm.modals.cherrypick"
         refresh-log="vm.refreshLog()"
