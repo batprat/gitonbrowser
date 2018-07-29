@@ -236,4 +236,10 @@ router.post('/:id/checkoutremotebranch', (req, res) => {
     git.checkoutRemoteBranch({ repo, req, res });
 });
 
+router.post('/:id/resetfile', (req, res) => {
+    let repo = req.params.id;
+
+    git.resetFile({ repo, req, res });
+});
+
 module.exports = router;

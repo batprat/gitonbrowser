@@ -24,8 +24,21 @@
             abortRebase: abortRebase,
             abortMerge: abortMerge,
             getMergeMsg: getMergeMsg,
-            checkoutRemoteBranch: checkoutRemoteBranch
+            checkoutRemoteBranch: checkoutRemoteBranch,
+            resetFile: resetFile
         };
+
+        function resetFile(file, tags) {
+            return $http.post('/repo/' + repoName + '/resetfile', {
+                fileName: encodeURIComponent(file),
+                tags: tags
+            }).then(function (res) {
+                if (!res.data.errorCode) {
+                    return res.data.output.join('\n');
+                }
+                return res.data;
+            });
+        }
 
         function checkoutRemoteBranch(branchName) {
             return $http.post('/repo/' + repoName + '/checkoutremotebranch', { branchName: branchName }).then(function (res) {

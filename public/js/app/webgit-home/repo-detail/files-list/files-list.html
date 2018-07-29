@@ -1,9 +1,9 @@
 <div class="files-list">
     <div>
-        <div tabindex="-1" ng-keyup="keyup(file, $index, $event)" class="file list-item-selector" ng-repeat="file in (filteredFiles = (files | filter:fileFilter))" ng-click="select(file)" ng-class="{'selected': selectedFile === file.diff}" on-finish-render="ngRepeatFinished">
+        <div tabindex="-1" ng-keyup="$ctrl.keyup(file, $index, $event)" class="file list-item-selector" ng-repeat="file in ($ctrl.filteredFiles = ($ctrl.files | filter:$ctrl.fileFilter))" ng-click="$ctrl.select(file)" ng-class="{'selected': $ctrl.selectedFile === file.diff}" on-finish-render="ngRepeatFinished">
             <div>
-                <span ng-if="!badgeType" class="fa file-type-badge" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span>
-                <span ng-if="badgeType" class="badge conflict-badge badge-{{badgeType}}" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="right" data-content="{{badgePopoverContent(file, 'description')}}" >{{ badgePopoverContent(file, 'name') }}</span>
+                <span ng-if="!$ctrl.badgeType" class="fa file-type-badge" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span>
+                <span ng-if="$ctrl.badgeType" class="badge conflict-badge badge-{{$ctrl.badgeType}}" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="right" data-content="{{$ctrl.badgePopoverContent(file, 'description')}}" >{{ $ctrl.badgePopoverContent(file, 'name') }}</span>
                 &nbsp;
                 <span title="{{file.fileName}}">{{file.name}}</span>
             </div>

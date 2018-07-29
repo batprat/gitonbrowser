@@ -13,7 +13,7 @@
                             <div class="row">
                                 <div class="col-sm-12" id="commit-dialog-unstaged-files">
                                     <div class="panel-name">Unstaged Files</div>
-                                    <files-list tag-to-filter="'unstaged'" selected-file="$ctrl.diffOnCommitModal.file.diff" on-select="$ctrl.showDiffForFileOnCommitModal(file)" files="$ctrl.localStatus"></files-list>
+                                    <files-list keyboard-shortcuts="$ctrl.getKeyboardShortcuts(tag)" tag-to-filter="'unstaged'" selected-file="$ctrl.diffOnCommitModal.file.diff" on-select="$ctrl.showDiffForFileOnCommitModal(file)" files="$ctrl.localStatus"></files-list>
                                 </div>
                             </div>
                             <div class="row staging-action-buttons-container">
@@ -27,7 +27,7 @@
                             <div class="row">
                                 <div class="col-sm-12" id="commit-dialog-staged-files">
                                     <div class="panel-name">Staged Files</div>
-                                    <files-list tag-to-filter="'staged'" selected-file="$ctrl.diffOnCommitModal.file.diff" on-select="$ctrl.showDiffForFileOnCommitModal(file)" files="$ctrl.localStatus"></files-list>
+                                    <files-list keyboard-shortcuts="$ctrl.getKeyboardShortcuts(tag)" tag-to-filter="'staged'" selected-file="$ctrl.diffOnCommitModal.file.diff" on-select="$ctrl.showDiffForFileOnCommitModal(file)" files="$ctrl.localStatus"></files-list>
                                 </div>
                             </div>
                         </div>

@@ -48,17 +48,32 @@ let git = {
     searchForText,
     cherrypick,
     getMergeMsg,
-    checkoutRemoteBranch
+    checkoutRemoteBranch,
+    resetFile
 };
 
 module.exports = git;
 
 return;
 
+
+function resetFile({ req, res, repo }) {
+    let fileName = decodeURIComponent(req.body.fileName);
+    
+    if (fileName.indexOf('"') > -1) {
+        fileName = fileName.replace(/\"/g, '');
+    }
+
+    let tags = req.body.tags;
+
+    const child = spawnGitProcess(repo, ['checkout', '--', fileName]);
+    redirectIO(child, req, res);
+}
+
 function checkoutRemoteBranch({ req, res, repo }) {
     let branchName = req.body.branchName;
 
-    const child = spawnGitProcess(repo, ['checkout', '-B', branchName.substring('origin/'.length), branchName]);    
+    const child = spawnGitProcess(repo, ['checkout', '-B', branchName.substring('origin/'.length), branchName]);
     redirectIO(child, req, res);
 }
 

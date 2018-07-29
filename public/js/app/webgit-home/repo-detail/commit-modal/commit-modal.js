@@ -12,7 +12,7 @@
             refreshLog: '&',
             showPushDialog: '&'
         },
-        controller: ['$element', '$sce', 'gitfunctions', '$responseModal', function commitModalController($element, $sce, gitfunctions, $responseModal) {
+        controller: ['$element', '$sce', 'gitfunctions', '$responseModal', '$confirmationModal', function commitModalController($element, $sce, gitfunctions, $responseModal, $confirmationModal) {
             var ctrl = this;
             ctrl.gitfunctions = gitfunctions;
             ctrl.$onInit = function() {
@@ -23,7 +23,7 @@
                     showDefaultFileOnCommitModalDialog();
                 });
                 ctrl.modal.one('hide.bs.modal', function () {
-                    vm.diffOnCommitModal = null;
+                    ctrl.diffOnCommitModal = null;
                 });
             };
 
@@ -43,14 +43,47 @@
             ctrl.commitAndPush = commitAndPush;
             ctrl.showResetAllFilesModal = showResetAllFilesModal;
             ctrl.showResetUnstagedFilesModal = showResetUnstagedFilesModal;
-
             ctrl.showDiffForFileOnCommitModal = showDiffForFileOnCommitModal;
+            ctrl.getKeyboardShortcuts = getKeyboardShortcuts;
 
 
             // TODO: remove the following line
             window.commitModal = ctrl;
 
             return;
+
+            function getKeyboardShortcuts(type) {
+                switch(type) {
+                    case 'unstaged': {
+                        return {
+                            s: stageFile,
+                            r: resetFile
+                        };
+                        break;
+                    }
+                    case 'staged': {
+                        return {
+                            u: unstageFile
+                        };
+                        break;
+                    }
+                }
+            }
+
+            function resetFile() {
+                $confirmationModal.title('Warning');
+                $confirmationModal.bodyHtml('Your unstaged changes to the selected file will be lost.<br />Are you sure?');
+                $confirmationModal.show().then(function() {
+                    return gitfunctions.resetFile(ctrl.fileSelectedOnCommitModal.name, ctrl.fileSelectedOnCommitModal.tags).then(function (res) {
+                        // TODO: Handle errors here. Probably CRLF errors.
+                        if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
+                            return ctrl.refreshLocalChanges().then(function(localStatus) {
+                                showDiffForFileOnCommitModal(localStatus[0]);
+                            });
+                        }
+                    });
+                });
+            }
 
             function showResetUnstagedFilesModal() {
                 ctrl.modals.resetUnstaged.modal('show');
@@ -115,7 +148,7 @@
                 gitfunctions.stageAllFiles().then(function (res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                        vm.refreshLocalChanges();
+                        ctrl.refreshLocalChanges();
                     }
                 });
             }
@@ -124,7 +157,7 @@
                 gitfunctions.unstageAllFiles().then(function (res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                        vm.refreshLocalChanges();
+                        ctrl.refreshLocalChanges();
                     }
                 });
             }
@@ -136,6 +169,8 @@
 
             function showDiffForFileOnCommitModal(file) {
                 if(!file) {
+                    ctrl.diffOnCommitModal.safeDiff = '';
+                    ctrl.diffOnCommitModal.file = null;
                     return;
                 }
                 if (file.tags.indexOf('bothmodified') > -1 && file.tags.indexOf('staged') > -1) {
@@ -166,12 +201,12 @@
             }
 
             function showDefaultFileOnCommitModalDialog() {
-                var fileToSelect = vm.unstagedFiles.length > 0 ? vm.unstagedFiles[0] : vm.stagedFiles[0];
+                var fileToSelect = ctrl.unstagedFiles.length > 0 ? ctrl.unstagedFiles[0] : ctrl.stagedFiles[0];
                 showDiffForFileOnCommitModal(fileToSelect);
             }
 
             function unselectFilesAfterLocalRefresh() {
-                vm.diffOnConflictModal = null;
+                ctrl.diffOnConflictModal = null;
                 showDefaultFileOnCommitModalDialog();
             }
         }]
