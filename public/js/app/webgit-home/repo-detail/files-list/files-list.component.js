@@ -34,17 +34,32 @@
                     return '';
                 };
 
-                // if($scope.badgePopoverDetails) {
-                //     $timeout(function() {
-                //         $('[data-toggle="popover"]').popover();
-                //     });
-                // }
-
                 $scope.$on('ngRepeatFinished', function (ngRepeatFinishedEvent) {
                     //you also get the actual event object
                     //do stuff, execute functions -- whatever...
                     $('[data-toggle="popover"]').popover();
                 });
+
+                $scope.keyup = function(file, $idx, e) {
+                    switch(e.keyCode) {
+                        case 40: {
+                            // down arrow
+                            if($scope.filteredFiles.length > $idx + 1) {
+                                $scope.select($scope.filteredFiles[$idx + 1]);
+                                $(e.currentTarget).next().focus();
+                            }
+                            break;
+                        }
+                        case 38: {
+                            // up arrow
+                            if($idx > 0) {
+                                $scope.select($scope.filteredFiles[$idx - 1]);
+                                $(e.currentTarget).prev().focus();
+                            }
+                            break;
+                        }
+                    }
+                }
 
                 bindContextMenu();
 
@@ -77,8 +92,7 @@
                                             console.log('copying', name);
                                             UtilsService.copyToClipboard(name);
                                         },
-                                        className: 'copy-text',
-                                        'data-praty': 'Rocks'
+                                        className: 'copy-text'
                                     }
                                 }
                             };
@@ -88,19 +102,7 @@
                     });
                 }
             }],
-            link: function (scope, element, attr) {
-                // debugger;
-                // element.on('contextmenu', '.list-item-selector', function() {
-                //     console.log('context menu');
-                // });
-
-                // $.contextMenu({
-                //     selector: element.find('.list-item-selector'),
-                //     build: function($trigger, e) {
-                        
-                //     }
-                // });
-            }
+            link: function (scope, element, attr) {}
         };
     });
 })();
