@@ -46,12 +46,44 @@ let git = {
     searchForCommitMessage,
     getSettings,
     searchForText,
-    cherrypick
+    cherrypick,
+    getMergeMsg,
+    checkoutRemoteBranch
 };
 
 module.exports = git;
 
 return;
+
+function checkoutRemoteBranch({ req, res, repo }) {
+    let branchName = req.body.branchName;
+
+    const child = spawnGitProcess(repo, ['checkout', '-B', branchName.substring('origin/'.length), branchName]);    
+    redirectIO(child, req, res);
+}
+
+function getMergeMsg({ req, res, repo }) {
+    let readFilePromise = utils.readMergeMsg(repo);
+
+    readFilePromise.then((data) => {
+        let op = {
+            errorCode: 0,
+            output: data
+        };
+
+        if (res) {
+            sendResponse(res, op);
+        }
+    }).catch((err) => {
+        let op = {
+            errorCode: 1,
+            errors: err
+        }
+        if (res) {
+            sendResponse(res, op);
+        }
+    });
+}
 
 function cherrypick({ req, res, repo }) {
     let hash = req.body.hash,

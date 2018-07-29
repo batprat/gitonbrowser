@@ -20,8 +20,8 @@
     repoDetailModule
         .component('repoDetail', {
             templateUrl: '/js/app/webgit-home/repo-detail/repo-detail.html',
-            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService', '$timeout', 'gitfunctions', '$responseModal',
-                function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService, $timeout, gitfunctions, $responseModal) {
+            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService', '$timeout', 'gitfunctions', '$responseModal', '$confirmationModal',
+                function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService, $timeout, gitfunctions, $responseModal, $confirmationModal) {
                     $sce = $sceLocal;
                     repoName = encodeURIComponent(decodeURIComponent($routeParams.repoName));
 
@@ -214,6 +214,8 @@
                                 var commitHash = $trigger.data('commitHash');
                                 var commit = vm.commitMap[commitHash];
                                 var hasLocalBranches = commit && commit.localBranches && commit.localBranches.length > 0;
+                                var hasRemoteBranches = commit && commit.remoteBranches && commit.remoteBranches.length > 0;
+                                
                                 var options = {
                                     items: {
                                         createNewBranch: {
@@ -224,7 +226,7 @@
                                         },
                                         checkoutBranch: {
                                             name: 'Checkout branch',
-                                            disabled: !hasLocalBranches
+                                            disabled: !hasLocalBranches && !hasRemoteBranches
                                         },
                                         rebaseBranchOn: {
                                             name: 'Rebase current branch on',
@@ -260,6 +262,19 @@
                                         };
                                     }
                                 }
+
+                                if(hasRemoteBranches) {
+                                    options.items.checkoutBranch.items = options.items.checkoutBranch.items || {};
+
+                                    for(var i = 0; i < commit.remoteBranches.length; i++) {
+                                        options.items.checkoutBranch.items[commit.remoteBranches[i]] = {
+                                            name: commit.remoteBranches[i],
+                                            callback: checkoutRemoteBranch
+                                        };
+                                    }
+                                }
+
+
 
                                 // rebase options - start
                                 if (hasLocalBranches || (commit.remoteBranches && commit.remoteBranches.length > 0)) {
@@ -443,6 +458,31 @@
                             $responseModal.title('Checkout Branch');
                             $responseModal.bodyHtml(d.errors.join('\n').trim().replace('\n', '<br />'));
                             $responseModal.show();
+                        });
+                    }
+
+                    function checkoutRemoteBranch(branchName) {
+                        console.log('I wanna checkout ', branchName);
+                        // when checking out a remote branch, if its local counterpart is present, we need to show a warning modal that head of that branch will be reset to its origin head.
+                        $confirmationModal.title('Warning!');
+                        $confirmationModal.bodyHtml('This will reset local branch with the name "' + branchName.substring('origin/'.length) + '"');
+                        var promise = $confirmationModal.show();
+
+                        promise.then(function() {
+                            // checkout remote branch.
+                            gitfunctions.checkoutRemoteBranch(branchName).then(function(d) {
+                                $responseModal.title('Checking out ' + branchName);
+                                if(d.errorCode) {
+                                    $responseModal.bodyHtml(d.errors.join('\n').trim().replace('\n', '<br />'));
+                                }
+                                else {
+                                    $responseModal.bodyHtml(d.output.join('\n').trim().replace('\n', '<br />'));
+                                }
+                                $responseModal.show();
+                                refreshLog();
+                            });
+                        }).catch(function() {
+                            // do nothing.
                         });
                     }
 

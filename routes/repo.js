@@ -223,4 +223,17 @@ router.post('/:id/cherrypick', (req, res) => {
     git.cherrypick({ repo, req, res });
 });
 
+
+router.post('/:id/getmergemsg', (req, res) => {
+    let repo = req.params.id;
+
+    git.getMergeMsg({ repo, req, res });
+});
+
+router.post('/:id/checkoutremotebranch', (req, res) => {
+    let repo = req.params.id;
+
+    git.checkoutRemoteBranch({ repo, req, res });
+});
+
 module.exports = router;

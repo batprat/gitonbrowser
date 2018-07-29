@@ -1,4 +1,4 @@
-const { lstatSync, readdirSync, existsSync, mkdirSync, access, constants } = require('fs');
+const { lstatSync, readdirSync, existsSync, mkdirSync, access, constants, readFile } = require('fs');
 const { join } = require('path');
 let repos = require('../data/repos.json');
 
@@ -16,7 +16,8 @@ let utils = {
     getRevertHeadPath,
     getMergeHeadPath,
     getRebaseHeadPath,
-    interactiveRebaseHeadPath
+    interactiveRebaseHeadPath,
+    readMergeMsg
 };
 
 // using https://stackoverflow.com/questions/3921409/how-to-know-if-there-is-a-git-rebase-in-progress
@@ -35,6 +36,22 @@ function getMergeHeadPath(repo) {
 
 function getRevertHeadPath(repo) {
     return decodePath(repo) + '/.git/REVERT_HEAD';
+}
+
+function getMergeMsgPath(repo) {
+    return decodePath(repo) + '/.git/MERGE_MSG';
+}
+
+function readMergeMsg(repo) {
+    let path = getMergeMsgPath(repo);
+    return new Promise((resolve, reject) => {
+        readFile(path, 'utf8', (err, data) => {
+            if(err) {
+                return reject(err);
+            }
+            return resolve(data);
+        });
+    });
 }
 
 

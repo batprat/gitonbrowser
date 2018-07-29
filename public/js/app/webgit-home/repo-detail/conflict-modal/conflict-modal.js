@@ -18,6 +18,14 @@
 
                 ctrl.modal.on('shown.bs.modal', function() {
                     showDiffOnConflictModal(ctrl.localStatus.filter(function(f) { return f.tags.indexOf('conflictedunstaged') > -1; })[0]);
+
+                    if(ctrl.progress && ctrl.progress.type == 'merge') {
+                        gitfunctions.getMergeMsg().then(function(d) {
+                            if(!d.errorCode) {
+                                ctrl.mergeConflictCommitMessage = d.output;
+                            }
+                        });
+                    }
                 });
             };
 

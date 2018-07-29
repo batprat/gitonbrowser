@@ -22,8 +22,22 @@
             skipRebase: skipRebase,
             continueRebase: continueRebase,
             abortRebase: abortRebase,
-            abortMerge: abortMerge
+            abortMerge: abortMerge,
+            getMergeMsg: getMergeMsg,
+            checkoutRemoteBranch: checkoutRemoteBranch
         };
+
+        function checkoutRemoteBranch(branchName) {
+            return $http.post('/repo/' + repoName + '/checkoutremotebranch', { branchName: branchName }).then(function (res) {
+                return res.data;
+            });
+        }
+
+        function getMergeMsg() {
+            return $http.post('/repo/' + repoName + '/getmergemsg').then(function (res) {
+                return res.data;
+            });
+        }
 
         function abortMerge() {
             return $http.post('/repo/' + repoName + '/abortmerge').then(function (res) {

@@ -1,4 +1,3 @@
-. Populate conflict modal's commit message text area with .git/MERGE_MSG
 . Revert commit
 . Show remote on push modal
 . Delete local branch
@@ -10,7 +9,6 @@
 . Show file history
 . Select default branch that matches the current branch name in push modal
 . Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
-. Checkout remote branch        // git checkout -B "master" "origin/master"
 . Checkout commit
 . Select multiple files while staging, unstaging, rebase modal, etc.
 . Prevent CSRF attacks.
@@ -88,3 +86,5 @@
 -. Handle cherrypick
 -.[bug] Investigate why "Repo in conflict" did not come up when I had a conflict while applying stash.
 -. Modularize file selectors
+-. Checkout remote branch        // git checkout -B "master" "origin/master"
+-. Populate conflict modal's commit message text area with .git/MERGE_MSG
