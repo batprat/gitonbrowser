@@ -26,8 +26,15 @@
             getMergeMsg: getMergeMsg,
             checkoutRemoteBranch: checkoutRemoteBranch,
             resetFile: resetFile,
-            pull: pull
+            pull: pull,
+            createNewBranch: createNewBranch
         };
+
+        function createNewBranch(revision, branchName, checkoutAfterCreate) {
+            return $http.post('/repo/' + repoName + '/createnewbranch', { revision: revision, branchName: branchName, checkoutAfterCreate: checkoutAfterCreate }).then(function (res) {
+                return res.data;
+            });
+        }
 
         function pull(options) {
             var remoteBranch = options.remoteBranch,

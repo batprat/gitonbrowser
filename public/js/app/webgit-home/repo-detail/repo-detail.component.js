@@ -2,8 +2,6 @@
 (function () {
     var repoDetailModule = angular.module('RepoDetailModule', ['ngRoute']);
     var repoName = null;
-    var $newBranchModal = null;
-    var $conflictModal = null;
 
     var $sce = null;
 
@@ -33,8 +31,6 @@
 
                     var $mainLogContainer = $('#main-log-container');
                     var $mainLogLoadingIndicator = $('#main-log-loading-indicator');
-                    $newBranchModal = $('#new-branch-modal');
-                    $conflictModal = $('#conflict-modal');
 
                     vm.modals = {
                         commit: null,
@@ -42,7 +38,8 @@
                         stash: null,
                         cherrypick: null,
                         conflict: null,
-                        pull: null
+                        pull: null,
+                        newBranch: null
                     };
 
                     vm.selectedCommit = null;
@@ -56,7 +53,6 @@
                     vm.showCommitDialog = showCommitDialog;
                     vm.showPullDialog = showPullDialog;
                     vm.showStashDialog = showStashDialog;
-                    vm.createNewBranch = createNewBranch;
                     vm.showModalToHandleConflict = showModalToHandleConflict;
                     
                     vm.mainSearch = mainSearch;
@@ -73,11 +69,6 @@
                     
 
                     vm.commitMap = {};
-                    vm.newBranch = {
-                        atRevision: '',
-                        name: '',
-                        checkout: true
-                    };
 
                     vm.diffOnConflictModal = null;
 
@@ -480,28 +471,11 @@
                         });
                     }
 
-                    function createNewBranch() {
-                        var revision = vm.newBranch.atRevision;
-                        var checkoutAfterCreate = vm.newBranch.checkout;
-                        var branchName = vm.newBranch.name;
-                        return repoDetailService.createNewBranch(revision, branchName, checkoutAfterCreate).then(function (d) {
-                            $newBranchModal.modal('hide');
-                            var text = d.errors.join('\n').trim();
-                            if (text.length) {
-                                $responseModal.title('Create New Branch');
-                                $responseModal.bodyHtml(text.replace('\n', '<br />'));
-                                $responseModal.show();
-                            }
-                            refreshLog();
-                        });
-                    }
-
                     function showNewBranchModal(commitHash) {
-                        vm.newBranch.atRevision = commitHash;
-                        vm.newBranch.name = '';
-                        vm.newBranch.checkout = true;
-                        $newBranchModal.modal('show');
-                        $scope.$apply();                        // guilty :(
+                        vm.newBranchAtRevision = commitHash;
+                        vm.modals.newBranch.modal('show');
+
+                        $scope.$apply();                        // to populate newBranchAtRevision. guilty :(
                     }
 
                     
@@ -946,7 +920,6 @@
         this.getCommit = getCommit;
         this.getDiff = getDiffBetweenCommits;
         this.initRepo = initRepo;
-        this.createNewBranch = createNewBranch;
         this.checkoutLocalBranch = checkoutLocalBranch;
         this.rebaseCurrentBranchOn = rebaseCurrentBranchOn;
         this.doResetHEADFile = doResetHEADFile;
@@ -987,12 +960,6 @@
             return $http.post('/repo/' + repoName + '/checkoutlocalbranch', {
                 branchName: encodeURIComponent(branchName)
             }).then(function (res) {
-                return res.data;
-            });
-        }
-
-        function createNewBranch(revision, branchName, checkoutAfterCreate) {
-            return $http.post('/repo/' + repoName + '/createnewbranch', { revision: revision, branchName: branchName, checkoutAfterCreate: checkoutAfterCreate }).then(function (res) {
                 return res.data;
             });
         }
