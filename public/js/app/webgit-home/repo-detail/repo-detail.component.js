@@ -33,9 +33,6 @@
 
                     var $mainLogContainer = $('#main-log-container');
                     var $mainLogLoadingIndicator = $('#main-log-loading-indicator');
-
-                    
-                    $pullModal = $('#pull-modal');
                     $newBranchModal = $('#new-branch-modal');
                     $conflictModal = $('#conflict-modal');
 
@@ -44,7 +41,8 @@
                         push: null,
                         stash: null,
                         cherrypick: null,
-                        conflict: null
+                        conflict: null,
+                        pull: null
                     };
 
                     vm.selectedCommit = null;
@@ -58,7 +56,6 @@
                     vm.showCommitDialog = showCommitDialog;
                     vm.showPullDialog = showPullDialog;
                     vm.showStashDialog = showStashDialog;
-                    vm.pull = pull;
                     vm.createNewBranch = createNewBranch;
                     vm.showModalToHandleConflict = showModalToHandleConflict;
                     
@@ -73,9 +70,6 @@
                     vm.remoteBranches = [];
                     vm.currentLocalBranch = null;
                     vm.localBranches = [];
-                    vm.pullOptions = {
-                        mergeOption: 'merge'
-                    };
                     
 
                     vm.commitMap = {};
@@ -519,18 +513,6 @@
                         vm.modals.stash.modal('show');
                     }
 
-                    function pull() {
-                        $responseModal.title('Pulling');
-                        $responseModal.show();
-                        return repoDetailService.pull({
-                            remoteBranch: vm.pullOptions.remoteBranch,
-                            mergeOption: vm.pullOptions.mergeOption
-                        }).then(function (response) {
-                            $responseModal.bodyHtml(response.errors.join('').replace(/\n/g, '<br />') + response.output.join('').replace(/\n/g, '<br />'));
-                            // TODO: refresh the main log.
-                        });
-                    }
-
                     function initializeRemote() {
                         return repoDetailService.initRepo().then(function (d) {
                             vm.remote = d.remote;
@@ -543,14 +525,14 @@
                             vm.localBranches = d.localBranches;
 
                             // try to determine the default selected  remote branch in the pull dialog
-                            if (vm.remoteBranches.indexOf('origin/' + vm.currentLocalBranch) > -1) {
-                                vm.pullOptions.remoteBranch = 'origin/' + vm.currentLocalBranch;
+                            if (vm.remoteBranches.indexOf(vm.currentLocalBranch) > -1) {
+                                vm.currentRemoteBranch = vm.currentLocalBranch;
                             }
                         });
                     }
 
                     function showPullDialog() {
-                        $pullModal.modal('show');
+                        vm.modals.pull.modal('show');
                     }
 
                     function bindLazyLoadingCommits() {
@@ -964,7 +946,6 @@
         this.getCommit = getCommit;
         this.getDiff = getDiffBetweenCommits;
         this.initRepo = initRepo;
-        this.pull = pull;
         this.createNewBranch = createNewBranch;
         this.checkoutLocalBranch = checkoutLocalBranch;
         this.rebaseCurrentBranchOn = rebaseCurrentBranchOn;
@@ -1012,15 +993,6 @@
 
         function createNewBranch(revision, branchName, checkoutAfterCreate) {
             return $http.post('/repo/' + repoName + '/createnewbranch', { revision: revision, branchName: branchName, checkoutAfterCreate: checkoutAfterCreate }).then(function (res) {
-                return res.data;
-            });
-        }
-
-        function pull(options) {
-            var remoteBranch = options.remoteBranch,
-                mergeOption = options.mergeOption;
-
-            return $http.get('/repo/' + repoName + '/pull?remotebranch=' + remoteBranch + '&mergeoption=' + mergeOption).then(function (res) {
                 return res.data;
             });
         }

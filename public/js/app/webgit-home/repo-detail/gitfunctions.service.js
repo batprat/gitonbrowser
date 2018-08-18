@@ -25,8 +25,18 @@
             abortMerge: abortMerge,
             getMergeMsg: getMergeMsg,
             checkoutRemoteBranch: checkoutRemoteBranch,
-            resetFile: resetFile
+            resetFile: resetFile,
+            pull: pull
         };
+
+        function pull(options) {
+            var remoteBranch = options.remoteBranch,
+                mergeOption = options.mergeOption;
+
+            return $http.get('/repo/' + repoName + '/pull?remotebranch=' + remoteBranch + '&mergeoption=' + mergeOption).then(function (res) {
+                return res.data;
+            });
+        }
 
         function resetFile(file, tags) {
             return $http.post('/repo/' + repoName + '/resetfile', {
