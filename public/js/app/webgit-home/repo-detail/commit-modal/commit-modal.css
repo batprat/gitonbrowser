@@ -1,0 +1,4 @@
+#commit-dialog-staged-files, #commit-dialog-unstaged-files {
+    max-height: 40vh;
+    overflow-y: auto;
+}
