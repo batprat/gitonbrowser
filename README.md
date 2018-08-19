@@ -41,3 +41,5 @@ This is the list of features in this git client. There might be some features I 
 18. Handle Merge conflicts
 19. Search for SHAs
 20. Search for commit messages, authors, diff and file names
+21. Delete Local Branches
+22. Checkout local and remote branches

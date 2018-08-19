@@ -1,6 +1,5 @@
 . Revert commit
 . Show remote on push modal
-. Delete local branch
 . Delete remote branch
 . Handle passwords for cloning
 . Handle passwords for pushing
@@ -88,3 +87,4 @@
 -. Modularize file selectors
 -. Checkout remote branch        // git checkout -B "master" "origin/master"
 -. Populate conflict modal's commit message text area with .git/MERGE_MSG
+-. Delete local branch
