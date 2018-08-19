@@ -39,7 +39,8 @@
                         cherrypick: null,
                         conflict: null,
                         pull: null,
-                        newBranch: null
+                        newBranch: null,
+                        deleteLocalBranch: null
                     };
 
                     vm.selectedCommit = null;
@@ -226,6 +227,10 @@
                                             callback: function() {
                                                 showCherrypickModal(commitHash);
                                             }
+                                        },
+                                        deleteLocalBranch: {
+                                            name: 'Delete local branch',
+                                            items: {}
                                         }
                                     }
                                 };
@@ -245,6 +250,11 @@
                                             name: commit.localBranches[i],
                                             callback: mergeLocalBranch
                                         };
+
+                                        options.items.deleteLocalBranch.items[commit.localBranches[i]] = {
+                                            name: commit.localBranches[i],
+                                            callback: deleteLocalBranch
+                                        }
                                     }
                                 }
 
@@ -281,6 +291,13 @@
                                 return options;
                             }
                         });
+                    }
+
+                    function deleteLocalBranch(branchName) {
+                        vm.modals.deleteLocalBranch.modal('show');
+                        vm.localBranchToDelete = branchName;
+
+                        $scope.$apply();                        // again guilty :( as this is a non angular event.
                     }
 
                     function showCherrypickModal(hash) {
@@ -447,7 +464,6 @@
                     }
 
                     function checkoutRemoteBranch(branchName) {
-                        console.log('I wanna checkout ', branchName);
                         // when checking out a remote branch, if its local counterpart is present, we need to show a warning modal that head of that branch will be reset to its origin head.
                         $confirmationModal.title('Warning!');
                         $confirmationModal.bodyHtml('This will reset local branch with the name "' + branchName.substring('origin/'.length) + '"');

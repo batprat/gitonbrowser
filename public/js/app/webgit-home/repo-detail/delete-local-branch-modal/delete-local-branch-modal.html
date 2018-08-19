@@ -1,0 +1,26 @@
+<div class="modal fade" id="delete-local-branch-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Local Branch</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            Are you sure you want to delete the local branch, "{{$ctrl.localBranchToDelete}}"?
+                        </div>
+                        <div class="col-12">
+                            <label><input type="checkbox" ng-model="$ctrl.deleteLocalBranchOptions.force" /> Force Delete (even if not merged)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal" >Cancel</button>
+                <button class="btn btn-danger" ng-click="$ctrl.deleteLocalBranch()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

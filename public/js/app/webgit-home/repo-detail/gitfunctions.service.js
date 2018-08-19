@@ -27,8 +27,15 @@
             checkoutRemoteBranch: checkoutRemoteBranch,
             resetFile: resetFile,
             pull: pull,
-            createNewBranch: createNewBranch
+            createNewBranch: createNewBranch,
+            deleteLocalBranch: deleteLocalBranch
         };
+
+        function deleteLocalBranch(branchName, force) {
+            return $http.post('/repo/' + repoName + '/deletelocalbranch', { branchName: branchName, force: force }).then(function (res) {
+                return res.data;
+            });
+        }
 
         function createNewBranch(revision, branchName, checkoutAfterCreate) {
             return $http.post('/repo/' + repoName + '/createnewbranch', { revision: revision, branchName: branchName, checkoutAfterCreate: checkoutAfterCreate }).then(function (res) {

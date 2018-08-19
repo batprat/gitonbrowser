@@ -49,13 +49,31 @@ let git = {
     cherrypick,
     getMergeMsg,
     checkoutRemoteBranch,
-    resetFile
+    resetFile,
+    deleteLocalBranch
 };
 
 module.exports = git;
 
 return;
 
+function deleteLocalBranch({ req, res, repo }) {
+    let branchName = req.body.branchName;
+    let force = req.body.force;
+
+    let options = ['branch'];
+
+    if(force) {
+        options.push('-D');
+    }
+    else {
+        options.push('-d');
+    }
+    options.push(branchName);
+
+    const child = spawnGitProcess(repo, options);
+    redirectIO(child, req, res);
+}
 
 function resetFile({ req, res, repo }) {
     let fileName = decodeURIComponent(req.body.fileName);

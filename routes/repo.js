@@ -242,4 +242,10 @@ router.post('/:id/resetfile', (req, res) => {
     git.resetFile({ repo, req, res });
 });
 
+router.post('/:id/deletelocalbranch', (req, res) => {
+    let repo = req.params.id;
+
+    git.deleteLocalBranch({ repo, req, res });
+});
+
 module.exports = router;
