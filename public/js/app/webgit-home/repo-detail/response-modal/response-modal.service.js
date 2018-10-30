@@ -1,5 +1,5 @@
 (function() {
-    angular.module('RepoDetailModule').service('$responseModal', ['$http', '$routeParams', function ($http, $routeParams) {
+    angular.module('WebgitHomeModule').service('$responseModal', ['$http', '$routeParams', function ($http, $routeParams) {
         var $responseModalHtml = $(`
         <div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">

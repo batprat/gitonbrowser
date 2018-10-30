@@ -1,6 +1,11 @@
 body {
   padding: 0;
   margin: 0;
+  font-size: 12px;
+}
+
+.form-control, .btn {
+  font-size: 12px;
 }
 
 #response-body {

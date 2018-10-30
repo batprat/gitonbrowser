@@ -4,20 +4,9 @@
     webgitHomeModule.component('webgitHome', {
         templateUrl: '/js/app/webgit-home/webgit-home.html',
         controllerAs: 'vm',
-        controller: ['WebgitHomeService', '$location', 'UtilsService', '$timeout', function WebgitHomeController(WebgitHomeService, $location, utils, $timeout) {
+        controller: ['WebgitHomeService', '$location', 'UtilsService', '$timeout', '$responseModal', function WebgitHomeController(WebgitHomeService, $location, utils, $timeout, $responseModal) {
             var vm = this;
             var $cloneModal = $('#clone-modal');
-
-            var $responseModal = $('#response-modal');
-            var $responseModalTitle = $responseModal.find('#response-title');
-            var $responseModalBody = $responseModal.find('#response-body');
-
-
-            $responseModal.on('hide.bs.modal', function (e) {
-                $responseModalBody.html('');
-                $responseModalTitle.html('');
-            });
-
             vm.browsePath = '';
             vm.browse = browse;
             vm.openCloneModal = openCloneModal;
@@ -43,11 +32,12 @@
 
             function clone() {
                 // open the response modal.
-                $responseModalTitle.text('Cloning');
-                $responseModal.modal('show');
+
+                $responseModal.title('Cloning');
+                $responseModal.show();
                 return WebgitHomeService.clone(vm.pathOfRepoToClone, vm.pathOfDestination, vm.cloneSubdirectoryName).then(function (data) {
                     // close the modal.
-                    $responseModalBody.html(data.errors.join('<br />').replace(/\\n/g, '<br />'));
+                    $responseModal.bodyHtml(data.errors.join('<br />').replace(/\\n/g, '<br />'));
 
                     if (vm.openAfterCheckingOut === true) {
                         // close both modals
@@ -60,7 +50,7 @@
                             });
                             $cloneModal.modal('hide');
                         });
-                        $responseModal.modal('hide');
+                        $responseModal.hide();
                     }
                 });
             }
