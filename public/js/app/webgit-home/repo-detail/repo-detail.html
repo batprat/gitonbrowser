@@ -1,7 +1,7 @@
 <div class="repo-detail">
     <div class="working-directory-details-container">
         <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
-        <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">Commit {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
+        <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">{{vm.localStatus && vm.localStatus.length ? 'Commit' : 'No Local Changes'}} {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
         <button class="btn btn-secondary" title="Open Pull Dialog" ng-click="vm.showPullDialog()"><i class="fa fa-arrow-down" aria-hidden="true"></i> Pull...</button>
         <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i> Push...</button>
         <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()"><i class="fa fa-database"></i> Stash...</button>

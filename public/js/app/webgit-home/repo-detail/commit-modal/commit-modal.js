@@ -46,6 +46,8 @@
             ctrl.showDiffForFileOnCommitModal = showDiffForFileOnCommitModal;
             ctrl.getKeyboardShortcuts = getKeyboardShortcuts;
 
+            $element.find('.keyboard-shortcuts').popover();
+
 
             // TODO: remove the following line
             window.commitModal = ctrl;
@@ -112,7 +114,7 @@
                         return ctrl.refreshLocalChanges();
                     });
                 }).catch(function (err) {
-                    $responseModal.title('Error!');
+                    $responseModal.title('Response');
                     $responseModal.bodyHtml(err.join('<br />'));
                     $responseModal.show();
                 });
