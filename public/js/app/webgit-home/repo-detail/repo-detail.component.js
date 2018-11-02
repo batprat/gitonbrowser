@@ -506,7 +506,19 @@
                     function initializeRemote() {
                         return repoDetailService.initRepo().then(function (d) {
                             vm.remote = d.remote;
-                            vm.remoteBranches = d.remoteBranches.slice(1)
+                            var originHeadBranchIdx = -1;
+                            if(d.remoteBranches) {
+                                for(var i = 0; i < d.remoteBranches.length; i++) {
+                                    if(d.remoteBranches[i].indexOf('origin/HEAD -> ') > -1) {
+                                        originHeadBranchIdx = i;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(originHeadBranchIdx > -1) {
+                                d.remoteBranches.splice(originHeadBranchIdx, 1);
+                            }
+                            vm.remoteBranches = d.remoteBranches
                                 .map(function (b) {
                                     // remove `origin/` from the branch names.
                                     return b.substring('origin/'.length);
