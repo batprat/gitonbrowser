@@ -64,15 +64,8 @@
 
 .file-diff-column {
     border-left: 1px solid #CCC;
-    overflow: auto;
-    max-height: 100%;
-}
-
-.diff {
-    white-space: pre;
-    font-family: monospace;
-    background: #ffffff;
-    overflow: auto;
+    /*overflow: auto;
+    max-height: 100%;*/
 }
 
 .line-added {
@@ -102,12 +95,7 @@
 #commit-dialog-diff {
     background: #e2e1e0;
     padding: 15px;
-}
-
-#commit-dialog-diff .diff {
-    max-height: 200px;
-    overflow-y: auto;
-    white-space: pre;
+    max-height: 40vh;
 }
 
 .panel-name {

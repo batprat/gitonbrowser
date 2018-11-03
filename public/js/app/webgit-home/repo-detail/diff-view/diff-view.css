@@ -1,0 +1,12 @@
+diff-view {
+    display: block;
+    height: 100%;
+}
+
+.diff {
+    height: calc(100% - 18px);
+    overflow: auto;
+    background: #fff;
+    white-space: pre;
+    font-family: monospace;
+}

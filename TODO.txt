@@ -14,6 +14,7 @@
 . Handle CRLF errors.
 . Implement searching for branch name
 . Implement copy path for all paths (file-selector)
+.[bug] if a file with spaces in its name is staged, the selection of that file on the commit dialog is lost because of the extra doublequotes around it. To replicate, have 2 files modified, stage the file with spaces in its name. 
 .[bug] Show untracked files in stash
 .[bug] If a conflict happens when doing git pull --rebase, the conflict button doesnt show up. A page refresh makes it show up.
 .[find out]First non space character of a diff is plus or minus. Do we how it as an add line to the file?

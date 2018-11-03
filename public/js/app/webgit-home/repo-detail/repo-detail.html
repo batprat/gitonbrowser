@@ -76,7 +76,9 @@
                             <files-list files="vm.commitDetails.diffDetails" on-select="vm.selectFileInLog(file)" selected-file="vm.selectedFileDiffRaw"></files-list>
                         </div>
                         <div class="col-sm-8 file-diff-column height100">
-                            <div ng-bind-html="vm.selectedFileDiff" class="diff"></div>
+                            <diff-view
+                                safe-diff="vm.selectedFileDiff">
+                            </diff-view>
                         </div>
                     </div>
                 </div>

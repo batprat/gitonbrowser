@@ -51,8 +51,12 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div id="conflict-dialog-diff" class="card-body diff" ng-if="$ctrl.diffOnConflictModal.safeDiff" ng-bind-html="$ctrl.diffOnConflictModal.safeDiff"></div>
+                        <div class="col-6 conflict-modal-diff-container">
+                            <diff-view
+                                ng-if="$ctrl.diffOnConflictModal.safeDiff"
+                                safe-diff="$ctrl.diffOnConflictModal.safeDiff">
+                            </diff-view>
+
                             <div class="conflict-dialog-diff-placeholder" ng-if="!$ctrl.diffOnConflictModal.safeDiff"><span>Select conflicted file to view diff</span></div>
                         </div>
                     </div>
