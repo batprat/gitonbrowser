@@ -141,4 +141,10 @@
         local-branch-to-delete="vm.localBranchToDelete"
         refresh-log="vm.refreshLog()">
     </delete-local-branch-modal>
+    <revert-commit-modal
+        modal="vm.modals.revertCommit"
+        commit-to-revert="vm.commitToRevert"
+        refresh-log="vm.refreshLog()"
+        refresh-local-changes="vm.refreshLocalChanges()">
+    </revert-commit-modal>
 </div>

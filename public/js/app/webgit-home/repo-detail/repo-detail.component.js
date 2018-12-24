@@ -40,7 +40,8 @@
                         conflict: null,
                         pull: null,
                         newBranch: null,
-                        deleteLocalBranch: null
+                        deleteLocalBranch: null,
+                        revertCommit: null
                     };
 
                     vm.selectedCommit = null;
@@ -231,6 +232,12 @@
                                         deleteLocalBranch: {
                                             name: 'Delete local branch',
                                             items: {}
+                                        },
+                                        revertCommit: {
+                                            name: 'Revert commit',
+                                            callback: function() {
+                                                showRevertCommitModal(commitHash);
+                                            }
                                         }
                                     }
                                 };
@@ -291,6 +298,13 @@
                                 return options;
                             }
                         });
+                    }
+
+                    function showRevertCommitModal(commitHash) {
+                        vm.modals.revertCommit.modal('show');
+                        vm.commitToRevert = vm.commitMap[commitHash];
+
+                        $scope.$apply();                        // again guilty :( as this is a non angular event.
                     }
 
                     function deleteLocalBranch(branchName) {

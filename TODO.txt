@@ -1,4 +1,3 @@
-. Revert commit
 . Show remote on push modal
 . Delete remote branch
 . Handle passwords for cloning
@@ -29,7 +28,7 @@
  . Convert all get requests to post
 . Squash commits
 . Handle conflicts from merge, stash
-. Handle Rebase Cases       // https://git-scm.com/docs/git-status
+. Handle the following Rebase Cases       // https://git-scm.com/docs/git-status
  . unmerged, both deleted
  . unmerged, added by us
  . unmerged, added by them
@@ -43,6 +42,8 @@
 . Turn the asynchronous modals red at runtime if error occurs. (e.g. pulling, pushing)
 . Handle case when we fetch commits above the checked out commit. Then color the checked out commits and show the commits above with a disabled look.
 . Update without focusing - sockets
+
+DONE:
 -. Reset all changes
 -. Reset unstaged changes
 -1. Clone Repository - done
@@ -89,3 +90,4 @@
 -. Checkout remote branch        // git checkout -B "master" "origin/master"
 -. Populate conflict modal's commit message text area with .git/MERGE_MSG
 -. Delete local branch
+-. Revert commit

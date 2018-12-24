@@ -50,12 +50,32 @@ let git = {
     getMergeMsg,
     checkoutRemoteBranch,
     resetFile,
-    deleteLocalBranch
+    deleteLocalBranch,
+    revertCommit
 };
 
 module.exports = git;
 
 return;
+
+function revertCommit({ req, res, repo }) {
+    let hash = req.body.hash;
+    let doNotCommit = req.body.doNotCommit;
+
+    let options = ['revert'];
+
+    if(doNotCommit) {
+        options.push('--no-commit');
+    }
+    else {
+        options.push('--no-edit');
+    }
+
+    options.push(hash);
+
+    const child = spawnGitProcess(repo, options);
+    redirectIO(child, req, res);
+}
 
 function deleteLocalBranch({ req, res, repo }) {
     let branchName = req.body.branchName;

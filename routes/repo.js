@@ -248,4 +248,10 @@ router.post('/:id/deletelocalbranch', (req, res) => {
     git.deleteLocalBranch({ repo, req, res });
 });
 
+router.post('/:id/revertcommit', (req, res) => {
+    let repo = req.params.id;
+
+    git.revertCommit({ repo, req, res });
+});
+
 module.exports = router;

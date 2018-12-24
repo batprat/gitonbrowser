@@ -1,0 +1,37 @@
+<div class="modal fade" id="delete-local-branch-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Revert Commit</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            Are you sure you want to revert this commit, "<span class="font-weight-bold">{{$ctrl.commitToRevert.hash}}</span>"?
+                        </div>
+                        <div class="col-12" style="margin-top: 20px;">
+                            <span class="font-weight-bold">Commit Message: </span><span>{{$ctrl.commitToRevert.subject}}</span>
+                        </div>
+                        <div class="col-12">
+                            <span class="font-weight-bold">Author: </span><span>{{$ctrl.commitToRevert.name}}</span>
+                        </div>
+                        <div class="col-12" style="margin-bottom: 20px;">
+                            <span class="font-weight-bold">Date: </span><span>{{$ctrl.commitToRevert.date}}</span>
+                        </div>
+                        <div class="col-12">
+                            <label><input type="checkbox" ng-model="$ctrl.revertCommitOptions.doNotCommit" /> Do not commit</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" ng-click="$ctrl.revertCommit()">Revert</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -28,8 +28,15 @@
             resetFile: resetFile,
             pull: pull,
             createNewBranch: createNewBranch,
-            deleteLocalBranch: deleteLocalBranch
+            deleteLocalBranch: deleteLocalBranch,
+            revertCommit: revertCommit
         };
+
+        function revertCommit(hash, doNotCommit) {
+            return $http.post('/repo/' + repoName + '/revertcommit', { hash: hash, doNotCommit: doNotCommit }).then(function (res) {
+                return res.data;
+            });
+        }
 
         function deleteLocalBranch(branchName, force) {
             return $http.post('/repo/' + repoName + '/deletelocalbranch', { branchName: branchName, force: force }).then(function (res) {
