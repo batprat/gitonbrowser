@@ -25,7 +25,7 @@
             </div>
         </div>
         <div class="row" ng-if="vm.commits.length > 0">
-            <div id="graph-container" class="col">
+            <div id="graph-container" class="col" ng-if="vm.showLogGraph">
                 <canvas id="log-graph" width="1" height="1"></canvas>
             </div>
             <div class="col" id="log-rows-container">

@@ -68,6 +68,8 @@
                     vm.remoteBranches = [];
                     vm.currentLocalBranch = null;
                     vm.localBranches = [];
+
+                    vm.showLogGraph = true;
                     
 
                     vm.commitMap = {};
@@ -118,12 +120,12 @@
 
                         if (typeof searchText == 'undefined' || searchText.length == 0 || (searchText = searchText.trim()).length == 0) {
                             restoreCommits();
+                            vm.showLogGraph = true;
                             return;
                         }
 
-                        clearGraph();
-
                         return repoDetailService.searchForText(searchText).then(function (commits) {
+                            vm.showLogGraph = false;
                             vm.commitDetails = null;
                             parseCommits(commits);
                             vm.commits = commits;
