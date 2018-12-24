@@ -27,7 +27,6 @@
                     ctrl.modal.modal('hide');
                 });
                 $responseModal.title('Pushing ' + ctrl.currentLocalBranch + ' to ' + ctrl.remote + '/' + ctrl.pushOptions.remoteBranch);
-                $responseModal.bodyHtml('Please wait... Response will come here.');
                 $responseModal.show();
                 return gitfunctions.push(ctrl.remote, ctrl.pushOptions.remoteBranch, ctrl.pushOptions.newRemoteBranchName).then(function (data) {
                     $responseModal.bodyHtml(data.errors.join('<br />').replace('\n', '<br />'));

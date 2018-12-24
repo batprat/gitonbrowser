@@ -26,7 +26,6 @@
             function cherrypickCommit() {
                 $responseModal.title('Cherry picking');
                 $responseModal.show();
-                console.log('cherrypicking ', ctrl.cherrypickHash);
                 return gitfunctions.cherrypickCommit(ctrl.cherrypickHash, ctrl.cherrypick.doNotCommit).then(function(d) {
                     ctrl.modal.modal('hide');
                     if(d.errorCode) {

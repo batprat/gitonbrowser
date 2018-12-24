@@ -8,7 +8,7 @@
                         <h5 class="modal-title" id="response-title"></h5>
                         <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
-                    <div class="modal-body response-modal-body"></div>
+                    <div class="modal-body response-modal-body">Please wait... Response will come here.</div>
                     <div class="modal-footer">
                         <button class="btn btn-primary" type="button" data-dismiss="modal">Close</button>
                     </div>
