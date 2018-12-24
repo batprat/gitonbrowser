@@ -1,0 +1,9 @@
+.response-modal-body {
+    max-height: 70vh;
+    overflow: auto;
+    margin: 20px;
+    background: #46005d;
+    color: #fff;
+    font-family: monospace;
+    white-space: pre;
+}

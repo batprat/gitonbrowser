@@ -2,13 +2,13 @@
     angular.module('WebgitHomeModule').service('$responseModal', ['$http', '$routeParams', function ($http, $routeParams) {
         var $responseModalHtml = $(`
         <div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="response-title"></h5>
                         <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
-                    <div class="modal-body"></div>
+                    <div class="modal-body response-modal-body"></div>
                     <div class="modal-footer">
                         <button class="btn btn-primary" type="button" data-dismiss="modal">Close</button>
                     </div>
