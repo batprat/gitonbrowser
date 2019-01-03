@@ -1,3 +1,7 @@
 .stash-diff-container {
     max-height: 70vh;
 }
+
+.stash-files-list-container .files-list {
+    max-height: 45vh;
+}

@@ -3,11 +3,11 @@
         templateUrl: '/js/app/webgit-home/repo-detail/stash-modal/stash-modal.html',
         bindings: {
             modal: '=',
-            parseDiff: '&',
+            parseMultipleDiffs: '&',
             refreshLocalChanges: '&',
             localStatus: '='
         },
-        controller: ['$element', '$responseModal', 'gitfunctions', function($element, $responseModal, gitfunctions) {
+        controller: ['$element', '$responseModal', 'gitfunctions', 'staticSelectedFile', function($element, $responseModal, gitfunctions, staticSelectedFile) {
             var ctrl = this;
 
             ctrl.$onInit = function() {
@@ -98,12 +98,14 @@
                 Select a stash from list of stashes. And select the first file in the list.
             */
             function selectStash() {
-                // TODO: Show loading dialog.
                 var stash = ctrl.selectedStash;
 
                 if (!stash.name) {
                     return;
                 }
+
+                // reset selected file because it takes time to select stashes.
+                setSelectedFile(null);
 
                 if (stash.name === 'Local Changes') {
                     // show local changes.
@@ -119,10 +121,7 @@
                                 tags: f.tags
                             };
                         });
-
-                        ctrl.selectedStash.selectedFile = ctrl.selectedStash.diffDetails[0];
-
-                        selectFileInStash(ctrl.selectedStash.selectedFile);
+                        setSelectedFile(ctrl.selectedStash.diffDetails[0]);
                     }
 
                     return;
@@ -132,24 +131,21 @@
                     if(!op) {
                         return;
                     }
-                    ctrl.selectedStash.diffDetails = ctrl.parseDiff({diff: op.output.join('')});
-                    ctrl.selectedStash.selectedFile = ctrl.selectedStash.diffDetails[0];
-                    ctrl.diffSelectedStashFile = ctrl.selectedStash.diffDetails[0].safeDiff;
+                    ctrl.selectedStash.diffDetails = ctrl.parseMultipleDiffs({diff: op.output.join('')});
+                    setSelectedFile(ctrl.selectedStash.diffDetails[0]);
                 });
             }
 
-            function selectFileInStash(file) {
-                if (ctrl.selectedStash.name === 'Local Changes') {
-                    ctrl.selectedStash.selectedFile = file;
-                    gitfunctions.getFileDiff(file.name, file.tags).then(function (diff) {
-                        var parsedDiff = ctrl.parseDiff({diff: diff});
-                        ctrl.selectedStash.selectedFile.safeDiff = parsedDiff[0].safeDiff;
-                        ctrl.selectedStash.selectedFile.diff = parsedDiff[0].diff;
-                    });
+            function selectFileInStash(file, diffViewId) {
+                // do nothing actually.. everything is handled in files-list and diff-view.
+                if(!file) {
+                    // unselect everything.
+                    return;
                 }
-                else {
-                    ctrl.selectedStash.selectedFile = file;
-                }
+            }
+
+            function setSelectedFile(file) {
+                staticSelectedFile.set(file, 'stash-modal-diff');
             }
         }]
     });

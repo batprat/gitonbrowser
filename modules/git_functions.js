@@ -692,6 +692,7 @@ function getFileDiff(options) {
 
     let fileName = req.query.filename;
     let tags = req.query.tags.split(',');
+    let ignoreWhitespace = req.query.ignorewhitespace || 0;
 
     let isUntracked = tags.indexOf('untracked') > -1;
     let isDeleted = tags.indexOf('deletedunstaged') > -1;
@@ -706,6 +707,10 @@ function getFileDiff(options) {
 
     if (isUntracked) {
         gitOptions.push('--no-index', '/dev/null');
+    }
+
+    if(+ignoreWhitespace == 1) {
+        gitOptions.push('-w');
     }
 
     if (fileName.indexOf('"') > -1) {

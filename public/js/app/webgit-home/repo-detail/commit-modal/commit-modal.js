@@ -6,23 +6,22 @@
             refreshLocalChanges: '&',
             currentLocalBranch: '<',
             localStatus: '=',
-            parseDiff: '&',
             stagedFiles: '=',
             unstagedFiles: '=',
             refreshLog: '&',
             showPushDialog: '&'
         },
-        controller: ['$element', '$sce', 'gitfunctions', '$responseModal', '$confirmationModal', function commitModalController($element, $sce, gitfunctions, $responseModal, $confirmationModal) {
+        controller: ['$element', 'gitfunctions', '$responseModal', '$confirmationModal', 'staticSelectedFile', '$filter', function commitModalController($element, gitfunctions, $responseModal, $confirmationModal, staticSelectedFile, $filter) {
             var ctrl = this;
             ctrl.gitfunctions = gitfunctions;
             ctrl.$onInit = function() {
                 ctrl.modal = $element.find('.modal');
 
-                ctrl.modal.one('shown.bs.modal', function () {
+                ctrl.modal.on('shown.bs.modal', function () {
                     // select the first commit to show the diff.
                     showDefaultFileOnCommitModalDialog();
                 });
-                ctrl.modal.one('hide.bs.modal', function () {
+                ctrl.modal.on('hide.bs.modal', function () {
                     ctrl.diffOnCommitModal = null;
                 });
             };
@@ -45,13 +44,10 @@
             ctrl.showResetUnstagedFilesModal = showResetUnstagedFilesModal;
             ctrl.showDiffForFileOnCommitModal = showDiffForFileOnCommitModal;
             ctrl.getKeyboardShortcuts = getKeyboardShortcuts;
+            ctrl.onResetUnstaged = onRefreshLocalChanges;
+            ctrl.onResetAll = onRefreshLocalChanges;
 
             $element.find('.keyboard-shortcuts').popover();
-
-
-            // TODO: remove the following line
-            window.commitModal = ctrl;
-
             return;
 
             function getKeyboardShortcuts(type) {
@@ -73,15 +69,20 @@
             }
 
             function resetFile() {
+                var selectedFile = staticSelectedFile.get('commit-modal-diff');
+                if(!selectedFile) {
+                    return;
+                }
                 $confirmationModal.title('Warning');
-                $confirmationModal.bodyHtml('Your unstaged changes to the selected file will be lost.<br />Are you sure?');
+                $confirmationModal.bodyHtml('Your unstaged changes to the selected file will be lost.<br />Are you sure?<br />Selected file: ' + selectedFile.name);
                 $confirmationModal.show().then(function() {
-                    return gitfunctions.resetFile(ctrl.fileSelectedOnCommitModal.name, ctrl.fileSelectedOnCommitModal.tags).then(function (res) {
+                    return gitfunctions.resetFile(selectedFile.name, selectedFile.tags).then(function (res) {
                         // TODO: Handle errors here. Probably CRLF errors.
                         if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                            return ctrl.refreshLocalChanges().then(function(localStatus) {
-                                showDiffForFileOnCommitModal(localStatus[0]);
-                            });
+                            // return ctrl.refreshLocalChanges().then(function(localStatus) {
+                            //     showDiffForFileOnCommitModal(localStatus[0], 'commit-modal-diff');
+                            // });
+                            onRefreshLocalChanges();
                         }
                     });
                 });
@@ -121,26 +122,36 @@
             }
 
             function stageFile() {
-                return gitfunctions.stageFile(ctrl.fileSelectedOnCommitModal.name, ctrl.fileSelectedOnCommitModal.tags).then(function (res) {
+                var selectedFile = staticSelectedFile.get('commit-modal-diff');
+                if(!selectedFile) {
+                    return;
+                }
+                return gitfunctions.stageFile(selectedFile.name, selectedFile.tags).then(function (res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                         return ctrl.refreshLocalChanges().then(function(localStatus) {
                             // reselect the file because angular changes the reference of the file.
-                            ctrl.fileSelectedOnCommitModal = localStatus.filter(function(f) { return f.name == ctrl.fileSelectedOnCommitModal.name; })[0];
-                            ctrl.showDiffForFileOnCommitModal(ctrl.fileSelectedOnCommitModal);
+                            selectedFile = localStatus.filter(function(f) { return f.name == selectedFile.name; })[0];
+                            ctrl.showDiffForFileOnCommitModal(selectedFile, 'commit-modal-diff');
+                            setSelectedFile(selectedFile, 'commit-modal-diff', 'staged-files-list');
                         });
                     }
                 });
             };
 
             function unstageFile() {
-                gitfunctions.unstageFile(ctrl.fileSelectedOnCommitModal.name, ctrl.fileSelectedOnCommitModal.tags).then(function (res) {
+                var selectedFile = staticSelectedFile.get('commit-modal-diff');
+                if(!selectedFile) {
+                    return;
+                }
+                gitfunctions.unstageFile(selectedFile.name, selectedFile.tags).then(function (res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                         return ctrl.refreshLocalChanges().then(function(localStatus) {
                             // reselect the file because angular changes the reference of the file.
-                            ctrl.fileSelectedOnCommitModal = localStatus.filter(function(f) { return f.name == ctrl.fileSelectedOnCommitModal.name; })[0];
-                            ctrl.showDiffForFileOnCommitModal(ctrl.fileSelectedOnCommitModal);
+                            selectedFile = localStatus.filter(function(f) { return f.name == selectedFile.name; })[0];
+                            ctrl.showDiffForFileOnCommitModal(selectedFile, 'commit-modal-diff');
+                            setSelectedFile(selectedFile, 'commit-modal-diff', 'unstaged-files-list');
                         });
                     }
                 });
@@ -164,52 +175,68 @@
                 });
             }
 
+            // to be used when there is a change of file selection programmatically (not because of clicking on a file in the list)
+            // e.g. when a file is staged, select the staged file.
+            function setSelectedFile(file, diffViewId, filesListId) {
+                staticSelectedFile.set(file, diffViewId, filesListId);
+            }
+
             function onRefreshLocalChanges() {
-                ctrl.refreshLocalChanges();
-                unselectFilesAfterLocalRefresh();
+                ctrl.refreshLocalChanges().then(function(localStatus) {
+                    unselectFilesAfterLocalRefresh(localStatus);
+                });
             };
 
-            function showDiffForFileOnCommitModal(file) {
+            function showDiffForFileOnCommitModal(file, diffViewId) {
                 if(!file) {
-                    ctrl.diffOnCommitModal.safeDiff = '';
                     ctrl.diffOnCommitModal.file = null;
                     return;
                 }
+                
+                // special case.
                 if (file.tags.indexOf('bothmodified') > -1 && file.tags.indexOf('staged') > -1) {
                     // no diff for this.
                     // TODO: Should we show a conflict message here?
-                    ctrl.diffOnCommitModal.safeDiff = '';
                     ctrl.diffOnCommitModal.file = file;
+                    setSelectedFile(null, diffViewId);
                     return;
                 }
-                if (!file) {
-                    ctrl.diffOnCommitModal.safeDiff = '';
-                    return;
-                }
+
                 ctrl.diffOnCommitModal = {
                     file: file
                 };
 
                 ctrl.fileSelectedOnCommitModal = file;
-                gitfunctions.getFileDiff(file.name, file.tags).then(function (diff) {
-                    if (typeof diff == 'object') {
-                        diff = diff.output.join('\n').trim();
-                        // TODO: Handle errors here.. probably CRLF errors.
-                    }
-                    file.diff = diff;
-                    var commitDetails = ctrl.parseDiff({diff: diff});
-                    ctrl.diffOnCommitModal.safeDiff = $sce.trustAsHtml(commitDetails[0].diff);
-                });
             }
 
-            function showDefaultFileOnCommitModalDialog() {
-                var fileToSelect = ctrl.unstagedFiles.length > 0 ? ctrl.unstagedFiles[0] : ctrl.stagedFiles[0];
-                showDiffForFileOnCommitModal(fileToSelect);
+            // `localStatus` is optional. if sent, use instead of `ctrl.unstagedFiles` and `ctrl.stagedFiles`.
+            function showDefaultFileOnCommitModalDialog(localStatus) {
+                var stagedFiles = ctrl.stagedFiles;
+                var unstagedFiles = ctrl.unstagedFiles;
+
+                if(localStatus) {
+                    stagedFiles = $filter('filter')(localStatus, { tags: 'staged' }, true);
+                    unstagedFiles = $filter('filter')(localStatus, { tags: 'unstaged' }, true);
+                }
+
+                var fileToSelect = null,
+                    filesListId = null;
+
+                if(unstagedFiles.length > 0) {
+                    fileToSelect = unstagedFiles[0];
+                    filesListId = 'unstaged-files-list';
+                }
+                else if(stagedFiles.length > 0) {
+                    fileToSelect = stagedFiles[0];
+                    filesListId = 'staged-files-list';
+                }
+
+                setSelectedFile(fileToSelect, 'commit-modal-diff', filesListId);
             }
 
-            function unselectFilesAfterLocalRefresh() {
-                ctrl.diffOnConflictModal = null;
-                showDefaultFileOnCommitModalDialog();
+            function unselectFilesAfterLocalRefresh(localStatus) {
+                ctrl.diffOnCommitModal = null;
+                showDefaultFileOnCommitModalDialog(localStatus);
             }
         }]
     });

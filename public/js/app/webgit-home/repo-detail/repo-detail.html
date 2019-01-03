@@ -2,6 +2,7 @@
     <div class="working-directory-details-container">
         <button class="btn btn-info" id="btn-refresh-local-changes" ng-click="vm.refreshLocalChanges()">Refresh local changes</button>
         <button class="btn btn-primary" ng-class="{'has-unstaged-files btn-danger': vm.unstagedFiles.length && !vm.stagedFiles.length, 'has-staged-and-unstaged-files btn-warning': vm.stagedFiles.length && vm.unstagedFiles.length, 'has-staged-files btn-success': vm.stagedFiles.length && !vm.unstagedFiles.length}" id="btn-commit" ng-click="vm.showCommitDialog()">{{vm.localStatus && vm.localStatus.length ? 'Commit' : 'No Local Changes'}} {{ vm.localStatus && vm.localStatus.length ? '(' + vm.localStatus.length + ')' : '' }}</button>
+        <button ng-show="vm.conflict" class="btn btn-danger" ng-click="vm.showModalToHandleConflict()">Resolve Conflict</button>
         <button class="btn btn-secondary" title="Open Pull Dialog" ng-click="vm.showPullDialog()"><i class="fa fa-arrow-down" aria-hidden="true"></i> Pull...</button>
         <button class="btn btn-secondary" title="Open Push Dialog" ng-click="vm.showPushDialog()"><i class="fa fa-arrow-up" aria-hidden="true"></i> Push...</button>
         <button class="btn btn-secondary" title="Open Stash Dialog" ng-click="vm.showStashDialog()"><i class="fa fa-database"></i> Stash...</button>
@@ -15,7 +16,6 @@
             </div>
         </div>
         <!-- <button class="btn btn-danger pull-right" ng-show="vm.progress" ng-click="vm.showModalToHandleConflict()">{{ vm.progress.message }}</button> -->
-        <button ng-show="vm.conflict" class="btn btn-danger pull-right" ng-click="vm.showModalToHandleConflict()">Resolve Conflict</button>
     </div>
     <div id="main-log-context-menu" style="display: none;"></div>
     <div id="main-log-container" class="commit-container container-fluid" ng-class="{'details-visible': vm.commitDetails}" data-page-num="1">
@@ -73,11 +73,16 @@
                 <div class="container-fluid height100" ng-if="vm.commitDetails">
                     <div class="row height100">
                         <div class="col-sm-4 height100 diff-files-list">
-                            <files-list files="vm.commitDetails.diffDetails" on-select="vm.selectFileInLog(file)" selected-file="vm.selectedFileDiffRaw"></files-list>
+                            <files-list
+                                files="vm.commitDetails.diffDetails"
+                                on-select="vm.selectFileInLog(file, diffViewId)"
+                                diff-view-id="'commit-details-diff'">
+                            </files-list>
                         </div>
                         <div class="col-sm-8 file-diff-column height100">
                             <diff-view
-                                safe-diff="vm.selectedFileDiff">
+                                safe-diff="vm.selectedFileDiff"
+                                diff-view-id="'commit-details-diff'">
                             </diff-view>
                         </div>
                     </div>
@@ -89,7 +94,6 @@
         refresh-local-changes="vm.refreshLocalChanges()"
         current-local-branch="vm.currentLocalBranch"
         local-status="vm.localStatus"
-        parse-diff="vm.parseDiff(diff)"
         staged-files="vm.stagedFiles"
         unstaged-files="vm.unstagedFiles"
         refresh-log="vm.refreshLog()"
@@ -112,7 +116,7 @@
     
     <stash-modal
         modal="vm.modals.stash"
-        parse-diff="vm.parseDiff(diff)"
+        parse-multiple-diffs="vm.parseMultipleDiffs(diff)"
         refresh-local-changes="vm.refreshLocalChanges()"
         local-status="vm.localStatus"
     ></stash-modal>
@@ -124,7 +128,7 @@
     <conflict-modal
         modal="vm.modals.conflict"
         progress="vm.progress"
-        parse-diff="vm.parseDiff(diff)"
+        parse-multiple-diffs="vm.parseMultipleDiffs(diff)"
         local-status="vm.localStatus"
         refresh-local-changes="vm.refreshLocalChanges()"
         refresh-log="vm.refreshLog()"

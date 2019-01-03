@@ -1,5 +1,5 @@
 <div class="modal fade" id="commit-modal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <button ng-click="$ctrl.onRefreshLocalChanges()" class="btn-outline-success btn btn-sm btn-commit-dialog-refresh"><i class="fa fa-refresh" title="refresh"></i></button>
@@ -13,7 +13,14 @@
                             <div class="row">
                                 <div class="col-sm-12" id="commit-dialog-unstaged-files">
                                     <div class="panel-name">Unstaged Files</div>
-                                    <files-list keyboard-shortcuts="$ctrl.getKeyboardShortcuts(tag)" tag-to-filter="'unstaged'" selected-file="$ctrl.diffOnCommitModal.file.diff" on-select="$ctrl.showDiffForFileOnCommitModal(file)" files="$ctrl.localStatus"></files-list>
+                                    <files-list
+                                        keyboard-shortcuts="$ctrl.getKeyboardShortcuts(tag)"
+                                        tag-to-filter="'unstaged'"
+                                        on-select="$ctrl.showDiffForFileOnCommitModal(file, diffViewId)"
+                                        files="$ctrl.localStatus"
+                                        diff-view-id="'commit-modal-diff'"
+                                        files-list-id="'unstaged-files-list'">
+                                    </files-list>
                                 </div>
                             </div>
                             <div class="row staging-action-buttons-container">
@@ -27,7 +34,14 @@
                             <div class="row">
                                 <div class="col-sm-12" id="commit-dialog-staged-files">
                                     <div class="panel-name">Staged Files</div>
-                                    <files-list keyboard-shortcuts="$ctrl.getKeyboardShortcuts(tag)" tag-to-filter="'staged'" selected-file="$ctrl.diffOnCommitModal.file.diff" on-select="$ctrl.showDiffForFileOnCommitModal(file)" files="$ctrl.localStatus"></files-list>
+                                    <files-list
+                                        keyboard-shortcuts="$ctrl.getKeyboardShortcuts(tag)"
+                                        tag-to-filter="'staged'"
+                                        on-select="$ctrl.showDiffForFileOnCommitModal(file, diffViewId)"
+                                        files="$ctrl.localStatus"
+                                        diff-view-id="'commit-modal-diff'"
+                                        files-list-id="'staged-files-list'">
+                                    </files-list>
                                 </div>
                             </div>
                         </div>
@@ -35,7 +49,7 @@
                             <div class="row">
                                 <div class="col-sm-12" id="commit-dialog-diff">
                                     <diff-view
-                                        safe-diff="$ctrl.diffOnCommitModal.safeDiff">
+                                        diff-view-id="'commit-modal-diff'">
                                     </diff-view>
                                 </div>
                             </div>
@@ -59,11 +73,9 @@
 </div>
 <reset-all-modal
     modal="$ctrl.modals.resetAll"
-    refresh-local-changes="$ctrl.refreshLocalChanges()"
-    diff-on-commit-modal="$ctrl.diffOnCommitModal"
+    on-reset-all="$ctrl.onResetAll()"
 ></reset-all-modal>
 <reset-unstaged-modal
     modal="$ctrl.modals.resetUnstaged"
-    refresh-local-changes="$ctrl.refreshLocalChanges()"
-    diff-on-commit-modal="$ctrl.diffOnCommitModal"
+    on-reset-unstaged="$ctrl.onResetUnstaged()"
 ></reset-unstaged-modal>

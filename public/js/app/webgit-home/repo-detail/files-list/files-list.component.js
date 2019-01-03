@@ -4,18 +4,21 @@
         bindings: {
             files: '=',
             onSelect: '&',
-            selectedFile: '=',
             tagToFilter: '=',
             badgeType: '=',
             badgePopoverDetails: '&',
             badgeText: '&',
-            keyboardShortcuts: '&'
+            keyboardShortcuts: '&',
+            diffViewId: '<',
+            filesListId: '<'
         },
-        controller: ['$scope', '$element', 'UtilsService', function FilesListController($scope, $element, UtilsService) {
+        controller: ['$scope', '$element', 'UtilsService', 'staticSelectedFile', function FilesListController($scope, $element, UtilsService, staticSelectedFile) {
             console.log('controller called for ', $element);
             var ctrl = this;
+            ctrl.selectedFileInThisList = true;     // true by default. will be unset only in cases where more than 1 files-lists share a diff-view (e.g. commit modal)
             ctrl.select = function (file) {
-                ctrl.onSelect({ file: file });
+                staticSelectedFile.set(file, ctrl.diffViewId, ctrl.filesListId);
+                ctrl.onSelect({ file: file, diffViewId: ctrl.diffViewId });
             };
 
             ctrl.$onInit = function() {
@@ -87,10 +90,18 @@
                         }
                     }
                 }
+
+                staticSelectedFile.onSelectedFileChange(ctrl.diffViewId, function(file, filesListId) {
+                    // new file selected.
+                    // if filesListId is defined, then distinguish between different files-lists.
+                    if(filesListId) {
+                        ctrl.selectedFileInThisList = filesListId == ctrl.filesListId;
+                    }
+                    ctrl.selectedFile = file;
+                });
     
                 bindContextMenu();
             };
-            
 
             return;
             function bindContextMenu() {

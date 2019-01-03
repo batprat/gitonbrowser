@@ -4,20 +4,22 @@
         bindings: {
             modal: '=',
             progress: '=',
-            parseDiff: '&',
+            parseMultipleDiffs: '&',
             localStatus: '=',
             refreshLocalChanges: '&',
             refreshLog: '&',
             parseLocalStatus: '&'
         },
-        controller: ['$element', '$responseModal', 'gitfunctions', '$sce', function($element, $responseModal, gitfunctions, $sce) {
+        controller: ['$element', 'gitfunctions', 'staticSelectedFile', function($element, gitfunctions, staticSelectedFile) {
             var ctrl = this;
+
+            window.conflictModal = ctrl;
 
             ctrl.$onInit = function() {
                 ctrl.modal = $element.find('.modal');
 
                 ctrl.modal.on('shown.bs.modal', function() {
-                    showDiffOnConflictModal(ctrl.localStatus.filter(function(f) { return f.tags.indexOf('conflictedunstaged') > -1; })[0]);
+                    showDefaultFileOnConflictModal();
 
                     if(ctrl.progress && ctrl.progress.type == 'merge') {
                         gitfunctions.getMergeMsg().then(function(d) {
@@ -42,6 +44,14 @@
             ctrl.abortMerge = abortMerge;
 
             return;
+
+            function showDefaultFileOnConflictModal(localStatus) {
+                localStatus = localStatus ? localStatus : ctrl.localStatus;
+                ctrl.filteredConflictedFiles = localStatus.filter(function(f) { return f.tags.indexOf('conflictedunstaged') > -1; });
+                var defaultSelectedFile = ctrl.filteredConflictedFiles[0];
+                staticSelectedFile.set(defaultSelectedFile, 'conflict-modal-diff')
+                showDiffOnConflictModal(defaultSelectedFile, 'conflict-modal-diff');
+            }
 
             function _refreshLogAndHideModal() {
                 ctrl.refreshLocalChanges();
@@ -114,8 +124,7 @@
                     return gitfunctions.stageFile(ctrl.diffOnConflictModal.file.name, ctrl.diffOnConflictModal.file.tags).then(function (res) {
                         // TODO: Handle errors here. Probably CRLF errors.
                         if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                            ctrl.diffOnConflictModal = null;
-                            ctrl.refreshLocalChanges();
+                            onRefreshLocalChanges();
                         }
                     });
                 }
@@ -123,11 +132,17 @@
                     return gitfunctions.removeFile(ctrl.diffOnConflictModal.file.name, ctrl.diffOnConflictModal.file.tags).then(function (res) {
                         // TODO: Handle errors here. Probably CRLF errors.
                         if (!res.errorCode) {
-                            ctrl.diffOnConflictModal = null;
-                            ctrl.refreshLocalChanges();
+                            onRefreshLocalChanges();
                         }
                     });
                 }
+            }
+
+            function onRefreshLocalChanges(localStatus) {
+                ctrl.refreshLocalChanges().then(function(localStatus) {
+                    showDefaultFileOnConflictModal(localStatus);
+                });
+                
             }
 
             function getMetaOfConflictedFile(conflictedFile) {
@@ -160,25 +175,21 @@
                 };
             }
 
-            function showDiffOnConflictModal(conflictedFile) {
+            function showDiffOnConflictModal(conflictedFile, diffViewId) {
+                if(!conflictedFile) {
+                    ctrl.diffOnConflictModal = null;
+                    return;
+                }
+
                 ctrl.diffOnConflictModal = {
                     file: conflictedFile
                 };
 
+                // special case
                 if (conflictedFile.tags.indexOf('deletedbyus') > -1 || conflictedFile.tags.indexOf('deletedbythem') > -1) {
                     // no diff for this file. Pick an option to keep or delete this file.
                     return;
                 }
-
-                return gitfunctions.getFileDiff(conflictedFile.name, conflictedFile.tags).then(function (diff) {
-                    if (typeof diff == 'object') {
-                        diff = diff.output.join('\n').trim();
-                        // TODO: Handle errors here.. probably CRLF errors.
-                    }
-                    var conflictDetails = ctrl.parseDiff({ diff: diff });
-                    ctrl.diffOnConflictModal.safeDiff = $sce.trustAsHtml(conflictDetails[0].diff);
-                    ctrl.diffOnConflictModal.file.diff = conflictDetails[0].diff;
-                });
             }
         }]
     });

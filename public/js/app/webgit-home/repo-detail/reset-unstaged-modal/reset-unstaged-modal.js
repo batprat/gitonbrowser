@@ -3,10 +3,9 @@
         templateUrl: '/js/app/webgit-home/repo-detail/reset-unstaged-modal/reset-unstaged-modal.html',
         bindings: {
             modal: '=',
-            refreshLocalChanges: '&',
-            diffOnCommitModal: '='
+            onResetUnstaged: '&'
         },
-        controller: ['$element', '$responseModal', 'gitfunctions', function($element, $responseModal, gitfunctions) {
+        controller: ['$element', '$responseModal', 'gitfunctions', 'staticSelectedFile', function($element, $responseModal, gitfunctions, staticSelectedFile) {
             var ctrl = this;
 
             ctrl.$onInit = function() {
@@ -24,9 +23,10 @@
 
                 return gitfunctions.resetUnstagedChanges(deleteUntrackedFiles).then(function (d) {
                     ctrl.modal.modal('hide');
-                    ctrl.refreshLocalChanges();
-                    ctrl.diffOnCommitModal.safeDiff = '';     // reset the text on the commit modal.
+                    
+                    ctrl.onResetUnstaged();
 
+                    // TODO: Handle error here?
                     if (!d.errorCode) {
                         return;
                     }

@@ -10,16 +10,25 @@
                     <div class="row">
                         <div class="col-6">
                             <div class="conflict-explaination">
-                                Mark all conflicts as resolved to continue. You may abort at any time.
+                                <h5>Mark all conflicts as resolved to continue. <span ng-if="$ctrl.progress.type == 'merge' || $ctrl.progress.type == 'rebase'">You may abort at any time.</span></h5>
                             </div>
                             <div class="card">
                                 <div class="card-body">
-                                    <h6 ng-if="filteredConflictedFiles.length > 0" class="card-title">Fix conflicts in the following files using your editor.<br />Then select each file and mark it as resolved.</h6>
-                                    <h6 ng-if="filteredConflictedFiles.length == 0" class="card-title">Now we can continue merging.</h6>
+                                    <h6 ng-if="$ctrl.filteredConflictedFiles.length > 0" class="card-title">Follow these steps.</h6>
+                                    <ol ng-if="$ctrl.filteredConflictedFiles.length > 0">
+                                        <li>Fix conflicts in the following files <strong>using your editor.</strong></li>
+                                        <li>Then select each file and mark it as resolved.</li>
+                                    </ol>
+                                    <h6 ng-if="$ctrl.filteredConflictedFiles.length == 0">All conflicts resolved!</h6>
+                                    <span ng-if="$ctrl.filteredConflictedFiles.length == 0 && $ctrl.progress.type != 'merge' && $ctrl.progress.type != 'rebase'">Go ahead, close this and continue with your commit now.</span>
+                                    <span ng-if="$ctrl.filteredConflictedFiles.length == 0 && $ctrl.progress.type == 'merge'" class="card-title">Now we can continue merging.</span>
+                                    <span ng-if="$ctrl.filteredConflictedFiles.length == 0 && $ctrl.progress.type == 'rebase'" class="card-title">Now we can continue rebasing.</span>
+                                    <hr />
                                     <files-list 
                                         tag-to-filter="'conflictedunstaged'" 
-                                        selected-file="$ctrl.diffOnConflictModal.file.diff" 
-                                        on-select="$ctrl.showDiffOnConflictModal(file)" 
+                                        diff-view-id="'conflict-modal-diff'"
+                                        files-list-id="'conflicted-files-list'"
+                                        on-select="$ctrl.showDiffOnConflictModal(file, diffViewId)" 
                                         files="$ctrl.localStatus"
                                         badge-type="'warning'"
                                         badge-popover-details="$ctrl.getMetaOfConflictedFile(file)">
@@ -53,11 +62,8 @@
                         </div>
                         <div class="col-6 conflict-modal-diff-container">
                             <diff-view
-                                ng-if="$ctrl.diffOnConflictModal.safeDiff"
-                                safe-diff="$ctrl.diffOnConflictModal.safeDiff">
+                                diff-view-id="'conflict-modal-diff'">
                             </diff-view>
-
-                            <div class="conflict-dialog-diff-placeholder" ng-if="!$ctrl.diffOnConflictModal.safeDiff"><span>Select conflicted file to view diff</span></div>
                         </div>
                     </div>
                 </div>

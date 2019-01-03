@@ -10,3 +10,7 @@
     vertical-align: middle;
     cursor: pointer;
 }
+
+#reset-unstaged-modal .reset-unstaged-alert, #reset-all-modal .reset-all-alert {
+    margin-top: 1rem;
+}

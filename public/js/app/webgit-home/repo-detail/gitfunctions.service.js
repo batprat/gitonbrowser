@@ -164,13 +164,18 @@
             });
         }
 
-        function getFileDiff(file, tags) {
+        function getFileDiff(file, tags, ignoreWhitespace) {
             if (getFileDiff.canceler) {
                 // if this request already exists, cancel the request;
                 getFileDiff.canceler.resolve();
             }
             getFileDiff.canceler = $q.defer();
-            return $http.get('/repo/' + repoName + '/getfilediff?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(',')), { timeout: getFileDiff.canceler.promise }).then(function (res) {
+            return $http.get(
+                ('/repo/' + repoName + '/getfilediff?' 
+                + 'filename=' + encodeURIComponent(file)
+                + '&tags=' + encodeURIComponent(tags.join(','))
+                + '&ignorewhitespace=') + (ignoreWhitespace ? '1' : '0')
+                , { timeout: getFileDiff.canceler.promise }).then(function (res) {
                 if(!res || !res.data) {
                     return;
                 }

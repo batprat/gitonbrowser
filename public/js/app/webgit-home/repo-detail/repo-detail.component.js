@@ -18,8 +18,8 @@
     repoDetailModule
         .component('repoDetail', {
             templateUrl: '/js/app/webgit-home/repo-detail/repo-detail.html',
-            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService', '$timeout', 'gitfunctions', '$responseModal', '$confirmationModal',
-                function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService, $timeout, gitfunctions, $responseModal, $confirmationModal) {
+            controller: ['$routeParams', 'repoDetailService', '$sce', '$scope', '$filter', 'UtilsService', '$timeout', 'gitfunctions', '$responseModal', '$confirmationModal', 'staticSelectedFile',
+                function RepoDetailController($routeParams, repoDetailService, $sceLocal, $scope, $filter, UtilsService, $timeout, gitfunctions, $responseModal, $confirmationModal, staticSelectedFile) {
                     $sce = $sceLocal;
                     repoName = encodeURIComponent(decodeURIComponent($routeParams.repoName));
 
@@ -49,8 +49,10 @@
 
                     vm.parseLocalStatus = parseLocalStatus;
                     vm.parseDiff = parseDiff;
+                    vm.parseMultipleDiffs = parseMultipleDiffs;
                     vm.selectCommit = selectCommit;
                     vm.selectFileInLog = selectFileInLog;
+                    vm.setSelectedFileInSelectedCommit = setSelectedFileInSelectedCommit;
                     vm.refreshLocalChanges = refreshLocalChanges;
                     vm.showCommitDialog = showCommitDialog;
                     vm.showPullDialog = showPullDialog;
@@ -79,6 +81,8 @@
                     var commitsBackup = null;
                     var commitMapBackup = null;
                     var graphBackup = null;
+
+                    // staticSelectedFile.unset();
 
                     $scope.$on('logNgRepeatFinished', function (ngRepeatFinishedEvent) {
                         loadGraph();
@@ -849,9 +853,12 @@
                         });
                     }
 
-                    function selectFileInLog(file) {
-                        vm.selectedFileDiff = $sce.trustAsHtml(file.diff);
-                        vm.selectedFileDiffRaw = file.diff;
+                    function selectFileInLog(file, diffViewId) {
+                        // do nothing. everything handled in files-list and diff-view.
+                    }
+
+                    function setSelectedFileInSelectedCommit(file) {
+                        staticSelectedFile.set(file, 'commit-details-diff');
                     }
 
                     function selectCommit(commit) {
@@ -904,20 +911,17 @@
 
                             if (!isMergeCommit) {
                                 var diff = d.slice(i);
-                                vm.commitDetails.diff = diff.join('\n');
 
-                                vm.commitDetails.diffDetails = parseDiff(vm.commitDetails.diff);
+                                vm.commitDetails.diffDetails = parseMultipleDiffs(diff.join('\n'));
                                 // pre select the first file of the commit.
-                                vm.selectFileInLog(vm.commitDetails.diffDetails[0]);
+                                vm.setSelectedFileInSelectedCommit(vm.commitDetails.diffDetails[0], 'commit-details-diff');
                             }
 
                             if (isMergeCommit) {
                                 repoDetailService.getDiff(vm.commitDetails.merges).then(function (diff) {
-                                    vm.commitDetails.diff = diff;
-
-                                    vm.commitDetails.diffDetails = parseDiff(vm.commitDetails.diff);
+                                    vm.commitDetails.diffDetails = parseMultipleDiffs(diff);
                                     // pre select the first file of the commit.
-                                    vm.selectFileInLog(vm.commitDetails.diffDetails[0]);
+                                    vm.setSelectedFileInSelectedCommit(vm.commitDetails.diffDetails[0], 'commit-details-diff');
                                 });
                             }
 
@@ -1161,6 +1165,26 @@
         });
 
         return t;
+    }
+
+    function parseMultipleDiffs(diff) {
+        var diffs = diff.split(/\n(?=diff)/);
+
+        return diffs.map(function(d) {
+            var lines = d.split('\n');
+            var firstLine = lines[0];
+            var isConflictedFile = firstLine.indexOf('diff --cc') == 0;
+
+            // TODO: Handle case when file name contains b/
+
+            var name = isConflictedFile ? firstLine.substring('diff --cc '.length) : firstLine.substring(firstLine.indexOf('b/') + 2);
+            var secondLine = lines[1];
+            return {
+                diff: d,
+                name: name,
+                commitType: secondLine.indexOf('new') === 0 ? 'new' : (secondLine.indexOf('similarity') === 0 ? 'rename' : (secondLine.indexOf('deleted') === 0 ? 'deleted' : 'modified'))
+            };
+        });
     }
 
     // Accepts a diff string and parses into diff object
