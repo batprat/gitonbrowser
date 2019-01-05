@@ -1025,7 +1025,7 @@
             return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function (res) {
                 if (!res.data.errorCode) {
                     return res.data.output.join('');
-                } y
+                }
                 return res.data;
             });
         }
