@@ -227,7 +227,8 @@
                                         },
                                         mergeIntoCurrent: {
                                             name: 'Merge into current branch',
-                                            items: {}
+                                            items: {},
+                                            disabled: !hasLocalBranches
                                         },
                                         cherrypick: {
                                             name: 'Cherry pick commit',
@@ -237,7 +238,8 @@
                                         },
                                         deleteLocalBranch: {
                                             name: 'Delete local branch',
-                                            items: {}
+                                            items: {},
+                                            disabled: !hasLocalBranches
                                         },
                                         revertCommit: {
                                             name: 'Revert commit',
