@@ -1,3 +1,4 @@
 1. If you name your branches like origin/mybranch, the main log will consider it as a remote branch. The pull dialog will show the proper remote branches though.
 2. When browsing a repository, the program will convert spaces in directory names to "--". This means that the program cannot distinguish between "new folder" and "new--folder". One solution to avoid this may be to make the charaacters used for replacement, "--" in our case, parametric.
 3. Path to git repository must not contain > (greater than sumbol). e.g. /usr/local/my>folder/git-repo will be an invalid path. This is applicable for unix users only since on windows one cannot use > symbol in file/folder names.
+4. Full file names that have a " b/" (space b slash) in them e.g. "sample b/results.txt" will be named funny by the parseMultipleDiff function.

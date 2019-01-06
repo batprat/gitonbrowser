@@ -15,7 +15,6 @@
 . Implement copy path for all paths (file-selector)
 .[bug] Show untracked files in stash
 .[bug] If a conflict happens when doing git pull --rebase, the conflict button doesnt show up. A page refresh makes it show up.
-.[?bug] Will parseDiff fail if file has a b/ in its full name (folder name ends with b)
 . Git bisect
 . In the push modal, show which commits/files that are gonna be pushed.
 . Show popover on the commit, push buttons about details on the numbers.

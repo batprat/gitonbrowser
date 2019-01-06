@@ -1176,8 +1176,7 @@
             var isConflictedFile = firstLine.indexOf('diff --cc') == 0;
 
             // TODO: Handle case when file name contains b/
-
-            var name = isConflictedFile ? firstLine.substring('diff --cc '.length) : firstLine.substring(firstLine.indexOf('b/') + 2);
+            var name = isConflictedFile ? firstLine.substring('diff --cc '.length) : firstLine.substring(firstLine.indexOf(' b/') + 3);
             var secondLine = lines[1];
             return {
                 diff: d,
