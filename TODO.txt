@@ -1,7 +1,8 @@
 . Show remote on push modal
 . Delete remote branch
-. Handle passwords for cloning
-. Handle passwords for pushing
+. Handle passwords for cloning - use socket.io
+. Handle passwords for pushing - use socket.io
+. Handle passwords for pulling - use socket.io
 . Keyboard shortcuts for files list
 . Reset single file
 . Show file history
@@ -22,8 +23,6 @@
 . Refactor code.
  . Use angular-ui
  . Make common components
- . Move service into different file
- . Move modals into their own files
  . Convert all get requests to post
 . Squash commits
 . Handle conflicts from merge, stash
@@ -32,12 +31,13 @@
  . unmerged, added by us
  . unmerged, added by them
  . unmerged, both added
-. Continuous output for clone, pull
+. Continuous output for clone, pull - use socket.io
 . Toggle whitespace while showing diff
 . Stage selected lines
 . unstage selected lines
 . revert selected lines
-. Implement Auto Stash in pulling
+. Add shortcuts for stash - stash save and stash pop
+. Implement option to Auto Stash in pulling
 . Turn the asynchronous modals red at runtime if error occurs. (e.g. pulling, pushing)
 . Handle case when we fetch commits above the checked out commit. Then color the checked out commits and show the commits above with a disabled look.
 . Update without focusing - sockets
@@ -92,3 +92,6 @@ DONE:
 -. Delete local branch
 -. Revert commit
 -.[bug] if a file with spaces in its name is staged, the selection of that file on the commit dialog is lost because of the extra doublequotes around it. To replicate, have 2 files modified, stage the file with spaces in its name. 
+-. Refactor code
+   -. Move service into different file
+   -. Move modals into their own files
