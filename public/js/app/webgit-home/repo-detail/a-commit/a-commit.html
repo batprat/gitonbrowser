@@ -1,4 +1,4 @@
-<div class="row commit list-item-selector" id="{{commit.hash}}" ng-click="select(hash)" ng-class="{'selected': selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
+<div class="row commit" id="{{commit.hash}}" ng-click="select(hash)" ng-class="{'selected': selectedCommit === commit.hash}" data-commit-hash="{{commit.hash}}">
     <div class="col-sm-7 log-commit-message-container">
         <span class="tags-container">
             <span class="local-head tags-refs" ng-if="commit.localHead"><i class="fa fa-caret-right local-head-arrow" aria-hidden="true"></i>{{commit.localHead}}</span>

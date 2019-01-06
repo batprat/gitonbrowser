@@ -4,19 +4,22 @@
     align-items: center;
     display: flex;
     height: 40px;
-}
-
-.commit.list-item-selector {
     transition: all 0.2s ease 0s;
     cursor: pointer;
     padding: 5px 0;
+    position: relative;
 }
 
-.list-item-selector:hover {
-    background: #d3d3d3;
+.commit:hover {
+    box-shadow: 0px 3px 3px 0px rgba(170,170,170,0.3);
+    z-index: 1;
 }
 
-.list-item-selector.selected {
+.commit.selected {
     background: steelblue !important;
     color: #fff;
+}
+
+.commit.selected:hover {
+    box-shadow: none;
 }

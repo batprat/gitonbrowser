@@ -158,6 +158,7 @@
             }
 
             function stageAllFiles() {
+                setSelectedFile(null, 'commit-modal-diff');
                 gitfunctions.stageAllFiles().then(function (res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
@@ -167,6 +168,7 @@
             }
 
             function unstageAllFiles() {
+                setSelectedFile(null, 'commit-modal-diff');
                 gitfunctions.unstageAllFiles().then(function (res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {

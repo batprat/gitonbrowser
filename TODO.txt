@@ -4,7 +4,6 @@
 . Handle passwords for pushing - use socket.io
 . Handle passwords for pulling - use socket.io
 . Keyboard shortcuts for files list
-. Reset single file
 . Show file history
 . Select default branch that matches the current branch name in push modal
 . Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
@@ -91,6 +90,7 @@ DONE:
 -. Populate conflict modal's commit message text area with .git/MERGE_MSG
 -. Delete local branch
 -. Revert commit
+-. Reset single file
 -.[bug] if a file with spaces in its name is staged, the selection of that file on the commit dialog is lost because of the extra doublequotes around it. To replicate, have 2 files modified, stage the file with spaces in its name. 
 -. Refactor code
    -. Move service into different file
