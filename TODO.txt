@@ -3,7 +3,6 @@
 . Handle passwords for cloning - use socket.io
 . Handle passwords for pushing - use socket.io
 . Handle passwords for pulling - use socket.io
-. Keyboard shortcuts for files list
 . Show file history
 . Select default branch that matches the current branch name in push modal
 . Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
@@ -12,7 +11,6 @@
 . Prevent CSRF attacks.
 . Handle CRLF errors.
 . Implement searching for branch name
-. Implement copy path for all paths (file-selector)
 .[bug] Show untracked files in stash
 .[bug] If a conflict happens when doing git pull --rebase, the conflict button doesnt show up. A page refresh makes it show up.
 . Git bisect
@@ -91,6 +89,8 @@ DONE:
 -. Revert commit
 -. Reset single file
 -.[bug] if a file with spaces in its name is staged, the selection of that file on the commit dialog is lost because of the extra doublequotes around it. To replicate, have 2 files modified, stage the file with spaces in its name. 
+-. Keyboard shortcuts for files list
+-. Implement copy path for all paths (file-selector)
 -. Refactor code
    -. Move service into different file
    -. Move modals into their own files

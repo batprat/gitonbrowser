@@ -5,7 +5,7 @@
                 <span ng-if="!$ctrl.badgeType" class="fa file-type-badge" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span>
                 <span ng-if="$ctrl.badgeType" class="badge conflict-badge badge-{{$ctrl.badgeType}}" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="right" data-content="{{$ctrl.badgePopoverContent(file, 'description')}}" >{{ $ctrl.badgePopoverContent(file, 'name') }}</span>
                 &nbsp;
-                <span title="{{file.fileName}}">{{file.name}}</span>
+                <span class="file-name" title="{{file.fileName}}">{{file.name}}</span>
             </div>
         </div>
     </div>

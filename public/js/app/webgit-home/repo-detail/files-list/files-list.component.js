@@ -111,26 +111,16 @@
 
                     ctrl.select(file);
                 });
-
-                return;
                 
                 $.contextMenu({
                     selector: '.list-item-selector',
                     build: function($trigger, e) {
-                        var file = $trigger.scope().file;
                         var options = {
                             items: {
                                 copyPath: {
                                     name: 'Copy Path',
                                     callback: function(e) {
-                                        var name = file.name;
-                                        if(name.match(/^".+"$/)) {
-                                            // name starts and ends with double quotes. strip em off.
-                                            name = name.substring(1, name.length - 1);
-                                        }
-                                        // clipboard.copyText(name);
-                                        console.log('copying', name);
-                                        UtilsService.copyToClipboard(name);
+                                        UtilsService.copyToClipboard($trigger.find('.file-name')[0]);
                                     },
                                     className: 'copy-text'
                                 }
