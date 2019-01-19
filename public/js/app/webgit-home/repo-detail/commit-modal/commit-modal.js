@@ -22,7 +22,7 @@
                     showDefaultFileOnCommitModalDialog();
                 });
                 ctrl.modal.on('hide.bs.modal', function () {
-                    ctrl.diffOnCommitModal = null;
+                    // ctrl.diffOnCommitModal = null;
                 });
             };
 
@@ -31,11 +31,11 @@
                 resetUnstaged: null
             }
 
-            ctrl.diffOnCommitModal = {};
+            // ctrl.diffOnCommitModal = {};
             ctrl.fileSelectedOnCommitModal = null;
             ctrl.onRefreshLocalChanges = onRefreshLocalChanges;
-            ctrl.stageFile = stageFile;
-            ctrl.unstageFile = unstageFile;
+            ctrl.stageFiles = stageFiles;
+            ctrl.unstageFiles = unstageFiles;
             ctrl.stageAllFiles = stageAllFiles;
             ctrl.unstageAllFiles = unstageAllFiles;
             ctrl.commit = commit;
@@ -47,6 +47,10 @@
             ctrl.onResetUnstaged = onRefreshLocalChanges;
             ctrl.onResetAll = onRefreshLocalChanges;
 
+            staticSelectedFile.onSelectedFileChange('commit-modal-diff', function(file, filesListId) {
+                ctrl.selectedFile = file;
+            });
+
             $element.find('.keyboard-shortcuts').popover();
             return;
 
@@ -54,36 +58,46 @@
                 switch(type) {
                     case 'unstaged': {
                         return {
-                            s: stageFile,
-                            r: resetFile
+                            s: stageFiles,
+                            r: resetFiles
                         };
                         break;
                     }
                     case 'staged': {
                         return {
-                            u: unstageFile
+                            u: unstageFiles
                         };
                         break;
                     }
                 }
             }
 
-            function resetFile() {
-                var selectedFile = staticSelectedFile.get('commit-modal-diff');
-                if(!selectedFile) {
+            function resetFiles() {
+                var selectedFiles = staticSelectedFile.get('commit-modal-diff');
+                if(!selectedFiles || selectedFiles.length == 0) {
                     return;
                 }
+
+                var allTags = [];
+                selectedFiles.forEach(function(f) {
+                    Array.prototype.push.apply(allTags, f.tags);
+                });
+
+                if(allTags.indexOf('unstaged') == -1) {
+                    // all of the selected files seem to be staged.
+                    return;
+                }
+
+                var selectedFilesNames = selectedFiles.map(function(f) { return f.name; });
+                
                 $confirmationModal.title('Warning');
-                $confirmationModal.bodyHtml('Your unstaged changes to the selected file will be lost.<br />Are you sure?<br />Selected file: ' + selectedFile.name);
+                $confirmationModal.bodyHtml('Your unstaged changes to the selected file/s will be lost.<br />Are you sure?<br />Selected file/s: <br /><span class="files-going-to-be-reset">' + selectedFilesNames.join('<br />') + '</span>');
                 $confirmationModal.show().then(function() {
-                    return gitfunctions.resetFile(selectedFile.name, selectedFile.tags).then(function (res) {
+                    return gitfunctions.resetFiles(selectedFilesNames, selectedFiles.map(function(f) { return f.tags; })).then(function (res) {
                         // TODO: Handle errors here. Probably CRLF errors.
-                        if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
-                            // return ctrl.refreshLocalChanges().then(function(localStatus) {
-                            //     showDiffForFileOnCommitModal(localStatus[0], 'commit-modal-diff');
-                            // });
-                            onRefreshLocalChanges();
-                        }
+                        // res is an array of 1 or 2 objects.
+                        // those are the o/p of the reset files and the reset untracked files respectively
+                        onRefreshLocalChanges();
                     });
                 });
             }
@@ -121,44 +135,85 @@
                 });
             }
 
-            function stageFile() {
-                var selectedFile = staticSelectedFile.get('commit-modal-diff');
-                if(!selectedFile) {
+            function stageFiles() {
+                var selectedFiles = staticSelectedFile.get('commit-modal-diff');
+                if(!selectedFiles || selectedFiles.length == 0) {
+                    // nothing selected
                     return;
                 }
-                return gitfunctions.stageFile(selectedFile.name, selectedFile.tags).then(function (res) {
+
+                var allTags = [];
+                selectedFiles.forEach(function(f) {
+                    Array.prototype.push.apply(allTags, f.tags);
+                });
+
+                if(allTags.indexOf('unstaged') == -1) {
+                    // none of the selected files are unstaged.
+                    // so nothing to stage.
+                    return;
+                }
+
+                var selectedFilesNames = selectedFiles.map(function(f) { return f.name; });
+
+                return gitfunctions.stageFiles(selectedFilesNames, selectedFiles.map(function(f) { return f.tags; })).then(function(res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                         return ctrl.refreshLocalChanges().then(function(localStatus) {
                             // reselect the file because angular changes the reference of the file.
-                            selectedFile = localStatus.filter(function(f) { return f.name == selectedFile.name; })[0];
-                            ctrl.showDiffForFileOnCommitModal(selectedFile, 'commit-modal-diff');
-                            setSelectedFile(selectedFile, 'commit-modal-diff', 'staged-files-list');
+                            if(selectedFiles.length == 1) {
+                                var selectedFile = localStatus.filter(function(f) { return f.name == selectedFiles[0].name; })[0];
+                                ctrl.showDiffForFileOnCommitModal(selectedFile, 'commit-modal-diff');
+                            }
+
+                            setSelectedFile(localStatus.filter(function(f) {
+                                return selectedFilesNames.indexOf(f.name) > -1;
+                            }), 'commit-modal-diff', 'staged-files-list');
                         });
                     }
                 });
-            };
+            }
 
-            function unstageFile() {
-                var selectedFile = staticSelectedFile.get('commit-modal-diff');
-                if(!selectedFile) {
+            function unstageFiles() {
+                var selectedFiles = staticSelectedFile.get('commit-modal-diff');
+                if(!selectedFiles || selectedFiles.length == 0) {
+                    // nothing selected
                     return;
                 }
-                gitfunctions.unstageFile(selectedFile.name, selectedFile.tags).then(function (res) {
+
+                var allTags = [];
+                selectedFiles.forEach(function(f) {
+                    Array.prototype.push.apply(allTags, f.tags);
+                });
+
+                if(allTags.indexOf('staged') == -1) {
+                    // none of the selected files are staged.
+                    // so nothing to unstage.
+                    return;
+                }
+
+                var selectedFilesNames = selectedFiles.map(function(f) { return f.name; });
+
+                return gitfunctions.unstageFiles(selectedFilesNames, selectedFiles.map(function(f) { return f.tags; })).then(function(res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                         return ctrl.refreshLocalChanges().then(function(localStatus) {
                             // reselect the file because angular changes the reference of the file.
-                            selectedFile = localStatus.filter(function(f) { return f.name == selectedFile.name; })[0];
-                            ctrl.showDiffForFileOnCommitModal(selectedFile, 'commit-modal-diff');
-                            setSelectedFile(selectedFile, 'commit-modal-diff', 'unstaged-files-list');
+                            if(selectedFiles.length == 1) {
+                                var selectedFile = localStatus.filter(function(f) { return f.name == selectedFiles[0].name; })[0];
+                                ctrl.showDiffForFileOnCommitModal(selectedFile, 'commit-modal-diff');
+                            }
+
+                            
+                            setSelectedFile(localStatus.filter(function(f) {
+                                return selectedFilesNames.indexOf(f.name) > -1;
+                            }), 'commit-modal-diff', 'unstaged-files-list');
                         });
                     }
                 });
             }
 
             function stageAllFiles() {
-                setSelectedFile(null, 'commit-modal-diff');
+                setSelectedFile([], 'commit-modal-diff');
                 gitfunctions.stageAllFiles().then(function (res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
@@ -168,7 +223,7 @@
             }
 
             function unstageAllFiles() {
-                setSelectedFile(null, 'commit-modal-diff');
+                setSelectedFile([], 'commit-modal-diff');
                 gitfunctions.unstageAllFiles().then(function (res) {
                     // TODO: Handle errors here. Probably CRLF errors.
                     if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
@@ -190,8 +245,7 @@
             };
 
             function showDiffForFileOnCommitModal(file, diffViewId) {
-                if(!file) {
-                    ctrl.diffOnCommitModal.file = null;
+                if(!file || file instanceof Array) {
                     return;
                 }
                 
@@ -199,14 +253,9 @@
                 if (file.tags.indexOf('bothmodified') > -1 && file.tags.indexOf('staged') > -1) {
                     // no diff for this.
                     // TODO: Should we show a conflict message here?
-                    ctrl.diffOnCommitModal.file = file;
-                    setSelectedFile(null, diffViewId);
+                    setSelectedFile([], diffViewId);
                     return;
                 }
-
-                ctrl.diffOnCommitModal = {
-                    file: file
-                };
 
                 ctrl.fileSelectedOnCommitModal = file;
             }
@@ -233,11 +282,10 @@
                     filesListId = 'staged-files-list';
                 }
 
-                setSelectedFile(fileToSelect, 'commit-modal-diff', filesListId);
+                setSelectedFile(fileToSelect ? [fileToSelect] : [], 'commit-modal-diff', filesListId);
             }
 
             function unselectFilesAfterLocalRefresh(localStatus) {
-                ctrl.diffOnCommitModal = null;
                 showDefaultFileOnCommitModalDialog(localStatus);
             }
         }]

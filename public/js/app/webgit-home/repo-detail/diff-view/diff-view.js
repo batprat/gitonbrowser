@@ -19,10 +19,15 @@
 
                 staticSelectedFile.onSelectedFileChange(ctrl.diffViewId, function(file) {
                     // notification.
-                    if(!file) {
+                    if(!file || (file instanceof Array && (file.length > 1 || file.length == 0))) {
                         // selection cleared.
+                        // even if multiple files are selected
                         ctrl.safeDiff = '';
                         return;
+                    }
+
+                    if(file instanceof Array) {
+                        file = file[0];
                     }
 
                     if(!file.diff) {

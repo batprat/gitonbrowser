@@ -14,3 +14,8 @@
 #reset-unstaged-modal .reset-unstaged-alert, #reset-all-modal .reset-all-alert {
     margin-top: 1rem;
 }
+
+.files-going-to-be-reset {
+    color: #ff0000;
+    font-weight: bold;
+}

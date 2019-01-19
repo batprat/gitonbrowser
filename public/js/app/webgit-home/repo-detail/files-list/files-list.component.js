@@ -4,6 +4,7 @@
         bindings: {
             files: '=',
             onSelect: '&',
+            multiSelect: '<',
             tagToFilter: '=',
             badgeType: '=',
             badgePopoverDetails: '&',
@@ -13,12 +14,50 @@
             filesListId: '<'
         },
         controller: ['$scope', '$element', 'UtilsService', 'staticSelectedFile', function FilesListController($scope, $element, UtilsService, staticSelectedFile) {
-            console.log('controller called for ', $element);
             var ctrl = this;
             ctrl.selectedFileInThisList = true;     // true by default. will be unset only in cases where more than 1 files-lists share a diff-view (e.g. commit modal)
-            ctrl.select = function (file) {
-                staticSelectedFile.set(file, ctrl.diffViewId, ctrl.filesListId);
-                ctrl.onSelect({ file: file, diffViewId: ctrl.diffViewId });
+            if(ctrl.multiSelect) {
+                ctrl.selectedFile = [];
+            }
+            else {
+                ctrl.selectedFile = null;
+            }
+
+            var selectedFiles = null;
+            ctrl.select = function (file, $event) {
+                // in case of multi select,
+                // if ctrl is pressed,
+                // add the selected file to a list.
+                // if it is not pressed,
+                // clear the list.
+                
+                // half of the selection is done here and the other half is done below inside `staticSelectedFile.onSelectedFileChange`
+                // this is to handle the case when a file is selected from outside of the fileslist.
+                // e.g. setting the default selected file in a list.
+
+                if(ctrl.multiSelect) {
+                    if($event.ctrlKey) {
+                        selectedFiles = selectedFiles || ctrl.selectedFile.slice(0) || [];      // slice `ctrl.selectedFile` because we need a new reference.
+
+                        var idx = selectedFiles.map(function(f) { return f.name; }).indexOf(file.name);
+                        if(idx > -1) {
+                            // file is already selected, unselect this file.
+                            selectedFiles.splice(idx, 1);
+                        }
+                        else {
+                            selectedFiles.push(file);
+                        }
+                    }
+                    else {
+                        selectedFiles = [file];
+                    }
+                }
+                else {
+                    selectedFiles = file;
+                }
+
+                staticSelectedFile.set(selectedFiles, ctrl.diffViewId, ctrl.filesListId);
+                ctrl.onSelect({ file: selectedFiles, diffViewId: ctrl.diffViewId });
             };
 
             ctrl.$onInit = function() {
@@ -92,18 +131,30 @@
                 }
 
                 staticSelectedFile.onSelectedFileChange(ctrl.diffViewId, function(file, filesListId) {
-                    // new file selected.
-                    // if filesListId is defined, then distinguish between different files-lists.
                     if(filesListId) {
                         ctrl.selectedFileInThisList = filesListId == ctrl.filesListId;
                     }
-                    ctrl.selectedFile = file;
+
+                    // remember `ctrl.selectedFileInThisList` is true by default.
+                    if(ctrl.selectedFileInThisList) {
+                        ctrl.selectedFile = file;
+                    }
                 });
     
                 bindContextMenu();
             };
 
+            ctrl.isFileSelected = isFileSelected;
+
             return;
+
+            function isFileSelected(file) {
+                if(!ctrl.selectedFile) {
+                    return false;
+                }
+                return ctrl.selectedFileInThisList && (ctrl.multiSelect && ctrl.selectedFile instanceof Array ? ctrl.selectedFile.map(function(f) { return f.name }).indexOf(file.name) > -1 : ctrl.selectedFile.name === file.name);
+            }
+
             function bindContextMenu() {
                 $element.on('contextmenu', '.list-item-selector', function (e) {
                     // select this file.

@@ -19,16 +19,17 @@
                                         on-select="$ctrl.showDiffForFileOnCommitModal(file, diffViewId)"
                                         files="$ctrl.localStatus"
                                         diff-view-id="'commit-modal-diff'"
-                                        files-list-id="'unstaged-files-list'">
+                                        files-list-id="'unstaged-files-list'"
+                                        multi-select="true">
                                     </files-list>
                                 </div>
                             </div>
                             <div class="row staging-action-buttons-container">
                                 <div class="col-sm-12 staging-actions">
-                                    <button class="btn btn-sm btn-outline-primary float-left btn-unstage-all-files" ng-class="{'disabled': !$ctrl.stagedFiles || $ctrl.stagedFiles.length == 0}" ng-disabled="!$ctrl.stagedFiles || $ctrl.stagedFiles.length == 0" ng-click="$ctrl.unstageAllFiles()">Unstage All</button>
-                                    <button class="btn btn-sm btn-outline-primary float-left btn-unstage-files" ng-class="{'disabled': $ctrl.diffOnCommitModal.file.tags.indexOf('staged') == -1}" ng-disabled="$ctrl.diffOnCommitModal.file.tags.indexOf('staged') == -1" ng-click="$ctrl.unstageFile()">Unstage</button>
-                                    <button class="btn btn-sm btn-outline-primary float-right btn-stage-files" ng-class="{'disabled': $ctrl.diffOnCommitModal.file.tags.indexOf('unstaged') == -1}" ng-disabled="$ctrl.diffOnCommitModal.file.tags.indexOf('unstaged') == -1" ng-click="$ctrl.stageFile()">Stage</button>
-                                    <button class="btn btn-sm btn-outline-primary float-right btn-stage-all-files" ng-class="{'disabled': !$ctrl.unstagedFiles || $ctrl.unstagedFiles.length == 0}" ng-disabled="!$ctrl.unstagedFiles || $ctrl.unstagedFiles.length == 0" ng-click="$ctrl.stageAllFiles()">Stage All</button>
+                                    <button class="btn btn-sm btn-outline-primary float-left btn-unstage-all-files" ng-click="$ctrl.unstageAllFiles()">Unstage All</button>
+                                    <button class="btn btn-sm btn-outline-primary float-left btn-unstage-files" ng-click="$ctrl.unstageFiles()">Unstage</button>
+                                    <button class="btn btn-sm btn-outline-primary float-right btn-stage-files" ng-click="$ctrl.stageFiles()">Stage</button>
+                                    <button class="btn btn-sm btn-outline-primary float-right btn-stage-all-files" ng-click="$ctrl.stageAllFiles()">Stage All</button>
                                 </div>
                             </div>
                             <div class="row">
@@ -40,7 +41,8 @@
                                         on-select="$ctrl.showDiffForFileOnCommitModal(file, diffViewId)"
                                         files="$ctrl.localStatus"
                                         diff-view-id="'commit-modal-diff'"
-                                        files-list-id="'staged-files-list'">
+                                        files-list-id="'staged-files-list'"
+                                        multi-select="true">
                                     </files-list>
                                 </div>
                             </div>

@@ -48,16 +48,16 @@ router.get('/:id/getfilediff', function (req, res) {
     git.getFileDiff({ repo, req, res });
 });
 
-router.get('/:id/stagefile', function (req, res) {
+router.get('/:id/stagefiles', function (req, res) {
     let repo = req.params.id;
 
-    git.stageFile({ repo, req, res });
+    git.stageFiles({ repo, req, res });
 });
 
-router.get('/:id/unstagefile', function (req, res) {
+router.get('/:id/unstagefiles', function (req, res) {
     let repo = req.params.id;
 
-    git.unstageFile({ repo, req, res });
+    git.unstageFiles({ repo, req, res });
 });
 
 router.get('/:id/stageallfiles', function (req, res) {
@@ -236,10 +236,10 @@ router.post('/:id/checkoutremotebranch', (req, res) => {
     git.checkoutRemoteBranch({ repo, req, res });
 });
 
-router.post('/:id/resetfile', (req, res) => {
+router.post('/:id/resetfiles', (req, res) => {
     let repo = req.params.id;
 
-    git.resetFile({ repo, req, res });
+    git.resetFiles({ repo, req, res });
 });
 
 router.post('/:id/deletelocalbranch', (req, res) => {

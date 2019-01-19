@@ -2,8 +2,8 @@
     angular.module('RepoDetailModule').service('gitfunctions', ['$http', '$routeParams', '$q', function ($http, $routeParams, $q) {
         var repoName = encodeURIComponent(decodeURIComponent($routeParams.repoName));
         return {
-            stageFile: stageFile,
-            unstageFile: unstageFile,
+            stageFiles: stageFiles,
+            unstageFiles: unstageFiles,
             stageAllFiles: stageAllFiles,
             unstageAllFiles: unstageAllFiles,
             commit: commit,
@@ -25,7 +25,7 @@
             abortMerge: abortMerge,
             getMergeMsg: getMergeMsg,
             checkoutRemoteBranch: checkoutRemoteBranch,
-            resetFile: resetFile,
+            resetFiles: resetFiles,
             pull: pull,
             createNewBranch: createNewBranch,
             deleteLocalBranch: deleteLocalBranch,
@@ -59,14 +59,20 @@
             });
         }
 
-        function resetFile(file, tags) {
-            return $http.post('/repo/' + repoName + '/resetfile', {
-                fileName: encodeURIComponent(file),
+        function resetFiles(files, tags) {
+            tags = tags.map(function(tagsList) {
+                return tagsList.join(',');
+            });
+
+            tags = tags.join(':');
+
+            return $http.post('/repo/' + repoName + '/resetfiles', {
+                fileNames: encodeURIComponent(files.join(':')),
                 tags: tags
             }).then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
-                }
+                // if (!res.data.errorCode) {
+                //     return res.data.output.join('\n');
+                // }
                 return res.data;
             });
         }
@@ -239,8 +245,13 @@
             });
         }
 
-        function stageFile(file, tags) {
-            return $http.get('/repo/' + repoName + '/stagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function (res) {
+        function stageFiles(files, tags) {
+            tags = tags.map(function(tagsList) {
+                return tagsList.join(',');
+            });
+
+            tags = tags.join(':');
+            return $http.get('/repo/' + repoName + '/stagefiles?filenames=' + encodeURIComponent(files.join(':')) + '&tags=' + encodeURIComponent(tags)).then(function (res) {
                 if (!res.data.errorCode) {
                     return res.data.output.join('\n');
                 }
@@ -248,8 +259,13 @@
             });
         }
 
-        function unstageFile(file, tags) {
-            return $http.get('/repo/' + repoName + '/unstagefile?filename=' + encodeURIComponent(file) + '&tags=' + encodeURIComponent(tags.join(','))).then(function (res) {
+        function unstageFiles(files, tags) {
+            tags = tags.map(function(tagsList) {
+                return tagsList.join(',');
+            });
+
+            tags = tags.join(':');
+            return $http.get('/repo/' + repoName + '/unstagefiles?filenames=' + encodeURIComponent(files.join(':')) + '&tags=' + encodeURIComponent(tags)).then(function (res) {
                 if (!res.data.errorCode) {
                     return res.data.output.join('\n');
                 }

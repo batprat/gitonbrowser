@@ -14,8 +14,8 @@ let git = {
     getCommit: getCommit,
     getStatus: getStatus,
     getFileDiff: getFileDiff,
-    stageFile: stageFile,
-    unstageFile: unstageFile,
+    stageFiles: stageFiles,
+    unstageFiles: unstageFiles,
     stageAllFiles: stageAllFiles,
     unstageAllFiles: unstageAllFiles,
     getDiffBetweenCommits: getDiffBetweenCommits,
@@ -49,7 +49,7 @@ let git = {
     cherrypick,
     getMergeMsg,
     checkoutRemoteBranch,
-    resetFile,
+    resetFiles,
     deleteLocalBranch,
     revertCommit
 };
@@ -95,17 +95,60 @@ function deleteLocalBranch({ req, res, repo }) {
     redirectIO(child, req, res);
 }
 
-function resetFile({ req, res, repo }) {
-    let fileName = decodeURIComponent(req.body.fileName);
+function resetFiles({ req, res, repo }) {
+    let fileNames = decodeURIComponent(req.body.fileNames);
+
+    fileNames = fileNames.split(':');
     
-    if (fileName.indexOf('"') > -1) {
-        fileName = fileName.replace(/\"/g, '');
+    fileNames = fileNames.map((f) => {
+        if (f.indexOf('"') > -1) {
+            f = f.replace(/\"/g, '');
+        }
+
+        return f;
+    });
+
+    let tags = req.body.tags.split(':');
+
+    var untrackedFiles = [];
+
+    tags.forEach(function(tagsList, i) {
+        if(tagsList.indexOf('untracked') > -1) {
+            untrackedFiles.push(fileNames[i]);
+        }
+    });
+
+    let promises = [];
+
+    if(untrackedFiles.length > 0) {
+        let resetUntrackedGitOptions = ['clean', '-f', '--'];
+
+        // remove untracked files from regular files that I will reset.
+        untrackedFiles.forEach((f) => {
+            fileNames.splice(fileNames.indexOf(f), 1);
+
+            resetUntrackedGitOptions.push(f);
+        });
+
+        let resetUntrackedChild = spawnGitProcess(repo, resetUntrackedGitOptions);
+
+        promises.push(redirectIO(resetUntrackedChild));
     }
 
-    let tags = req.body.tags;
+    if(fileNames.length > 0) {
+        // reset these files.
+        let gitOptions = ['checkout', '--'];
 
-    const child = spawnGitProcess(repo, ['checkout', '--', fileName]);
-    redirectIO(child, req, res);
+        Array.prototype.push.apply(gitOptions, fileNames);
+
+        const child = spawnGitProcess(repo, gitOptions);
+
+        promises.push(redirectIO(child));
+    }
+
+    Promise.all(promises).then((promiseResponses) => {
+        sendResponse(res, promiseResponses);
+    });
 }
 
 function checkoutRemoteBranch({ req, res, repo }) {
@@ -647,39 +690,48 @@ function stageAllFiles({ req, res, repo }) {
     redirectIO(child, req, res);
 }
 
-function unstageFile({ req, res, repo }) {
+function unstageFiles({ req, res, repo }) {
     let gitOptions = ['reset', '--quiet'];
-    let tags = req.query.tags.split(',');
-    let fileName = req.query.filename;
+    let tags = req.query.tags;
+    let fileNames = req.query.filenames.split(':');
 
-    if (tags.indexOf('deletedstaged') > -1) {
-        gitOptions.push('--');
-    }
+    fileNames = fileNames.map((f) => {
+        if (f.indexOf('"') > -1) {
+            f = f.replace(/\"/g, '');
+        }
 
-    if (fileName.indexOf('"') > -1) {
-        fileName = fileName.replace(/\"/g, '');
-    }
+        return f;
+    });
 
-    gitOptions.push(fileName);
+    gitOptions.push('--');
+
+    Array.prototype.push.apply(gitOptions, fileNames);
 
     const child = spawnGitProcess(repo, gitOptions);
     redirectIO(child, req, res);
 }
 
-function stageFile({ req, res, repo }) {
+function stageFiles({ req, res, repo }) {
     let gitOptions = ['add'];
-    let tags = req.query.tags.split(',');
-    let fileName = req.query.filename;
+    let tags = req.query.tags;
+    // tags = tags.map((t) => { return t.split(',') });
+    let fileNames = req.query.filenames.split(':');
 
     if (tags.indexOf('deletedunstaged') > -1) {
         gitOptions.push('-u');
     }
 
-    if (fileName.indexOf('"') > -1) {
-        fileName = fileName.replace(/\"/g, '');
-    }
+    fileNames = fileNames.map((f) => {
+        if (f.indexOf('"') > -1) {
+            f = f.replace(/\"/g, '');
+        }
 
-    gitOptions.push(fileName);
+        return f;
+    });
+
+    gitOptions.push('--');
+
+    Array.prototype.push.apply(gitOptions, fileNames);
 
     const child = spawnGitProcess(repo, gitOptions);
     redirectIO(child, req, res);
