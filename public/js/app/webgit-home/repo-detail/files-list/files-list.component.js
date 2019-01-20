@@ -36,7 +36,7 @@
                 // e.g. setting the default selected file in a list.
 
                 if(ctrl.multiSelect) {
-                    if($event.ctrlKey) {
+                    if($event && $event.ctrlKey) {
                         selectedFiles = selectedFiles || ctrl.selectedFile.slice(0) || [];      // slice `ctrl.selectedFile` because we need a new reference.
 
                         var idx = selectedFiles.map(function(f) { return f.name; }).indexOf(file.name);
