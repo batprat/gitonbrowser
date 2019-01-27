@@ -31,10 +31,6 @@
     overflow: auto;
 }
 
-.details-tabs {
-    background: #FFF;
-}
-
 .nav-link {
     cursor: pointer;
 }
@@ -43,185 +39,16 @@
     cursor: default;
 }
 
-.tab-content-details {
-    height: calc(100% - 42px);
-    background: #EEE;
-}
-
-.tab-pane {
-    max-height: 100%;
-    overflow: auto;
-    height: 100%;
-}
-
 .height100 {
     height: 100%;
-}
-
-.selected-file {
-    background: steelblue;
-}
-
-.file-diff-column {
-    border-left: 1px solid #CCC;
-    /*overflow: auto;
-    max-height: 100%;*/
-}
-
-.line-added {
-    background: #90ee90;
-}
-
-.line-removed {
-    background: #f08080; 
-}
-
-.line-special {
-    background: #d3d3d3;
-}
-
-#commit-modal .modal-dialog {
-    max-width: 90%;
-}
-
-.staging-action-buttons-container {
-    padding: 15px 0;
-    border-top: 1px solid #CCCCCC;
-    border-bottom: 1px solid #CCCCCC;
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-#commit-dialog-diff {
-    background: #e2e1e0;
-    padding: 15px;
-    max-height: 40vh;
 }
 
 .panel-name {
     font-weight: bold;
 }
 
-.btn-commit-dialog-refresh {
-    margin-right: 10px;
-}
-
-.diff-files-list {
-    overflow: auto;
-    padding: 0;
-}
-
-.diff-files-list .list-item-selector, .stash-files-list .list-item-selector, .unstaged-files-list .list-item-selector, .staged-files-list .list-item-selector {
-    white-space: nowrap;
-}
-
-.parent-hash, .child-hash {
-    cursor: pointer;
-}
-
-.local-branch, .local-head {
-    background: #F6ECEC;
-    border: 1px solid #ECD6D6;
-}
-
-.local-head i.local-head-arrow {
-    color: red;
-    margin-right: 5px;
-}
-
-.remote-branch {
-    background: #ECF5EC;
-    border: 1px solid #D6EAD6;
-}
-
-.tags-refs {
-    display: inline-block;
-    border-radius: 5px;
-    padding: 0 5px;
-    margin-left: 5px;
-    color: #000;
-}
-
-.unstaged-files-list, .staged-files-list {
-    min-height: 100px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.commit-dialog-btn {
-    width: 100%;
-    margin-top: 10px;
-    cursor: pointer;
-}
-
-.commit-dialog-btn:first-child {
-  margin-top: 0;
-}
-
-.commit-dialog-action-container {
-    margin-top: 15px;
-}
-
 #main-log-loading-indicator {
   display: none;
-}
-
-#pull-branch-select {
-  margin-left: 20px;
-}
-
-#pull-modal .modal-body {
-  background-color: #f7f7f9;
-}
-
-#pull-modal .panel {
-  background: #fff;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 10px;
-}
-
-.merge-option {
-  margin-bottom: 10px;
-}
-
-.merge-option .form-check-input {
-  margin-top: 4px;
-}
-
-#commit-message-textarea {
-  min-height: 161px;
-  overflow-y: auto;
-}
-
-#stashes-list {
-    margin-left: 10px;
-}
-
-.stash-message {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-top: 15px;
-    margin-bottom: 15px;
-    min-height: 150px;
-}
-
-.selected-stash-files-list {
-    margin-bottom: 15px;
-    margin-top: 15px;
-    min-height: 150px;
-}
-
-.stash-files-list {
-    overflow: auto;
-}
-
-.btn-group-stash-local-changes {
-    width: 100%;
-}
-
-.btn-stash-action {
-    margin-top: 10px;
 }
 
 .row-vertical-margin {
@@ -229,114 +56,14 @@
     margin-bottom: 10px;
 }
 
-.bootstrapMenu .dropdown-menu {
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
-.bootstrapMenu .dropdown-menu>li {
-    padding: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease 0s;
-}
-
-.bootstrapMenu .dropdown-menu>li.disabled, .bootstrapMenu .dropdown-menu>li.disabled>a {
-    color: #aaa;
-    cursor: default;
-}
-
-.bootstrapMenu .dropdown-menu>li:hover {
-    background: #d3d3d3;
-}
-
-.bootstrapMenu .dropdown-menu>li.disabled:hover {
-    background: #fff;
-}
-
-.bootstrapMenu .dropdown-menu>li>a {
-    color: #000;
-    text-decoration: none;
-}
-
-.bootstrapMenu .dropdown-menu>li>a:hover {
-    text-decoration: none;
-}
-
-#conflict-dialog-diff.diff {
-    height: 60vh;
-    overflow-y: auto;
-    white-space: pre;
-}
-
-.conflict-dialog-diff-placeholder {
-    height: 60vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.conflicting-files-list {
-    /* padding-bottom: 15px;
-    border-bottom: 1px solid #CCC; */
-    max-height: 20vh;
-    overflow-y: auto;
-}
-
 .modal-xl {
     max-width: 80%;
-}
-
-.conflict-explaination {
-    font-weight: bold;
-}
-
-.btn-conflict-action {
-    margin-top: 15px;
-}
-
-.conflict-actions {
-    margin-top: 15px;
-}
-
-.conflict-actions button, .conflict-modal-selected-file-actions button {
-    margin-left: 10px;
 }
 
 #graph-container {
     flex: 0 0 50px;
     background: #fff;
     padding: 0;
-}
-
-.merge-conflict-actions {
-    flex: 0 0 308px;
-}
-
-#conflict-commit-message {
-    height: 175px;
-}
-
-.conflict-modal-action-btns-container {
-    margin-top: 30px;
-}
-
-.commit-message-div {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-
-.log-commit-message-container {
-    display: flex;
-}
-
-.log-commit-message {
-    display: inline-block;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    flex: 1;
 }
 
 .label-heading {
@@ -355,34 +82,4 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-}
-
-.btn-stage-all-files {
-    margin-right: 10px;
-}
-
-.btn-unstage-files {
-    margin-left: 10px;
-}
-
-.main-log-author-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.commit-message {
-    white-space: pre-wrap;
-}
-
-.commit-in-branch, .commit-in-tag {
-    font-family: monospace;
-}
-
-.commit-in-branch-local{
-    background: #F6ECEC;
-}
-
-.commit-in-branch-remote {
-    background: #ECF5EC;
 }

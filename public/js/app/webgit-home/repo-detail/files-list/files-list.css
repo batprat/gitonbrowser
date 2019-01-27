@@ -34,3 +34,7 @@
 .files-list .file>div {
     padding-right: 10px;
 }
+
+.list-item-selector {
+    white-space: nowrap;
+}

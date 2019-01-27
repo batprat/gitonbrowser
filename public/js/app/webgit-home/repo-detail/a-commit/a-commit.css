@@ -23,3 +23,50 @@
 .commit.selected:hover {
     box-shadow: none;
 }
+
+.local-branch, .local-head {
+    background: #F6ECEC;
+    border: 1px solid #ECD6D6;
+}
+
+.local-head i.local-head-arrow {
+    color: red;
+    margin-right: 5px;
+}
+
+.remote-branch {
+    background: #ECF5EC;
+    border: 1px solid #D6EAD6;
+}
+
+.tags-refs {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 0 5px;
+    margin-left: 5px;
+    color: #000;
+}
+
+.commit-message-div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.log-commit-message-container {
+    display: flex;
+}
+
+.log-commit-message {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    flex: 1;
+}
+
+.main-log-author-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

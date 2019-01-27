@@ -10,3 +10,15 @@ diff-view {
     white-space: pre;
     font-family: monospace;
 }
+
+.line-added {
+    background: #90ee90;
+}
+
+.line-removed {
+    background: #f08080; 
+}
+
+.line-special {
+    background: #d3d3d3;
+}

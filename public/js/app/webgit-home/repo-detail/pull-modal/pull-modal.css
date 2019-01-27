@@ -1,0 +1,18 @@
+#pull-modal .modal-body {
+    background-color: #f7f7f9;
+}
+  
+#pull-modal .panel {
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.merge-option {
+  margin-bottom: 10px;
+}
+
+.merge-option .form-check-input {
+  margin-top: 4px;
+}

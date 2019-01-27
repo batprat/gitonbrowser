@@ -19,3 +19,58 @@
     color: #ff0000;
     font-weight: bold;
 }
+
+#commit-dialog-diff {
+    background: #e2e1e0;
+    padding: 15px;
+    max-height: 40vh;
+}
+
+.staging-action-buttons-container {
+    padding: 15px 0;
+    border-top: 1px solid #CCCCCC;
+    border-bottom: 1px solid #CCCCCC;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#commit-modal .modal-dialog {
+    max-width: 90%;
+}
+
+.btn-commit-dialog-refresh {
+    margin-right: 10px;
+}
+
+.unstaged-files-list, .staged-files-list {
+    min-height: 100px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.commit-dialog-btn {
+    width: 100%;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.commit-dialog-btn:first-child {
+  margin-top: 0;
+}
+
+.commit-dialog-action-container {
+    margin-top: 15px;
+}
+
+#commit-message-textarea {
+  min-height: 161px;
+  overflow-y: auto;
+}
+
+.btn-stage-all-files {
+    margin-right: 10px;
+}
+
+.btn-unstage-files {
+    margin-left: 10px;
+}

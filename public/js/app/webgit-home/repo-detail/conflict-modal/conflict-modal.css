@@ -2,3 +2,31 @@
     max-height: 80vh;
     overflow: auto;
 }
+
+.conflict-explaination {
+    font-weight: bold;
+}
+
+.btn-conflict-action {
+    margin-top: 15px;
+}
+
+.conflict-actions {
+    margin-top: 15px;
+}
+
+.conflict-actions button, .conflict-modal-selected-file-actions button {
+    margin-left: 10px;
+}
+
+.merge-conflict-actions {
+    flex: 0 0 308px;
+}
+
+#conflict-commit-message {
+    height: 175px;
+}
+
+.conflict-modal-action-btns-container {
+    margin-top: 30px;
+}

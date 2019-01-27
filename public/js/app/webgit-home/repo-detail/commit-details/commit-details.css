@@ -1,0 +1,51 @@
+commit-details, .commit-details {
+    height: 100%;
+}
+
+commit-details {
+    display: block
+}
+
+.file-diff-column {
+    border-left: 1px solid #CCC;
+}
+
+.details-tabs {
+    background: #FFF;
+}
+
+.tab-content-details {
+    height: calc(100% - 42px);
+    background: #EEE;
+}
+
+.tab-content-details .tab-pane {
+    max-height: 100%;
+    overflow: auto;
+    height: 100%;
+}
+
+.diff-files-list {
+    overflow: auto;
+    padding: 0;
+}
+
+.parent-hash, .child-hash {
+    cursor: pointer;
+}
+
+.commit-message {
+    white-space: pre-wrap;
+}
+
+.commit-in-branch, .commit-in-tag {
+    font-family: monospace;
+}
+
+.commit-in-branch-local {
+    background: #F6ECEC;
+}
+
+.commit-in-branch-remote {
+    background: #ECF5EC;
+}
