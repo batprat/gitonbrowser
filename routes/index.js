@@ -52,7 +52,7 @@ router.get('/browserepo', function (req, res) {
         // if repository exists..
         // open it.
         res.write(JSON.stringify({
-            path: 'repo/' + encodedPath
+            path: '/repo/' + encodedPath
         }));
         res.end();
         return;
@@ -66,7 +66,7 @@ router.get('/browserepo', function (req, res) {
         repos = require('../data/repos.json');
 
         res.write(JSON.stringify({
-            path: 'repo/' + encodedPath
+            path: '/repo/' + encodedPath
         }));
         res.end();
     });

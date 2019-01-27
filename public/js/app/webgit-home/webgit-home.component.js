@@ -4,7 +4,7 @@
     webgitHomeModule.component('webgitHome', {
         templateUrl: '/js/app/webgit-home/webgit-home.html',
         controllerAs: 'vm',
-        controller: ['WebgitHomeService', '$location', 'UtilsService', '$timeout', '$responseModal', function WebgitHomeController(WebgitHomeService, $location, utils, $timeout, $responseModal) {
+        controller: ['WebgitHomeService', 'UtilsService', '$timeout', '$responseModal', function WebgitHomeController(WebgitHomeService, utils, $timeout, $responseModal) {
             var vm = this;
             var $cloneModal = $('#clone-modal');
             vm.browsePath = '';
@@ -63,7 +63,7 @@
                 return WebgitHomeService.browseRepo(vm.browsePath);
             }
         }]
-    }).service('WebgitHomeService', ['$http', '$location', function ($http, $location) {
+    }).service('WebgitHomeService', ['$http', '$window', function ($http, $window) {
         this.getClonedRepos = getClonedRepos;
         this.browseRepo = browseRepo;
         this.clone = clone;
@@ -90,7 +90,7 @@
 
         function browseRepo(repoPath) {
             return $http.get('/browserepo?path=' + window.encodeURIComponent(repoPath)).then(function (res) {
-                $location.path(res.data.path);
+                $window.location.href = res.data.path;
             });
         }
 
