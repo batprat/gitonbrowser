@@ -90,7 +90,7 @@
                     });
 
                     $scope.$on('windowfocus', function () {
-                        if ((vm.modals.commit.data('bs.modal') || {})._isShown) {
+                        if (((vm.modals.commit && vm.modals.commit.data('bs.modal')) || {})._isShown) {
                             // do not refresh when the modal window is open. use the refresh button instead.
                             return;
                         }

@@ -13,8 +13,6 @@
         controller: ['$element', 'gitfunctions', 'staticSelectedFile', function($element, gitfunctions, staticSelectedFile) {
             var ctrl = this;
 
-            window.conflictModal = ctrl;
-
             ctrl.$onInit = function() {
                 ctrl.modal = $element.find('.modal');
 

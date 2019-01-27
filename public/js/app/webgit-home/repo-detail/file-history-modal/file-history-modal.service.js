@@ -8,15 +8,17 @@
                         <h5 class="modal-title">File History</h5>
                         <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
-                    <div class="modal-body">
-                        <div class="file-history-commits-container">
-                            <a-commit
-                                ng-repeat="hash in hashes"
-                                hash="hash"
-                                commit-map="commitMap"
-                                select-commit="selectCommit(commit)"
-                                selected-commit="selectedCommit"></a-commit>
-                            <div class="file-history-loading-container">Loading next batch of commits...</div>
+                    <div class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="file-history-commits-container col">
+                                <a-commit
+                                    ng-repeat="hash in hashes"
+                                    hash="hash"
+                                    commit-map="commitMap"
+                                    select-commit="selectCommit(commit)"
+                                    selected-commit="selectedCommit"></a-commit>
+                                <div class="file-history-loading-container">Loading next batch of commits...</div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
