@@ -29,8 +29,16 @@
             pull: pull,
             createNewBranch: createNewBranch,
             deleteLocalBranch: deleteLocalBranch,
-            revertCommit: revertCommit
+            revertCommit: revertCommit,
+            getFileHistory: getFileHistory
         };
+
+        function getFileHistory(filePath, page) {
+            page = page || 1;
+            return $http.post('/repo/' + repoName + '/getfilehistory', { fileName: encodeURIComponent(filePath), page: page }).then(function(res) {
+                return res.data;
+            });
+        }
 
         function revertCommit(hash, doNotCommit) {
             return $http.post('/repo/' + repoName + '/revertcommit', { hash: hash, doNotCommit: doNotCommit }).then(function (res) {

@@ -1,0 +1,53 @@
+<div>
+    <ul class="nav nav-tabs details-tabs" role="tablist">
+        <li class="nav-item">
+            <span class="nav-link active" data-target="#tab-commit" data-toggle="tab" role="tab">Commit</span>
+        </li>
+        <li class="nav-item">
+            <span class="nav-link" data-target="#tab-diff" data-toggle="tab" role="tab">Diff</span>
+        </li>
+    </ul>
+        
+        <!-- Tab panes -->
+    <div class="tab-content tab-content-details">
+        <div class="tab-pane active" id="tab-commit" role="tabpanel">
+            <div ng-if="$ctrl.commitDetails" class="container-fluid">
+                <div ng-if="$ctrl.commitDetails == 'loading'" class="row">
+                    <div class="col-sm-12">Fetching commit details. Please wait...</div>
+                </div>
+                <div class="row" ng-if="$ctrl.commitDetails != 'loading'">
+                    <div class="col-sm-12">
+                        <div>Author: {{$ctrl.commitDetails.author}}</div>
+                        <div>Date: ({{$ctrl.commitDetails.date | date : 'medium'}})</div>
+                        <div>Commit hash: {{$ctrl.commitDetails.hash}}</div>
+                        <div>Parent(s): <span class="btn-link parent-hash" ng-click="$ctrl.select(parentHash)" ng-repeat="parentHash in $ctrl.commitDetails.parentHashes track by $index">{{parentHash}} </span></div>
+                        <div>Children: <span class="btn-link child-hash" ng-click="$ctrl.select(childHash)" ng-repeat="childHash in $ctrl.commitDetails.children track by $index">{{childHash}} </span></div>
+                        <div class="commit-message">{{$ctrl.commitDetails.message}}</div>
+                        <div>Contained in branches: <span ng-repeat="branch in $ctrl.commitDetails.branches"><span class="commit-in-branch commit-in-branch-{{branch.type}}">{{branch.name}}</span>{{$last ? '' : ', '}}</span></div>
+                        <div ng-if="$ctrl.commitDetails.tags.length">Contained in tags: <span ng-repeat="tag in $ctrl.commitDetails.tags"><span class="commit-in-tag">{{tag}}</span>{{$last ? '' : ', '}}</span></div>
+                        <div ng-if="$ctrl.commitDetails.tags.length == 0">This commit is not contained in any tags.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane" id="tab-diff" role="tabpanel">
+            <div class="container-fluid height100" ng-if="$ctrl.commitDetails">
+                <div class="row height100">
+                    <div class="col-sm-4 height100 diff-files-list">
+                        <files-list
+                            files="$ctrl.commitDetails.diffDetails"
+                            on-select="$ctrl.selectFileInLog(file, diffViewId)"
+                            diff-view-id="'commit-details-diff'">
+                        </files-list>
+                    </div>
+                    <div class="col-sm-8 file-diff-column height100">
+                        <diff-view
+                            safe-diff="$ctrl.selectedFileDiff"
+                            diff-view-id="'commit-details-diff'">
+                        </diff-view>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -3,7 +3,7 @@
 . Handle passwords for cloning - use socket.io
 . Handle passwords for pushing - use socket.io
 . Handle passwords for pulling - use socket.io
-. Show file history
+. Make searching faster - use socket.io
 . Select default branch that matches the current branch name in push modal
 . Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
 . Checkout commit
@@ -91,6 +91,7 @@ DONE:
 -. Keyboard shortcuts for files list
 -. Implement copy path for all paths (file-selector)
 -. Select multiple files while staging, unstaging, rebase modal, etc.
+-. Show file history
 -. Refactor code
    -. Move service into different file
    -. Move modals into their own files

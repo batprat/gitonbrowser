@@ -13,7 +13,7 @@
             diffViewId: '<',
             filesListId: '<'
         },
-        controller: ['$scope', '$element', 'UtilsService', 'staticSelectedFile', function FilesListController($scope, $element, UtilsService, staticSelectedFile) {
+        controller: ['$scope', '$element', 'UtilsService', 'staticSelectedFile', '$fileHistoryModalService', function FilesListController($scope, $element, UtilsService, staticSelectedFile, $fileHistoryModalService) {
             var ctrl = this;
             ctrl.selectedFileInThisList = true;     // true by default. will be unset only in cases where more than 1 files-lists share a diff-view (e.g. commit modal)
             if(ctrl.multiSelect) {
@@ -166,6 +166,7 @@
                 $.contextMenu({
                     selector: '.list-item-selector',
                     build: function($trigger, e) {
+                        var file = $trigger.scope().file;
                         var options = {
                             items: {
                                 copyPath: {
@@ -174,6 +175,17 @@
                                         UtilsService.copyToClipboard($trigger.find('.file-name')[0]);
                                     },
                                     className: 'copy-text'
+                                },
+                                getFileHistory: {
+                                    name: 'Show File History',
+                                    callback: function() {
+                                        var name = file.name;
+
+                                        $fileHistoryModalService.show({
+                                            $scope: $scope,
+                                            file: name
+                                        });
+                                    }
                                 }
                             }
                         };

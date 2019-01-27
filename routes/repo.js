@@ -254,4 +254,10 @@ router.post('/:id/revertcommit', (req, res) => {
     git.revertCommit({ repo, req, res });
 });
 
+router.post('/:id/getfilehistory', (req, res) => {
+    let repo = req.params.id;
+
+    git.getFileHistory({ repo, req, res });
+});
+
 module.exports = router;

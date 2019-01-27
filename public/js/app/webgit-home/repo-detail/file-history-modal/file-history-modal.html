@@ -1,0 +1,7 @@
+<div id="file-history-modal">
+    <div class="modal-body">
+        <h1>File History Modal!</h1>
+        <div ng-repeat="commit in $ctrl.commits">{{commit.subject}}</div>
+        <button ng-click="$ctrl.closeModal('file-history-modal');">Close</button>
+    </div>
+</div>

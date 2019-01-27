@@ -51,7 +51,8 @@ let git = {
     checkoutRemoteBranch,
     resetFiles,
     deleteLocalBranch,
-    revertCommit
+    revertCommit,
+    getFileHistory
 };
 
 module.exports = git;
@@ -831,6 +832,35 @@ function spawnGitProcess(repo, processOptions) {
     });
 }
 
+function getFileHistory({ req, res, repo }) {
+    let randomSeperator = utils.getRandomSeparator();
+    let randomSeperator2 = utils.getRandomSeparator();
+
+    let logFormat = `--format=format:${randomSeperator}%d%n%H%n%an%n%ae%n%aD%n%s${randomSeperator2}%b`;
+
+    let fileName = decodeURIComponent(req.body.fileName);
+
+    fileName = fileName.replace(/\"/g, '');
+
+    let historyInOnePageCount = 100;
+    let logArgs = ['log', '-p', '-n ' + historyInOnePageCount, logFormat];
+
+    let page = req && req.body && +req.body.page ? req.body.page : 1;
+
+    if (page > 1) {
+        logArgs.push('--skip=' + ((page - 1) * historyInOnePageCount));
+    }
+
+    logArgs.push('--', fileName);
+
+    console.log('gonna run');
+    console.log(logArgs);
+
+    const child = spawnGitProcess(repo, logArgs);
+
+    return redirectIOForFileHistory(child, req, res, randomSeperator, randomSeperator2);
+}
+
 function logRepo({ req, res, repo, options }) {
     /*
     C:\E\projects\webgit-server\git-checkouts\d3>git log --all --graph --decorate --pretty=oneline --abbrev-commit
@@ -1083,6 +1113,98 @@ function redirectIOForLog(child, req, res, splitter) {
                 }
 
                 commitData.subject = aCommit.slice(i).join('\n');
+                log.push(commitData);
+            });
+
+            if (res) {
+                sendResponse(res, log);
+            }
+
+            return resolve(log);
+        });
+    });
+}
+
+
+function redirectIOForFileHistory(child, req, res, splitter, splitter2) {
+    return redirectIO(child).then((op) => {
+        return new Promise((resolve, reject) => {
+            if (op.errorCode) {
+
+                if (res) {
+                    sendResponse(res, op);
+                }
+
+                return reject(op);
+            }
+
+            // parse the output.
+
+            let commitData = {};
+            let log = [];
+            let aCommit = null;
+            let logCommits = op.output.join('');
+
+
+            console.log(logCommits);
+            logCommits = logCommits.split(splitter);
+
+            logCommits.forEach(function (commit, idx) {
+                aCommit = commit.trim().split('\n');
+
+                if (aCommit.length < 6) {
+                    return;
+                }
+
+                var i = aCommit[0].indexOf('(') == 0 ? 1 : 0;
+
+                var refs = '';
+                var hasRefs = false;
+                if (i == 1) {
+                    hasRefs = true;
+                }
+                commitData = {
+                    hash: aCommit[i++],
+                    name: aCommit[i++],
+                    email: aCommit[i++],
+                    date: aCommit[i++]
+                };
+
+                if (hasRefs) {
+                    let match = aCommit[0].match(/^\((.+)\)$/);   // has brackets
+                    // var match = aCommit[0].match(/\(([A-Za-z0-9\/]+)\s\-\>\s([A-Za-z0-9\/]+)\)/);
+                    let refs = match[1];    // brackets removed.
+
+                    refs = refs.split(', ');
+                    let localHead = refs.filter(function (s) {
+                        return s.indexOf('HEAD -> ') === 0;
+                    });
+
+                    if (localHead && localHead.length > 0) {
+                        commitData.localHead = localHead[0].substring('HEAD -> '.length);
+                        refs.splice(refs.indexOf(localHead[0]), 1);   // remove local head from the refs.
+                    }
+
+                    let localBranches = refs.filter(function (s) {
+                        return s.indexOf('origin/') !== 0;      // remote branches' names in tags/refs start with `origin/`. This will fail for those who name their local branches `origin/mybranch` :|
+                    });
+
+                    if (localBranches && localBranches.length > 0) {
+                        commitData.localBranches = localBranches;
+                    }
+
+                    let remoteBranches = refs.filter(function (s) {
+                        return s.indexOf('origin/') == 0 && s !== 'origin/HEAD';
+                    });
+
+                    if (remoteBranches && remoteBranches.length > 0) {
+                        commitData.remoteBranches = remoteBranches;
+                    }
+                }
+
+                let subjectAndDiff = aCommit.slice(i).join('\n').split(splitter2);
+                commitData.subject = subjectAndDiff[0];
+                commitData.diff = subjectAndDiff[1];
                 log.push(commitData);
             });
 

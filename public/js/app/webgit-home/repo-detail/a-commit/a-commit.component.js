@@ -6,14 +6,15 @@
             scope: {
                 hash: '=',
                 selectCommit: '&',
-                selectedCommit: '='
+                selectedCommit: '=',
+                commitMap: '='
             },
             controller: ['$scope', '$element', 'UtilsService', function ACommitController($scope) {
                 $scope.select = function (commit) {
                     $scope.selectCommit({ commit: commit });
                 };
 
-                $scope.commit = $scope.$parent.vm.commitMap[$scope.hash];
+                $scope.commit = $scope.commitMap[$scope.hash];
             }],
             link: function (scope, element, attr) {
                 
