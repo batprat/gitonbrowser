@@ -1,8 +1,12 @@
 .file-history-commits-container {
-    max-height: 50vh;
+    max-height: 40vh;
     overflow-y: auto;
 }
 
 .file-history-loading-container {
     display: none;
+}
+
+.file-history-commit-details-container {
+    max-height: 40vh;
 }

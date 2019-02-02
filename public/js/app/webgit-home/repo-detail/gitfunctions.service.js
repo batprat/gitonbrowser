@@ -1,5 +1,5 @@
 (function () {
-    angular.module('RepoDetailModule').service('gitfunctions', ['$http', '$routeParams', '$q', function ($http, $routeParams, $q) {
+    angular.module('RepoDetailModule').service('gitfunctions', ['$http', '$routeParams', '$q', 'UtilsService', function ($http, $routeParams, $q, UtilsService) {
         var repoName = encodeURIComponent(decodeURIComponent($routeParams.repoName));
         return {
             stageFiles: stageFiles,
@@ -30,8 +30,119 @@
             createNewBranch: createNewBranch,
             deleteLocalBranch: deleteLocalBranch,
             revertCommit: revertCommit,
-            getFileHistory: getFileHistory
+            getFileHistory: getFileHistory,
+            getCommit: getCommit,
+            getCommitDetails: getCommitDetails,
+            getDiff: getDiff
         };
+
+        function getDiff(commits) {
+            return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function (res) {
+                if (!res.data.errorCode) {
+                    return res.data.output.join('');
+                }
+                return res.data;
+            });
+        }
+
+        function getCommitDetails(hash) {
+            return getCommit(hash).then(function(data) {
+                var commitDetails = {};
+                var commitBranchDetails = data.commitBranchDetails.output.join('\n').trim().split('\n');
+                var tagDetails = data.tagDetails.output.join('\n').trim().split('\n');
+                var d = data.commitDetails.output.join('\n').trim().split('\n');
+
+                var isMergeCommit = false;
+
+                if (d[1].indexOf('Merge') == 0) {
+                    isMergeCommit = true;
+                }
+
+                if (!isMergeCommit) {
+                    commitDetails = {
+                        hash: d[0].substring('commit '.length),
+                        author: d[1].substring('Author: '.length),
+                        date: new Date(d[2].substring('Date:   '.length))
+                    };
+                }
+                else {
+                    commitDetails = {
+                        hash: d[0].substring('commit '.length),
+                        author: d[2].substring('Author: '.length),
+                        date: new Date(d[3].substring('Date:   '.length)),
+                        merges: d[1].substring('Merge: '.length).split(' ')
+                    }
+                }
+
+                var idx = isMergeCommit ? 4 : 3,
+                    str = d[idx],
+                    message = '';
+                while (str.indexOf('diff') !== 0 && d[idx + 1] != undefined) {
+                    message += str + '\n';
+                    str = d[++idx];
+                }
+
+                commitDetails.message = message;
+
+                var branch = null;
+                commitDetails.branches = [];
+                for(var i = 0; i < commitBranchDetails.length; i++) {
+                    branch = commitBranchDetails[i];
+                    if(branch[0] == "*") {
+                        // local branch
+                        commitDetails.branches.push({
+                            type: 'local',
+                            name: branch.substring('* '.length)
+                        });
+                    }
+                    else {
+                        // remote branch
+                        if(branch.indexOf(' -> ') > -1) {
+                            // skip this branch as it will get repeated
+                            continue;
+                        }
+
+                        commitDetails.branches.push({
+                            type: 'remote',
+                            name: branch.substring('  remotes/'.length)
+                        });
+                    }
+                }
+
+                if(tagDetails && tagDetails.length && tagDetails[0].length > 0) {
+                    commitDetails.tags = tagDetails;
+                }
+                else {
+                    commitDetails.tags = [];
+                }
+
+                if (isMergeCommit) {
+                    return getDiff(commitDetails.merges).then(function (diff) {
+                        commitDetails.diffDetails = UtilsService.parseMultipleDiffs(diff);
+                        // pre select the first file of the commit.
+
+                        return commitDetails;
+                    });
+                }
+                else {
+                    var diff = d.slice(idx);
+
+                    commitDetails.diffDetails = UtilsService.parseMultipleDiffs(diff.join('\n'));
+                    // pre select the first file of the commit.
+
+                    return commitDetails;
+                }
+            });
+        }
+
+        function getCommit(hash) {
+            return $http.get('/repo/' + repoName + '/getcommit/' + hash).then(function (res) {
+                if (!res.data.errorCode) {
+                    return res.data;
+                }
+                return res.data;
+            });
+        }
 
         function getFileHistory(filePath, page) {
             page = page || 1;

@@ -26,7 +26,6 @@ commit-details {
 }
 
 .diff-files-list {
-    overflow: auto;
     padding: 0;
 }
 

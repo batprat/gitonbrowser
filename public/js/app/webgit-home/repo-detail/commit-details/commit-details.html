@@ -1,16 +1,16 @@
 <div class="commit-details">
     <ul class="nav nav-tabs details-tabs" role="tablist">
         <li class="nav-item">
-            <span class="nav-link active" data-target="#tab-commit" data-toggle="tab" role="tab">Commit</span>
+            <span class="nav-link active" data-target="#tab-commit-{{$ctrl.randomId}}" data-toggle="tab" role="tab">Commit</span>
         </li>
         <li class="nav-item">
-            <span class="nav-link" data-target="#tab-diff" data-toggle="tab" role="tab">Diff</span>
+            <span class="nav-link" data-target="#tab-diff-{{$ctrl.randomId}}" data-toggle="tab" role="tab">Diff</span>
         </li>
     </ul>
         
         <!-- Tab panes -->
     <div class="tab-content tab-content-details">
-        <div class="tab-pane active" id="tab-commit" role="tabpanel">
+        <div class="tab-pane active" id="tab-commit-{{$ctrl.randomId}}" role="tabpanel">
             <div ng-if="$ctrl.commitDetails" class="container-fluid">
                 <div ng-if="$ctrl.commitDetails == 'loading'" class="row">
                     <div class="col-sm-12">Fetching commit details. Please wait...</div>
@@ -30,20 +30,20 @@
                 </div>
             </div>
         </div>
-        <div class="tab-pane" id="tab-diff" role="tabpanel">
+        <div class="tab-pane" id="tab-diff-{{$ctrl.randomId}}" role="tabpanel">
             <div class="container-fluid height100" ng-if="$ctrl.commitDetails">
                 <div class="row height100">
                     <div class="col-sm-4 height100 diff-files-list">
                         <files-list
                             files="$ctrl.commitDetails.diffDetails"
                             on-select="$ctrl.selectFileInLog(file, diffViewId)"
-                            diff-view-id="'commit-details-diff'">
+                            diff-view-id="$ctrl.randomDiffViewId">
                         </files-list>
                     </div>
                     <div class="col-sm-8 file-diff-column height100">
                         <diff-view
                             safe-diff="$ctrl.selectedFileDiff"
-                            diff-view-id="'commit-details-diff'">
+                            diff-view-id="$ctrl.randomDiffViewId">
                         </diff-view>
                     </div>
                 </div>

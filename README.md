@@ -31,15 +31,16 @@ This is the list of features in this git client. There might be some features I 
 8. Reset individual/all files
 9. View commit **graph**
 10. View commits
-11. View individual files' diff in a commit
-12. Create branches
-13. Commit and/or push to branches
-14. View stash, delete or stash changes
-15. Rebase commits
-16. Merge branches
-17. Handle Rebase conflicts (show conflicts, one click mark as resolved)
-18. Handle Merge conflicts
-19. Search for SHAs
-20. Search for commit messages, authors, diff and file names
-21. Delete Local Branches
-22. Checkout local and remote branches
+11. View individual file's diff in a commit
+12. View individual file's history
+13. Create branches
+14. Commit and/or push to branches
+15. View stash, delete or stash changes
+16. Rebase commits
+17. Merge branches
+18. Handle Rebase conflicts (show conflicts, one click mark as resolved)
+19. Handle Merge conflicts
+20. Search for SHAs
+21. Search for commit messages, authors, diff and file names
+22. Delete Local Branches
+23. Checkout local and remote branches

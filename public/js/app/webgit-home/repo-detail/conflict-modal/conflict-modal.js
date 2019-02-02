@@ -4,7 +4,6 @@
         bindings: {
             modal: '=',
             progress: '=',
-            parseMultipleDiffs: '&',
             localStatus: '=',
             refreshLocalChanges: '&',
             refreshLog: '&',

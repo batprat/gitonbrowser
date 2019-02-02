@@ -20,6 +20,14 @@
                                 <div class="file-history-loading-container">Loading next batch of commits...</div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="file-history-commit-details-container col">
+                                <commit-details
+                                    commit-details="commitDetails"
+                                    select-commit="selectCommit(commit)"
+                                ></commit-details>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-primary" type="button" data-dismiss="modal">Close</button>
@@ -48,6 +56,10 @@
             modalHistoryScope.selectCommit = function(commitHash) {
                 commitMap[commitHash];
                 modalHistoryScope.selectedCommit = commitHash;
+
+                gitfunctions.getCommitDetails(commitHash).then(function(d) {
+                    modalHistoryScope.commitDetails = d;
+                });
             }
             var content = linkFn(modalHistoryScope);
 

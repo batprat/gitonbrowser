@@ -75,7 +75,6 @@
     
     <stash-modal
         modal="vm.modals.stash"
-        parse-multiple-diffs="vm.parseMultipleDiffs(diff)"
         refresh-local-changes="vm.refreshLocalChanges()"
         local-status="vm.localStatus"
     ></stash-modal>
@@ -87,7 +86,6 @@
     <conflict-modal
         modal="vm.modals.conflict"
         progress="vm.progress"
-        parse-multiple-diffs="vm.parseMultipleDiffs(diff)"
         local-status="vm.localStatus"
         refresh-local-changes="vm.refreshLocalChanges()"
         refresh-log="vm.refreshLog()"

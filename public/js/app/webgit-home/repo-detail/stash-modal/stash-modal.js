@@ -3,11 +3,10 @@
         templateUrl: '/js/app/webgit-home/repo-detail/stash-modal/stash-modal.html',
         bindings: {
             modal: '=',
-            parseMultipleDiffs: '&',
             refreshLocalChanges: '&',
             localStatus: '='
         },
-        controller: ['$element', '$responseModal', 'gitfunctions', 'staticSelectedFile', function($element, $responseModal, gitfunctions, staticSelectedFile) {
+        controller: ['$element', '$responseModal', 'gitfunctions', 'staticSelectedFile', 'UtilsService', function($element, $responseModal, gitfunctions, staticSelectedFile, UtilsService) {
             var ctrl = this;
 
             ctrl.$onInit = function() {
@@ -131,7 +130,7 @@
                     if(!op) {
                         return;
                     }
-                    ctrl.selectedStash.diffDetails = ctrl.parseMultipleDiffs({diff: op.output.join('')});
+                    ctrl.selectedStash.diffDetails = UtilsService.parseMultipleDiffs({diff: op.output.join('')});
                     setSelectedFile(ctrl.selectedStash.diffDetails[0]);
                 });
             }

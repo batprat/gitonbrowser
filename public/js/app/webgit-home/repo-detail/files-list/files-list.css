@@ -1,5 +1,11 @@
+files-list {
+    height: 100%;
+    display: block;
+}
+
 .files-list {
     overflow: auto;
+    height: 100%;
 }
 
 .files-list>div {

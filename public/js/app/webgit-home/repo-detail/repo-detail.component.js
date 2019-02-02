@@ -49,10 +49,8 @@
 
                     vm.parseLocalStatus = parseLocalStatus;
                     vm.parseDiff = parseDiff;
-                    vm.parseMultipleDiffs = parseMultipleDiffs;
                     vm.selectCommit = selectCommit;
                     vm.selectFileInLog = selectFileInLog;
-                    vm.setSelectedFileInSelectedCommit = setSelectedFileInSelectedCommit;
                     vm.refreshLocalChanges = refreshLocalChanges;
                     vm.showCommitDialog = showCommitDialog;
                     vm.showPullDialog = showPullDialog;
@@ -859,10 +857,6 @@
                         // do nothing. everything handled in files-list and diff-view.
                     }
 
-                    function setSelectedFileInSelectedCommit(file) {
-                        staticSelectedFile.set(file, 'commit-details-diff');
-                    }
-
                     function selectCommit(commit) {
                         if (typeof commit === 'string') {
                             commit = vm.commitMap[commit];
@@ -871,93 +865,11 @@
                         vm.selectedCommit = hash;
                         vm.commitDetails = 'loading';        // reset the commitDetails.
 
-                        repoDetailService.getCommit(hash).then(function (data) {
-                            var commitBranchDetails = data.commitBranchDetails.output.join('\n').trim().split('\n');
-                            var tagDetails = data.tagDetails.output.join('\n').trim().split('\n');
-                            var d = data.commitDetails.output.join('\n').trim().split('\n');
+                        gitfunctions.getCommitDetails(hash).then(function(d) {
+                            d.parentHashes = commit.parentHashes;
+                            d.children = commit.children;
 
-                            var isMergeCommit = false;
-
-                            if (d[1].indexOf('Merge') == 0) {
-                                isMergeCommit = true;
-                            }
-
-                            if (!isMergeCommit) {
-                                vm.commitDetails = {
-                                    hash: d[0].substring('commit '.length),
-                                    author: d[1].substring('Author: '.length),
-                                    date: new Date(d[2].substring('Date:   '.length))
-                                };
-                            }
-                            else {
-                                vm.commitDetails = {
-                                    hash: d[0].substring('commit '.length),
-                                    author: d[2].substring('Author: '.length),
-                                    date: new Date(d[3].substring('Date:   '.length)),
-                                    merges: d[1].substring('Merge: '.length).split(' ')
-                                }
-                            }
-
-                            vm.commitDetails.parentHashes = commit.parentHashes;
-                            vm.commitDetails.children = commit.children;
-
-                            var i = isMergeCommit ? 4 : 3,
-                                str = d[i],
-                                message = '';
-                            while (str.indexOf('diff') !== 0 && d[i + 1] != undefined) {
-                                message += str + '\n';
-                                str = d[++i];
-                            }
-
-                            vm.commitDetails.message = message;
-
-                            if (!isMergeCommit) {
-                                var diff = d.slice(i);
-
-                                vm.commitDetails.diffDetails = parseMultipleDiffs(diff.join('\n'));
-                                // pre select the first file of the commit.
-                                vm.setSelectedFileInSelectedCommit(vm.commitDetails.diffDetails[0], 'commit-details-diff');
-                            }
-
-                            if (isMergeCommit) {
-                                repoDetailService.getDiff(vm.commitDetails.merges).then(function (diff) {
-                                    vm.commitDetails.diffDetails = parseMultipleDiffs(diff);
-                                    // pre select the first file of the commit.
-                                    vm.setSelectedFileInSelectedCommit(vm.commitDetails.diffDetails[0], 'commit-details-diff');
-                                });
-                            }
-
-                            var branch = null;
-                            vm.commitDetails.branches = [];
-                            for(var i = 0; i < commitBranchDetails.length; i++) {
-                                branch = commitBranchDetails[i];
-                                if(branch[0] == "*") {
-                                    // local branch
-                                    vm.commitDetails.branches.push({
-                                        type: 'local',
-                                        name: branch.substring('* '.length)
-                                    });
-                                }
-                                else {
-                                    // remote branch
-                                    if(branch.indexOf(' -> ') > -1) {
-                                        // skip this branch as it will get repeated
-                                        continue;
-                                    }
-
-                                    vm.commitDetails.branches.push({
-                                        type: 'remote',
-                                        name: branch.substring('  remotes/'.length)
-                                    });
-                                }
-                            }
-
-                            if(tagDetails && tagDetails.length && tagDetails[0].length > 0) {
-                                vm.commitDetails.tags = tagDetails;
-                            }
-                            else {
-                                vm.commitDetails.tags = [];
-                            }
+                            vm.commitDetails = d;
                         });
                     }
                 }
@@ -967,8 +879,6 @@
 
     repoDetailModule.service('repoDetailService', ['$http', '$q', function ($http, $q) {
         this.getCommits = getCommits;
-        this.getCommit = getCommit;
-        this.getDiff = getDiffBetweenCommits;
         this.initRepo = initRepo;
         this.checkoutLocalBranch = checkoutLocalBranch;
         this.rebaseCurrentBranchOn = rebaseCurrentBranchOn;
@@ -1020,24 +930,6 @@
         function initRepo() {
             return $http.get('/repo/' + repoName + '/initrepo').then(function (res) {
                 return res.data.output;
-            });
-        }
-
-        function getDiffBetweenCommits(commits) {
-            return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data.output.join('');
-                }
-                return res.data;
-            });
-        }
-
-        function getCommit(hash) {
-            return $http.get('/repo/' + repoName + '/getcommit/' + hash).then(function (res) {
-                if (!res.data.errorCode) {
-                    return res.data;
-                }
-                return res.data;
             });
         }
 
@@ -1167,25 +1059,6 @@
         });
 
         return t;
-    }
-
-    function parseMultipleDiffs(diff) {
-        var diffs = diff.split(/\n(?=diff)/);
-
-        return diffs.map(function(d) {
-            var lines = d.split('\n');
-            var firstLine = lines[0];
-            var isConflictedFile = firstLine.indexOf('diff --cc') == 0;
-
-            // TODO: Handle case when file name contains b/
-            var name = isConflictedFile ? firstLine.substring('diff --cc '.length) : firstLine.substring(firstLine.indexOf(' b/') + 3);
-            var secondLine = lines[1];
-            return {
-                diff: d,
-                name: name,
-                commitType: secondLine.indexOf('new') === 0 ? 'new' : (secondLine.indexOf('similarity') === 0 ? 'rename' : (secondLine.indexOf('deleted') === 0 ? 'deleted' : 'modified'))
-            };
-        });
     }
 
     // Accepts a diff string and parses into diff object
