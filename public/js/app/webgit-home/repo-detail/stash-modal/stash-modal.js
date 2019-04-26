@@ -130,7 +130,7 @@
                     if(!op) {
                         return;
                     }
-                    ctrl.selectedStash.diffDetails = UtilsService.parseMultipleDiffs({diff: op.output.join('')});
+                    ctrl.selectedStash.diffDetails = UtilsService.parseMultipleDiffs(op.output.join(''));
                     setSelectedFile(ctrl.selectedStash.diffDetails[0]);
                 });
             }
