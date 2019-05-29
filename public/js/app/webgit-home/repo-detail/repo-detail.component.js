@@ -48,7 +48,6 @@
                     vm.modifiedFileNames = [];
 
                     vm.parseLocalStatus = parseLocalStatus;
-                    vm.parseDiff = parseDiff;
                     vm.selectCommit = selectCommit;
                     vm.selectFileInLog = selectFileInLog;
                     vm.refreshLocalChanges = refreshLocalChanges;
@@ -1059,57 +1058,5 @@
         });
 
         return t;
-    }
-
-    // Accepts a diff string and parses into diff object
-    function parseDiff(diff) {
-        var diffDetails = [];
-        diff = diff.split('\n');
-
-        var line = null,
-            currDiff = null;
-        for (var i = 0; i < diff.length; i++) {
-            line = diff[i];
-
-            if (line.indexOf('diff') === 0) {
-                currDiff = {
-                    name: line.substring(line.indexOf('b/') + 2),
-                    commitType: diff[i + 1].indexOf('new') === 0 ? 'new' : (diff[i + 1].indexOf('similarity') === 0 ? 'rename' : (diff[i + 1].indexOf('deleted') === 0 ? 'deleted' : 'modified'))
-                };
-
-                currDiff.diff = line;
-
-                for (i = i + 1; i < diff.length; i++) {
-                    if (diff[i].indexOf('diff') === 0) {
-                        i--;
-                        diffDetails.push(currDiff);
-                        break;
-                    }
-                    else {
-                        var formattedStr = diff[i];
-                        // strip tags off formattedStr.
-                        formattedStr = formattedStr.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
-                        if (formattedStr.indexOf('+') === 0) {
-                            formattedStr = '<span class="line-added">' + formattedStr + '</span>'
-                        }
-                        else if (formattedStr.indexOf('-') === 0) {
-                            formattedStr = '<span class="line-removed">' + formattedStr + '</span>';
-                        }
-                        else if (formattedStr.indexOf('@') === 0 || formattedStr.indexOf('\\') === 0) {
-                            formattedStr = '<span class="line-special">' + formattedStr + '</span>';
-                        }
-
-                        currDiff.diff = currDiff.diff + '\n' + formattedStr;
-                        currDiff.safeDiff = $sce.trustAsHtml(currDiff.diff);
-                    }
-                }
-            }
-        }
-
-        if (currDiff) {
-            diffDetails.push(currDiff);
-        }
-
-        return diffDetails;
     }
 })();
