@@ -30,7 +30,12 @@
                 $responseModal.title('Deleting Local Branch');
                 $responseModal.show();
                 gitfunctions.deleteLocalBranch(branchName, force).then(function(d) {
-                    $responseModal.bodyHtml(d.output.join('\n').trim().replace('\n', '<br />'));
+                    if(d.errorCode) {
+                        $responseModal.bodyHtml(d.errors.join('\n').trim().replace('\n', '<br />'));
+                    }
+                    else {
+                        $responseModal.bodyHtml(d.output.join('\n').trim().replace('\n', '<br />'));
+                    }
                     ctrl.modal.modal('hide');
                 }).catch(function(d) {
                     $responseModal.bodyHtml(d.errors.join('\n').trim().replace('\n', '<br />'));
