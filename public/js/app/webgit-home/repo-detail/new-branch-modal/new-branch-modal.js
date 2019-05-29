@@ -11,6 +11,10 @@
 
             ctrl.$onInit = function () {
                 ctrl.modal = $element.find('.modal');
+
+                ctrl.modal.on('shown.bs.modal', function() {
+                    $element.find('.new-branch-name').focus();
+                });
             };
 
             
