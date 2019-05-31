@@ -2,7 +2,7 @@
     <div>
         <div tabindex="-1" ng-keyup="$ctrl.keyup(file, $index, $event)" class="file list-item-selector" ng-repeat="file in ($ctrl.filteredFiles = ($ctrl.files | filter:$ctrl.fileFilter))" ng-click="$ctrl.select(file, $event)" ng-class="{'selected': $ctrl.isFileSelected(file)}" on-finish-render="ngRepeatFinished" ng-data-filename="{{file.name}}">
             <div>
-                <span ng-if="!$ctrl.badgeType" class="fa file-type-badge" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'rename'}"></span>
+                <span ng-if="!$ctrl.badgeType" class="fa file-type-badge" ng-class="{'fa-edit': file.commitType == 'modified', 'fa-plus': file.commitType == 'new', 'fa-minus': file.commitType == 'deleted', 'fa-refresh': file.commitType == 'renamed'}"></span>
                 <span ng-if="$ctrl.badgeType" class="badge conflict-badge badge-{{$ctrl.badgeType}}" data-container="body" data-trigger="hover" data-toggle="popover" data-placement="right" data-content="{{$ctrl.badgePopoverContent(file, 'description')}}" >{{ $ctrl.badgePopoverContent(file, 'name') }}</span>
                 &nbsp;
                 <span class="file-name" title="{{file.fileName}}">{{file.name}}</span>

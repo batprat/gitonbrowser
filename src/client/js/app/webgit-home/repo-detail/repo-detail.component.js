@@ -952,6 +952,7 @@
         vm.conflict = false;
         data.forEach(function (f) {
             var fileTags = [];
+            var fileName = f.substring(3);
 
             var firstTwoCharacters = f.substring(0, 2);
             if (firstTwoCharacters == 'DD' || firstTwoCharacters == 'AA' || firstTwoCharacters.indexOf('U') > -1) {
@@ -961,14 +962,14 @@
                         // unmerged, both modified
                         fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'bothmodified');
                         t.push({
-                            name: f.substring(3),
+                            name: fileName,
                             tags: fileTags,
                             commitType: 'modifiedconflicted'
                         });
                         fileTags = [];
                         fileTags.push('staged', 'conflicted', 'conflictedstaged', 'unmerged', 'bothmodified');
                         t.push({
-                            name: f.substring(3),
+                            name: fileName,
                             tags: fileTags,
                             commitType: 'modifiedconflicted'
                         });
@@ -978,7 +979,7 @@
                         // unmerged, deleted by us.
                         fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'deletedbyus');
                         t.push({
-                            name: f.substring(3),
+                            name: fileName,
                             tags: fileTags,
                             commitType: 'deletedconflicted'
                         });
@@ -988,7 +989,7 @@
                         // unmerged, deleted by them.
                         fileTags.push('unstaged', 'conflicted', 'conflictedunstaged', 'unmerged', 'deletedbythem');
                         t.push({
-                            name: f.substring(3),
+                            name: fileName,
                             tags: fileTags,
                             commitType: 'deletedconflicted'
                         });
@@ -998,6 +999,7 @@
                 vm.conflict = true;
                 return;
             }
+
             switch (f[0]) {
                 case 'M': {
                     fileTags.push('modified', 'modifiedstaged', 'staged');
@@ -1011,6 +1013,12 @@
                     fileTags.push('added', 'addedstaged', 'staged');
                     break;
                 }
+                case 'R': {
+                    fileTags.push('renamed', 'renamedstaged', 'staged');
+                    fileName = fileName.split(' -> ');
+                    fileName = fileName[1];
+                    break;
+                }
                 case '!': {
                     fileTags.push('ignored');
                     // TODO: Handle this case
@@ -1019,9 +1027,9 @@
             }
             if (f[0].trim().length && f[0] != '?') {     // `?` == untracked, will be handled below.
                 t.push({
-                    name: f.substring(3),
+                    name: fileName,
                     tags: fileTags,
-                    commitType: fileTags.indexOf('modified') > -1 ? 'modified' : (fileTags.indexOf('deleted') > -1 ? 'deleted' : (fileTags.indexOf('added') > -1 ? 'new' : 'ignored'))
+                    commitType: fileTags.indexOf('modified') > -1 ? 'modified' : (fileTags.indexOf('deleted') > -1 ? 'deleted' : (fileTags.indexOf('added') > -1 ? 'new' : (fileTags.indexOf('renamed') > -1 ? 'renamed': 'ignored')))
                 });
             }
 
@@ -1030,6 +1038,10 @@
             switch (f[1]) {
                 case 'M': {
                     fileTags.push('modified', 'modifiedunstaged', 'unstaged');
+                    if(f[0] === 'R') {
+                        // if it was also renamed, add a file tag here so that the name can be deduced properly.
+                        fileTags.push('renamed');
+                    }
                     break;
                 }
                 case 'D': {
@@ -1049,7 +1061,7 @@
             }
             if (f[1].trim().length) {
                 t.push({
-                    name: f.substring(3),
+                    name: fileName,
                     tags: fileTags,
                     commitType: fileTags.indexOf('modified') > -1 ? 'modified' : (fileTags.indexOf('deleted') > -1 ? 'deleted' : (fileTags.indexOf('added') > -1 ? 'new' : 'ignored'))
                 });

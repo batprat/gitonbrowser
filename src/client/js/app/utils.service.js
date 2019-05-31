@@ -44,7 +44,7 @@
                 return {
                     diff: d,
                     name: name,
-                    commitType: secondLine.indexOf('new') === 0 ? 'new' : (secondLine.indexOf('similarity') === 0 ? 'rename' : (secondLine.indexOf('deleted') === 0 ? 'deleted' : 'modified'))
+                    commitType: secondLine.indexOf('new') === 0 ? 'new' : (secondLine.indexOf('similarity') === 0 ? 'renamed' : (secondLine.indexOf('deleted') === 0 ? 'deleted' : 'modified'))
                 };
             });
         }

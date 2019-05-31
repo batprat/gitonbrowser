@@ -237,7 +237,7 @@
                 if (!res.data.errorCode) {
                     return {
                         progress: res.data.extraInfo && res.data.extraInfo.progress,
-                        localStatus: res.data.output.join('\n')
+                        localStatus: res.data.output.join('')
                     };
                 }
                 return res.data;
