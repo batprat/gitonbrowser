@@ -52,12 +52,21 @@ let git = {
     resetFiles,
     deleteLocalBranch,
     revertCommit,
-    getFileHistory
+    getFileHistory,
+    getUnpushedCommits
 };
 
 module.exports = git;
 
 return;
+
+function getUnpushedCommits({ req, res, repo }) {
+    return logRepo({
+        req, res, repo, options: {
+            specialArg: '@{u}..'
+        }
+    });
+}
 
 function revertCommit({ req, res, repo }) {
     let hash = req.body.hash;
@@ -880,35 +889,42 @@ function logRepo({ req, res, repo, options }) {
 
     let commitsInOnePageCount = 100;
 
-    let logArgs = ['log', logFormat];
+    let logArgs = ['log'];
 
     if (options) {
-        switch(options.searchFor) {
-            case 'hash': {
-                logArgs.push('-1', options.searchTerm);
-                break;
+        if(options.searchFor) {
+            switch(options.searchFor) {
+                case 'hash': {
+                    logArgs.push('-1', options.searchTerm);
+                    break;
+                }
+                case 'commitmessage': {
+                    logArgs.push('--grep=' + decodeURIComponent(options.searchTerm) + '', '-i', '-n ' + commitsInOnePageCount);
+                    break;
+                }
+                case 'author': {
+                    logArgs.push('--author='+ decodeURIComponent(options.searchTerm) +'');
+                    break;
+                }
+                case 'diff': {
+                    logArgs.push('-S'+ decodeURIComponent(options.searchTerm) +'');
+                    break;
+                }
+                case 'filename': {
+                    logArgs.push('--', decodeURIComponent(options.searchTerm));
+                    break;
+                }
             }
-            case 'commitmessage': {
-                logArgs.push('--grep=' + decodeURIComponent(options.searchTerm) + '', '-i', '-n ' + commitsInOnePageCount);
-                break;
-            }
-            case 'author': {
-                logArgs.push('--author='+ decodeURIComponent(options.searchTerm) +'');
-                break;
-            }
-            case 'diff': {
-                logArgs.push('-S'+ decodeURIComponent(options.searchTerm) +'');
-                break;
-            }
-            case 'filename': {
-                logArgs.push('--', decodeURIComponent(options.searchTerm));
-                break;
-            }
+        }
+        if(options.specialArg) {
+            logArgs.push(options.specialArg);
         }
     }
     else {
         logArgs.push('-n ' + commitsInOnePageCount, '--branches', '--tags');
     }
+
+    logArgs.push(logFormat);
 
     // console.log(logArgs);
 

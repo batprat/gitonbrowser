@@ -28,6 +28,18 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row commits-to-be-pushed-container" ng-if="$ctrl.unpushedCommitsHashes && $ctrl.unpushedCommitsHashes.length > 0">
+                        <div class="col-12">
+                            <h6>Commits to be pushed</h6>
+                        </div>
+                        <div class="col-12">
+                            <a-commit
+                                ng-repeat="hash in $ctrl.unpushedCommitsHashes"
+                                hash="hash"
+                                commit-map="$ctrl.unpushedCommitsMap">
+                            </a-commit>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-12">
                             <button class="btn btn-primary pull-right" ng-click="$ctrl.push()" ng-disabled="!$ctrl.currentRemoteBranch || ($ctrl.currentRemoteBranch == 'create-new-branch' && !$ctrl.pushOptions.newRemoteBranchName)">Push</button>

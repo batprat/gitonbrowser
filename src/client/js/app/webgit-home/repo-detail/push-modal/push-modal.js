@@ -10,11 +10,28 @@
             refreshLog: '&',
             onPush: '&'
         },
-        controller: ['$element', '$responseModal', 'gitfunctions', function($element, $responseModal, gitfunctions) {
+        controller: ['$element', '$responseModal', 'gitfunctions', 'UtilsService', function($element, $responseModal, gitfunctions, UtilsService) {
             var ctrl = this;
 
             ctrl.$onInit = function() {
                 ctrl.modal = $element.find('.modal');
+
+                ctrl.modal.on('show.bs.modal', function() {
+                    // get commits that will be pushed.
+
+                    gitfunctions.getUnpushedCommits().then(function(d) {
+                        if(!d) {
+                            return;
+                        }
+                        ctrl.unpushedCommitsHashes = d.map(function(commit) {
+                            return commit.hash;
+                        });
+
+                        ctrl.unpushedCommitsMap = {};
+
+                        UtilsService.parseCommits(d, ctrl.unpushedCommitsMap);
+                    });
+                });
             };
 
             ctrl.pushOptions = {};

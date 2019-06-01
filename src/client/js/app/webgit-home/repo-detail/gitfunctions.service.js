@@ -33,8 +33,15 @@
             getFileHistory: getFileHistory,
             getCommit: getCommit,
             getCommitDetails: getCommitDetails,
-            getDiff: getDiff
+            getDiff: getDiff,
+            getUnpushedCommits: getUnpushedCommits
         };
+
+        function getUnpushedCommits() {
+            return $http.get('/repo/' + repoName + '/getunpushedcommits').then(function(res) {
+                return res.data;
+            });
+        }
 
         function getDiff(commits) {
             return $http.get('/repo/' + repoName + '/diffbetweencommits?commit1=' + commits[0] + '&commit2=' + commits[1]).then(function (res) {

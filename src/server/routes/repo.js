@@ -260,4 +260,10 @@ router.post('/:id/getfilehistory', (req, res) => {
     git.getFileHistory({ repo, req, res });
 });
 
+router.get('/:id/getunpushedcommits', (req, res) => {
+    let repo = req.params.id;
+
+    git.getUnpushedCommits({ repo, req, res });
+});
+
 module.exports = router;

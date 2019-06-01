@@ -3,8 +3,19 @@
         return {
             decodePath: decodePath,
             copyToClipboard: copyToClipboard,
-            parseMultipleDiffs: parseMultipleDiffs
+            parseMultipleDiffs: parseMultipleDiffs,
+            parseCommits: parseCommits
         };
+
+        function parseCommits(commits, commitMap) {
+            commits.forEach(function (c) {
+                c.parentHashes = c.parentHashes.split(' ');
+                c.fromNow = moment(c.date).fromNow();
+                c.children = [];
+
+                commitMap[c.hash] = c;
+            });
+        }
         
         function decodePath(path) {
             // return path.replace('>>>', ':/').replace('>>', ':').replace('>', '/');

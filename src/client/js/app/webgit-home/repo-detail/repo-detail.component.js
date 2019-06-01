@@ -128,7 +128,7 @@
                         return repoDetailService.searchForText(searchText).then(function (commits) {
                             vm.showLogGraph = false;
                             vm.commitDetails = null;
-                            parseCommits(commits);
+                            UtilsService.parseCommits(commits, vm.commitMap);
                             vm.commits = commits;
                             vm.hashes = vm.commits.map(function(c) { return c.hash; });
                             resetCommitMap();
@@ -590,7 +590,7 @@
                             if (commits.length == 0) {
                                 return false;
                             }
-                            parseCommits(commits);
+                            UtilsService.parseCommits(commits, vm.commitMap);
                             vm.commits = commits;
                             vm.hashes = vm.commits.map(function(c) { return c.hash; });
                             resetCommitMap();
@@ -604,7 +604,7 @@
                             if (commits.length == 0) {
                                 return false;
                             }
-                            parseCommits(commits);
+                            UtilsService.parseCommits(commits, vm.commitMap);
                             vm.commits = vm.commits || [];
                             vm.hashes = vm.commits.map(function(c) { return c.hash; });
 
@@ -656,19 +656,6 @@
                                 vm.commitMap[vm.commits[i].parentHashes[j]].children.push(vm.commits[i].hash);
                             }
                         }
-                    }
-
-                    function parseCommits(commits) {
-                        commits = commits.map(function (c) {
-                            c.parentHashes = c.parentHashes.split(' ');
-                            c.fromNow = moment(c.date).fromNow();
-                            c.children = [];
-
-                            vm.commitMap[c.hash] = c;
-                            return c;
-                        });
-
-
                     }
 
                     function setGraphInfo() {
