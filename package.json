@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "postinstall": "bower install",
-    "start": "node .src/server/bin/www",
+    "start": "node src/server/bin/www",
     "server": "nodemon src/server/bin/www"
   },
   "dependencies": {
