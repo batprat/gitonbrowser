@@ -41,14 +41,14 @@
                                     <div class="btn-group btn-group-toggle btn-group-stash-local-changes btn-stash-action">
                                         <button class="btn btn-primary btn-block" ng-disabled="$ctrl.selectedStash.name != 'Local Changes'" ng-click="$ctrl.stashLocalChanges()">Save Changes</button>
                                         <label class="btn btn-primary" ng-class="{'active': $ctrl.stashLocalIncludeUntracked, 'disabled': $ctrl.selectedStash.name != 'Local Changes'}">
-                                            <input type="checkbox" ng-disabled="$ctrl.selectedStash.name != 'Local Changes'" ng-model="$ctrl.stashLocalIncludeUntracked"> + Untracked
+                                            <input type="checkbox" ng-disabled="$ctrl.selectedStash.name != 'Local Changes'" ng-model="$ctrl.stashLocalIncludeUntracked"> +&nbsp;Untracked
                                         </label>
                                     </div>
                                     <button class="btn btn-primary btn-block btn-stash-action" ng-disabled="$ctrl.selectedStash.name == 'Local Changes'" ng-click="$ctrl.dropSelectedStash()">Delete Selected</button>
                                     <div class="btn-group btn-group-toggle btn-group-stash-local-changes btn-stash-action">
                                         <button class="btn btn-primary btn-block" ng-disabled="$ctrl.selectedStash.name == 'Local Changes'" ng-click="$ctrl.applyStash()">Apply Stash</button>
                                         <label class="btn btn-primary" ng-class="{'active': $ctrl.popStash, 'disabled': $ctrl.selectedStash.name == 'Local Changes'}">
-                                            <input type="checkbox" ng-disabled="$ctrl.selectedStash.name == 'Local Changes'" ng-model="$ctrl.popStash"> + Delete
+                                            <input type="checkbox" ng-disabled="$ctrl.selectedStash.name == 'Local Changes'" ng-model="$ctrl.popStash"> +&nbsp;Delete
                                         </label>
                                     </div>
                                 </div>
