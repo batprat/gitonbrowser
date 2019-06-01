@@ -27,7 +27,7 @@
                                         Remote branch
                                     </label>
                                     <div class="col-10">
-                                        <select class="form-control" id="pull-dialog-branch-select" ng-model="$ctrl.pullOptions.remoteBranch">
+                                        <select class="form-control" id="pull-dialog-branch-select" ng-model="$ctrl.currentRemoteBranch">
                                             <option ng-repeat="branch in $ctrl.remoteBranches" value="{{branch}}">{{branch}}</option>
                                         </select>
                                     </div>
@@ -55,7 +55,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <button class="btn btn-primary pull-right" ng-click="$ctrl.pull()" ng-disabled="((!$ctrl.pullOptions.mergeOption || !$ctrl.pullOptions.remoteBranch) && ($ctrl.pullOptions.mergeOption != 'fetch'))">Pull</button>
+                            <button class="btn btn-primary pull-right" ng-click="$ctrl.pull()" ng-disabled="((!$ctrl.pullOptions.mergeOption || !$ctrl.currentRemoteBranch) && ($ctrl.pullOptions.mergeOption != 'fetch'))">Pull</button>
                         </div>
                     </div>
                 </div>

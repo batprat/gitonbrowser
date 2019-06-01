@@ -26,7 +26,7 @@
                 $responseModal.title('Pulling');
                 $responseModal.show();
                 return gitfunctions.pull({
-                    remoteBranch: ctrl.pullOptions.remoteBranch,
+                    remoteBranch: ctrl.currentRemoteBranch,
                     mergeOption: ctrl.pullOptions.mergeOption
                 }).then(function (response) {
                     $responseModal.bodyHtml(response.errors.join('').replace(/\n/g, '<br />') + response.output.join('').replace(/\n/g, '<br />'));

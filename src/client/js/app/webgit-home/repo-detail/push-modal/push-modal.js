@@ -4,6 +4,7 @@
         bindings: {
             modal: '=',
             currentLocalBranch: '<',
+            currentRemoteBranch: '<',
             remote: '<',
             remoteBranches: '<',
             refreshLog: '&',
@@ -18,17 +19,22 @@
 
             ctrl.pushOptions = {};
             ctrl.push = push;
+            ctrl.onPushBranchChange = onPushBranchChange;
 
             return;
+
+            function onPushBranchChange() {
+                
+            }
 
             function push() {
                 $responseModal.one('hide.bs.modal', function () {
                     ctrl.refreshLog();
                     ctrl.modal.modal('hide');
                 });
-                $responseModal.title('Pushing ' + ctrl.currentLocalBranch + ' to ' + ctrl.remote + '/' + ctrl.pushOptions.remoteBranch);
+                $responseModal.title('Pushing ' + ctrl.currentLocalBranch + ' to ' + ctrl.remote + '/' + ctrl.currentRemoteBranch);
                 $responseModal.show();
-                return gitfunctions.push(ctrl.remote, ctrl.pushOptions.remoteBranch, ctrl.pushOptions.newRemoteBranchName).then(function (data) {
+                return gitfunctions.push(ctrl.remote, ctrl.currentRemoteBranch, ctrl.pushOptions.newRemoteBranchName).then(function (data) {
                     $responseModal.bodyHtml(data.errors.join('<br />').replace('\n', '<br />'));
                     ctrl.onPush();
                 });

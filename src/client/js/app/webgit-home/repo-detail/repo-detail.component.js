@@ -528,7 +528,7 @@
                             currentBranchDetails = currentBranchDetails[0];
 
                             if(currentBranchDetails) {
-                                vm.currentRemoteBranch = currentBranchDetails.remote;
+                                vm.currentRemoteBranch = currentBranchDetails.remote ? currentBranchDetails.remote.substring('origin/'.length) : currentBranchDetails.remote;   // remove `origin/` from it because it is required so on the pull modal
                                 vm.currentLocalBranch = currentBranchDetails.local;
                             }
                             else {

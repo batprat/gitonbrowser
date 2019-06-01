@@ -14,15 +14,15 @@
                             <div class="col-12">
                                 Push
                                 <input type="text" value="{{$ctrl.currentLocalBranch}}" disabled="disabled" class="form-control" /> to {{$ctrl.remote}}/
-                                <select class="form-control" id="remote-branch-to-push-to" ng-model="$ctrl.pushOptions.remoteBranch">
+                                <select class="form-control" id="remote-branch-to-push-to" ng-model="$ctrl.currentRemoteBranch" ng-change="$ctrl.onPushBranchChange()">
                                     <option value="create-new-branch">&lt;Create New Branch&gt;</option>
                                     <option ng-repeat="remoteBranch in $ctrl.remoteBranches" value="{{remoteBranch}}">{{remoteBranch}}</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group row row-vertical-margin" ng-show="$ctrl.pushOptions.remoteBranch == 'create-new-branch'">
+                        <div class="form-group row row-vertical-margin" ng-show="$ctrl.currentRemoteBranch == 'create-new-branch'">
                             <div class="col-12">
-                                New Branch Name:
+                                New Branch Name: {{$ctrl.remote}}/
                                 <input type="text" class="form-control" ng-model="$ctrl.pushOptions.newRemoteBranchName"
                                 />
                             </div>
@@ -30,7 +30,7 @@
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <button class="btn btn-primary pull-right" ng-click="$ctrl.push()" ng-disabled="!$ctrl.pushOptions.remoteBranch || ($ctrl.pushOptions.remoteBranch == 'create-new-branch' && !$ctrl.pushOptions.newRemoteBranchName)">Push</button>
+                            <button class="btn btn-primary pull-right" ng-click="$ctrl.push()" ng-disabled="!$ctrl.currentRemoteBranch || ($ctrl.currentRemoteBranch == 'create-new-branch' && !$ctrl.pushOptions.newRemoteBranchName)">Push</button>
                         </div>
                     </div>
                 </div>
