@@ -1,10 +1,8 @@
-. Show remote on push modal
 . Delete remote branch
 . Handle passwords for cloning - use socket.io
 . Handle passwords for pushing - use socket.io
 . Handle passwords for pulling - use socket.io
 . Make searching faster - use socket.io
-. Select default branch that matches the current branch name in push modal
 . Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
 . Checkout commit
 . Prevent CSRF attacks.
@@ -13,7 +11,6 @@
 .[bug] Show untracked files in stash
 .[bug] If a conflict happens when doing git pull --rebase, the conflict button doesnt show up. A page refresh makes it show up.
 . Git bisect
-. In the push modal, show which commits/files that are gonna be pushed.
 . Show popover on the commit, push buttons about details on the numbers.
 . Refactor code.
  . Use angular-ui
@@ -95,3 +92,6 @@ DONE:
 -. Refactor code
    -. Move service into different file
    -. Move modals into their own files
+-. In the push modal, show which commits/files that are gonna be pushed.
+-. Show remote on push modal
+-. Select default branch that matches the current branch name in push modal
