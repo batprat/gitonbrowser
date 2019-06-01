@@ -513,10 +513,6 @@
                         $scope.$apply();                        // to populate newBranchAtRevision. guilty :(
                     }
 
-                    
-
-                    
-
                     function showStashDialog() {
                         // TODO: Show loading dialog.
                         vm.modals.stash.modal('show');
@@ -525,30 +521,32 @@
                     function initializeRemote() {
                         return repoDetailService.initRepo().then(function (d) {
                             vm.remote = d.remote;
-                            var originHeadBranchIdx = -1;
-                            if(d.remoteBranches) {
-                                for(var i = 0; i < d.remoteBranches.length; i++) {
-                                    if(d.remoteBranches[i].indexOf('origin/HEAD -> ') > -1) {
-                                        originHeadBranchIdx = i;
-                                        break;
-                                    }
-                                }
-                            }
-                            if(originHeadBranchIdx > -1) {
-                                d.remoteBranches.splice(originHeadBranchIdx, 1);
-                            }
-                            vm.remoteBranches = d.remoteBranches
-                                .map(function (b) {
-                                    // remove `origin/` from the branch names.
-                                    return b.substring('origin/'.length);
-                                });    // first is the reference to origin/HEAD
-                            vm.currentLocalBranch = d.currentBranch;
-                            vm.localBranches = d.localBranches;
+                            var currentBranchDetails = d.allBranches.filter(function(b) {
+                                return b.isCurrent;
+                            });
 
-                            // try to determine the default selected  remote branch in the pull dialog
-                            if (vm.remoteBranches.indexOf(vm.currentLocalBranch) > -1) {
-                                vm.currentRemoteBranch = vm.currentLocalBranch;
+                            currentBranchDetails = currentBranchDetails[0];
+
+                            if(currentBranchDetails) {
+                                vm.currentRemoteBranch = currentBranchDetails.remote;
+                                vm.currentLocalBranch = currentBranchDetails.local;
                             }
+                            else {
+                                // TODO: Handle Detached HEAD mode.
+                            }
+
+                            var remoteBranches = d.allBranches.filter(function(b) {
+                                return b.remote;
+                            }).map(function(b) {
+                                return b.remote;
+                            });
+                            vm.remoteBranches = remoteBranches.map(function (b) {
+                                // remove `origin/` from the branch names.
+                                // This is required while pushing.
+                                // You have to do `git push origin master`
+                                // You cannot do `git push origin origin/master`
+                                return b.substring('origin/'.length);
+                            });
                         });
                     }
 

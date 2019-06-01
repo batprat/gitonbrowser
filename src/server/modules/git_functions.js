@@ -541,35 +541,28 @@ function pull({ req, res, repo }) {
 function getStashList({ repo, req, res }) {
     const child = spawnGitProcess(repo, ['stash', 'list']);
 
-    let stashesListPromise = redirectIO(child, req, res);
+    return redirectIO(child, req, res);
 }
 
 function initRepo({ req, res, repo }) {
     // do multiple things.
     // get remote name      // git remote
-    // get remoteBranches   // git branch -r
-    // get local branches   // git branch
-    // get current branch
     // get stashes
 
     let remotePromise = getRemote(repo);
-    let remoteBranchesPromise = getRemoteBranches(repo);
-    let localBranchesInfoPromise = getLocalBranches(repo);
     let localProgressPromise = getLocalProgressStatus(repo);
+    let localAndRemoteBranchesPromise = getLocalAndRemoteBranches(repo);
 
-    Promise.all([remotePromise, remoteBranchesPromise, localBranchesInfoPromise, localProgressPromise]).then(function (op) {
+    Promise.all([remotePromise, localProgressPromise, localAndRemoteBranchesPromise]).then(function (op) {
         let remote = op[0];
-        let remoteBranches = op[1];
-        let localBranchesInfo = op[2];
-        let localProgress = op[3];
+        let localProgress = op[1];
+        let localAndRemoteBranches = op[2];
 
         sendResponse(res, {
             output: {
                 remote,
-                remoteBranches,
-                localBranches: localBranchesInfo.locals,
-                currentBranch: localBranchesInfo.current,
-                localProgress: localProgress
+                localProgress: localProgress,
+                allBranches: localAndRemoteBranches
             },
             errorCode: 0
         });
@@ -578,6 +571,51 @@ function initRepo({ req, res, repo }) {
             errorCode: 1,
             errors: ex
         });
+    });
+}
+
+
+/*
+    git for-each-ref --format="%(if)%(upstream)%(then)%(refname:short)=====%(upstream:short)%(else)%(refname:short)%(end)" refs/heads
+    Output:
+        branch-a
+        conflict-branch=====origin/conflict-branch
+        master=====origin/master
+        orange-branch-1=====origin/orange-branch-1
+        origin/test-branch-3=====origin/origin/test-branch-3
+        test-1=====origin/test-1
+        test-2=====origin/test-2
+        test-3
+        test-7
+        test-branch-2=====origin/test-branch-2
+*/
+function getLocalAndRemoteBranches(repo) {
+    const child = spawnGitProcess(repo, ['for-each-ref', '--format="%(refname:short)===XXX===%(if)%(upstream)%(then)%(upstream:short)%(end)===XXX===%(if)%(HEAD)%(then)HEAD%(end)"', 'refs/heads']);
+    return redirectIO(child, null, null).then(function (res) {
+        if (!res.errorCode) {
+            let localAndRemoteBranches = res.output.join('\n').trim().split('\n');
+            let allBranches = [];
+
+            localAndRemoteBranches.forEach((b) => {
+                b = b.substring(1, b.length - 1);       // because they are enclosed in double quotes
+                // console.log(b);
+                let branchSplit = b.split(/===XXX===/g);
+                let branchInfo = {};
+                if(branchSplit[0]) {
+                    branchInfo.local = branchSplit[0];
+                }
+                if(branchSplit[1]) {
+                    branchInfo.remote = branchSplit[1];
+                }
+                if(branchSplit[2]) {
+                    branchInfo.isCurrent = true;
+                }
+                allBranches.push(branchInfo);
+            });
+
+            return allBranches;
+        }
+        // TODO: handle error here.
     });
 }
 
@@ -614,35 +652,6 @@ function getLocalProgressStatus(repo) {
     });
 }
 
-/**
-  Gets a list of local branches and the current branch.
-  NOTE: seperate functions for local and remote branches to handle branches named like `remotes/origin/test-branch-4` (that start with `remotes/origin`)
-*/
-function getLocalBranches(repo) {
-    const child = spawnGitProcess(repo, ['branch']);
-    let localBranchesPromise = redirectIO(child, null, null);
-    return localBranchesPromise.then(function (res) {
-        if (!res.errorCode) {
-            let localBranches = res.output.join('\n').trim().split('\n');
-            let branchInfo = {
-                locals: [],
-                current: ''
-            };
-
-            localBranches.forEach((b) => {
-                if (b.indexOf('* ') == 0) {
-                    branchInfo.current = b.substring('* '.length);
-                    b = branchInfo.current;
-                }
-                branchInfo.locals.push(b.trim());
-            });
-
-            return branchInfo;
-        }
-        // TODO: handle error here.
-    });
-}
-
 function getRemote(repo) {
     const child = spawnGitProcess(repo, ['remote']);
     let remotePromise = redirectIO(child, null, null);
@@ -653,23 +662,6 @@ function getRemote(repo) {
         // TODO: handle error here.
     });
 }
-
-/**
-  Gets a list of remote branches
-  NOTE: seperate functions for local and remote branches to handle branches named like `remotes/origin/test-branch-4` (that start with `remotes/origin`)
-*/
-function getRemoteBranches(repo) {
-    const child = spawnGitProcess(repo, ['branch', '-r']);
-    let remoteBranchesPromise = redirectIO(child, null, null);
-    return remoteBranchesPromise.then(function (res) {
-        if (!res.errorCode) {
-            return res.output[0].trim().split('\n').map(branch => branch.trim());
-        }
-        // TODO: handle error here.
-    });
-}
-
-
 
 function commit({ req, res, repo }) {
     const child = spawnGitProcess(repo, ['commit', '-m', req.query.message]);
