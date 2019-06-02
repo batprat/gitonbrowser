@@ -91,7 +91,8 @@
 
                 commitDetails.message = message;
 
-                var branch = null;
+                var branch = null,
+                    branchName = null;
                 commitDetails.branches = [];
                 for(var i = 0; i < commitBranchDetails.length; i++) {
                     branch = commitBranchDetails[i];
@@ -109,9 +110,13 @@
                             continue;
                         }
 
+                        // all other branches. viz. `  branch-x` (local branch), `  remotes/origin/branch-x` (remote branch)
+                        var branchName = branch.match(/(?:\s\s)?(?:remotes\/)?(?<branch>.+)/);
+                        branchName = branchName.groups.branch;
+
                         commitDetails.branches.push({
                             type: 'remote',
-                            name: branch.substring('  remotes/'.length)
+                            name: branchName
                         });
                     }
                 }
