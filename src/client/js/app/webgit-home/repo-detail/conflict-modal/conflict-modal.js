@@ -118,7 +118,7 @@
 
             function markFileAsResolvedDuringConflict(add) {
                 if (add) {
-                    return gitfunctions.stageFile(ctrl.diffOnConflictModal.file.name, ctrl.diffOnConflictModal.file.tags).then(function (res) {
+                    return gitfunctions.stageFiles([ctrl.diffOnConflictModal.file.name], [ctrl.diffOnConflictModal.file.tags]).then(function (res) {
                         // TODO: Handle errors here. Probably CRLF errors.
                         if (res === '' || (res.output && res.output.join('\n').trim().length == 0)) {
                             onRefreshLocalChanges();
