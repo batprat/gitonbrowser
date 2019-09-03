@@ -55,12 +55,36 @@ let git = {
     getFileHistory,
     getUnpushedCommits,
     stageSelectedLines,
-    unstageSelectedLines
+    unstageSelectedLines,
+    resetSelectedLines
 };
 
 module.exports = git;
 
 return;
+
+function resetSelectedLines({req, res, repo}) {
+    let diff = req.body.diff,
+        selectedLineNumbers = req.body.lineNumbers;
+
+    let [selectedChunks, header] = getSelectedChunks(diff, selectedLineNumbers);
+    
+    if(selectedChunks.length == 0) {
+        // nothing selected, do nothing.
+        return res.sendStatus(200);
+    }
+
+    let patch = getResetPatchFromSelectedChunks(selectedChunks, header, false);
+
+    const buffer = Buffer.alloc(patch.length, patch);
+
+    let options = ['apply', '--whitespace=nowarn'];
+
+    const child = spawnGitProcessWithInput(repo, options);
+    child.stdin.write(buffer);
+    child.stdin.end();
+    redirectIO(child, req, res);
+}
 
 function unstageSelectedLines({req, res, repo}) {
     handleStagingOrUnstagingPatches(true, req, res, repo);
@@ -95,6 +119,94 @@ function handleStagingOrUnstagingPatches(isStaged, req, res, repo) {
     child.stdin.write(buffer);
     child.stdin.end();
     redirectIO(child, req, res);
+}
+
+function getResetPatchFromSelectedChunks(selectedChunks, header) {
+    let patch = [];
+
+    let currSelectedChunk = null;
+    let currSubchunk = null;
+    let chunkPatch = null;
+    let addPart = null,
+        removePart = null,
+        prePart = null,
+        postPart = null,
+        inPostPart = false;
+
+    for(let i = 0; i < selectedChunks.length; i++) {
+        // all maal masala is in the subchunks!
+        currSelectedChunk = selectedChunks[i];
+        chunkPatch = [];
+
+        for(let j = 0; j < currSelectedChunk.subchunks.length; j++) {
+            addPart = [];
+            removePart = [];
+            prePart = [];
+            postPart = [];
+            inPostPart = false;
+    
+            currSubchunk = currSelectedChunk.subchunks[j];
+
+            // join all precontext;
+            if(currSubchunk.preContext.length) {
+                Array.prototype.push.apply(chunkPatch, currSubchunk.preContext.map((l) => { return l.text; }));
+            }
+
+            currSubchunk.removedLines.forEach((removedLine, idx) => {
+                if(removedLine.selected) {
+                    inPostPart = true;
+                    addPart.push('+' + removedLine.text.substring(1));
+                }
+            });
+
+            currSubchunk.addedLines.forEach((addedLine, idx) => {
+                if(addedLine.selected) {
+                    inPostPart = true;
+                    removePart.push('-' + addedLine.text.substring(1));
+                }
+                else {
+                    if(inPostPart) {
+                        postPart.push(' ' + addedLine.text.substring(1));
+                    }
+                    else {
+                        prePart.push(' ' + addedLine.text.substring(1));
+                    }
+                }
+            });
+
+            Array.prototype.push.apply(chunkPatch, prePart);
+            Array.prototype.push.apply(chunkPatch, removePart);
+
+            if(currSubchunk.postContext.length == 0) {
+                chunkPatch.push(currSubchunk.olderNoNewLineAtEnd.text);
+            }
+            
+            Array.prototype.push.apply(chunkPatch, addPart);
+            Array.prototype.push.apply(chunkPatch, postPart);
+
+            // join all postcontext;
+            if(currSubchunk.postContext.length) {
+                Array.prototype.push.apply(chunkPatch, currSubchunk.postContext.map((l) => { return l.text; }));
+            }
+
+            if(currSubchunk.postContext.length == 0 && currSubchunk.newerNoNewLineAtEnd && currSubchunk.newerNoNewLineAtEnd.text) {
+                chunkPatch.push(currSubchunk.newerNoNewLineAtEnd.text);
+            }
+            else if(currSubchunk.olderNoNewLineAtEnd && currSubchunk.olderNoNewLineAtEnd.text) {
+                chunkPatch.push(currSubchunk.olderNoNewLineAtEnd.text);
+            }
+        }
+
+        let removedLinesCount = chunkPatch.filter((l) => { return l[0] == '-' || l[0] == ' '; }).length;
+        let addedLinesCount = chunkPatch.filter((l) => { return l[0] == '+' || l[0] == ' '; }).length;
+
+        // add the header back.
+        chunkPatch.splice(0, 0, currSelectedChunk.header.replace(/(@@\s\-\d+)(,?\d*)(\s\+\d+)(,?\d*)(\s@@)/g, '$1,'+ removedLinesCount +'$3,' + addedLinesCount + '$5'));
+        Array.prototype.push.apply(patch, chunkPatch);
+    }
+
+    patch.splice(0, 0, header);
+    return (patch.join('\n') + '\n');
 }
 
 function getPatchFromSelectedChunks(selectedChunks, header, isStaged) {

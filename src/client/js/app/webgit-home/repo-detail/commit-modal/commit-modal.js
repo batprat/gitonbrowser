@@ -47,6 +47,7 @@
             ctrl.onResetUnstaged = onRefreshLocalChanges;
             ctrl.onResetAll = onRefreshLocalChanges;
             ctrl.stageOrUnstageSelectedLines = stageOrUnstageSelectedLines;
+            ctrl.resetSelectedLines = resetSelectedLines;
             ctrl.resetFiles = resetFiles;
 
             staticSelectedFile.onSelectedFileChange('commit-modal-diff', function(file, filesListId) {
@@ -55,6 +56,46 @@
 
             $element.find('.keyboard-shortcuts').popover();
             return;
+
+            function resetSelectedLines() {
+                var file = staticSelectedFile.get('commit-modal-diff');
+
+                if(!file || file.length > 1) {
+                    // no file selected or too many files selected. do nothing.
+                    return;
+                }
+
+                file = file[0];
+
+                if(file.tags.indexOf('staged') > -1) {
+                    // the file is staged, I cannot reset selected lines.
+                    // TODO: Alert - cannot reset lines of staged file. Unstage first.
+                    $responseModal.title('Error');
+                    $responseModal.bodyHtml('I cannot reset lines of a staged file. Please unstage the file or those lines first.');
+                    $responseModal.show();
+                    return;
+                }
+
+                if(!file.selectedDiffLines || file.selectedDiffLines.length == 0) {
+                    return;
+                }
+
+                $confirmationModal.title('Warning');
+                $confirmationModal.bodyHtml('The selected lines will be permanently lost. Do you wish to continue?');
+                $confirmationModal.show().then(function() {
+                    var selectedLinesIndices = [];
+                
+                    for(var i = 0; i < file.selectedDiffLines.length; i++) {
+                        if(file.selectedDiffLines[i]) {
+                            selectedLinesIndices.push(i);
+                        }
+                    }
+
+                    gitfunctions.resetSelectedLines(file.diff, selectedLinesIndices).then(onRefreshLocalChanges);
+                }).catch(function() {
+                    // do nothing.
+                });
+            }
 
             function stageOrUnstageSelectedLines(stage) {
                 var file = staticSelectedFile.get('commit-modal-diff');

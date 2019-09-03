@@ -278,4 +278,10 @@ router.post('/:id/unstageselectedlines', (req, res) => {
     git.unstageSelectedLines({ repo, req, res });
 });
 
+router.post('/:id/resetselectedlines', (req, res) => {
+    let repo = req.params.id;
+
+    git.resetSelectedLines({ repo, req, res });
+});
+
 module.exports = router;

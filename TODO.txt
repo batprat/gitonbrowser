@@ -24,9 +24,6 @@
  . unmerged, both added
 . Continuous output for clone, pull - use socket.io
 . Toggle whitespace while showing diff
-. Stage selected lines - Ideas - `git add -e` or `git apply` Implement gmail mail selector like line selector (with checkboxes and shift + click option)
-. unstage selected lines
-. revert selected lines
 . Add shortcuts for stash - stash save and stash pop
 . Implement option to Auto Stash in pulling
 . Turn the asynchronous modals red at runtime if error occurs. (e.g. pulling, pushing)
@@ -99,3 +96,6 @@ DONE:
 -. In the push modal, show which commits/files that are gonna be pushed.
 -. Show remote on push modal
 -. Select default branch that matches the current branch name in push modal
+-. Stage selected lines - Ideas - `git add -e` or `git apply` Implement gmail mail selector like line selector (with checkboxes and shift + click option)
+-. unstage selected lines
+-. revert selected lines
