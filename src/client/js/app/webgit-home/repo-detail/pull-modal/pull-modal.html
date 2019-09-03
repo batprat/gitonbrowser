@@ -27,9 +27,10 @@
                                         Remote branch
                                     </label>
                                     <div class="col-10">
-                                        <select class="form-control" id="pull-dialog-branch-select" ng-model="$ctrl.currentRemoteBranch">
+                                        <input list=remoteBranchesPullModal class="form-control" ng-model="$ctrl.currentRemoteBranch">
+                                        <datalist id=remoteBranchesPullModal>
                                             <option ng-repeat="branch in $ctrl.remoteBranches" value="{{branch}}">{{branch}}</option>
-                                        </select>
+                                        </datalist>
                                     </div>
                                 </div>
                             </div>

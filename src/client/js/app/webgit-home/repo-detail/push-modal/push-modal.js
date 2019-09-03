@@ -36,13 +36,8 @@
 
             ctrl.pushOptions = {};
             ctrl.push = push;
-            ctrl.onPushBranchChange = onPushBranchChange;
 
             return;
-
-            function onPushBranchChange() {
-                
-            }
 
             function push() {
                 $responseModal.one('hide.bs.modal', function () {

@@ -14,10 +14,11 @@
                             <div class="col-12">
                                 Push
                                 <input type="text" value="{{$ctrl.currentLocalBranch}}" disabled="disabled" class="form-control" /> to {{$ctrl.remote}}/
-                                <select class="form-control" id="remote-branch-to-push-to" ng-model="$ctrl.currentRemoteBranch" ng-change="$ctrl.onPushBranchChange()">
+                                <input list=remoteBranchesPushModal class="form-control" ng-model="$ctrl.currentRemoteBranch" ng-model="$ctrl.currentRemoteBranch">
+                                <datalist id=remoteBranchesPushModal>
                                     <option value="create-new-branch">&lt;Create New Branch&gt;</option>
                                     <option ng-repeat="remoteBranch in $ctrl.remoteBranches" value="{{remoteBranch}}">{{remoteBranch}}</option>
-                                </select>
+                                </datalist>
                             </div>
                         </div>
                         <div class="form-group row row-vertical-margin" ng-show="$ctrl.currentRemoteBranch == 'create-new-branch'">
