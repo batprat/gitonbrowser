@@ -4,15 +4,22 @@
     repoDetailModule.component('diffView', {
         templateUrl: '/js/app/webgit-home/repo-detail/diff-view/diff-view.html',
         bindings: {
-            diffViewId: '<'
+            diffViewId: '<',
+            linesSelectable: '<'
         },
         controller: ['staticSelectedFile', 'diffViewService', 'gitfunctions', function(staticSelectedFile, diffViewService, gitfunctions) {
             var ctrl = this;
+            var lastLineClicked = null;
+
+            ctrl.linesSelectable = ctrl.linesSelectable || false;
+            ctrl.selectedDiffLines = [];
 
             ctrl.$onInit = function() {
+                var diffViewLinesSelectable = ctrl.linesSelectable || false;        // lets keep a backup of this for future use.
                 var setSafeDiff = function(file) {
                     if(!file.safeDiff) {
-                        file.safeDiff = diffViewService.parseSingleDiff(file.diff);
+                        var diffData = diffViewService.parseSingleDiff(file.diff);
+                        file.safeDiff = diffData;
                     }
                     ctrl.safeDiff = file.safeDiff;
                 };
@@ -30,6 +37,8 @@
                         file = file[0];
                     }
 
+                    ctrl.linesSelectable = diffViewLinesSelectable && file.commitType != "new";
+
                     if(!file.diff) {
                         gitfunctions.getFileDiff(file.name, file.tags).then(function (diff) {
                             if (typeof diff == 'object') {
@@ -42,8 +51,33 @@
                     } else {
                         setSafeDiff(file);
                     }
+
+                    var selectedDiffLines = [];
+
+                    ctrl.selectedDiffLines = selectedDiffLines;
+                    file.selectedDiffLines = selectedDiffLines;
+                    lastLineClicked = null;
                 });
             };
+
+            ctrl.onCheckboxClick = function(e, idx) {
+                if(e.shiftKey && lastLineClicked !== null) {
+                    // case 1: if last line was selected and current line is not selected (so we are selecting it with this click), select all lines in between.
+                    if(ctrl.selectedDiffLines[lastLineClicked] && !ctrl.selectedDiffLines[idx]) {       // ng-click happens before the change.
+                        for(var i = Math.min(idx, lastLineClicked); i < Math.max(idx, lastLineClicked); i++) {
+                            ctrl.selectedDiffLines[i] = true;
+                        }
+                    }
+
+                    // case 2: if last line was unselected and current line is already selected (so we are unselecting it with this click), deselect all lines in between
+                    if(!ctrl.selectedDiffLines[lastLineClicked] && ctrl.selectedDiffLines[idx]) {
+                        for(var i = Math.min(idx, lastLineClicked); i < Math.max(idx, lastLineClicked); i++) {
+                            ctrl.selectedDiffLines[i] = false;
+                        }
+                    }
+                }
+                lastLineClicked = idx;
+            }
         }]
     });
 
@@ -56,32 +90,45 @@
             if(!diff) {
                 return;
             }
-            diff = diff.split('\n');
+            var diffArr = diff.split('\n');
 
-            var isConflictedFile = diff[0].indexOf('diff --cc') == 0;
+            var isConflictedFile = diffArr[0].indexOf('diff --cc') == 0;
 
-            var formattedStr = null,
-                formattedLines = [];
-
-            for (var i = 1; i < diff.length; i++) {
-                formattedStr = diff[i];
-                // strip tags off formattedStr.
-                formattedStr = formattedStr.replace(/&/g, '&amp;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
-                if (formattedStr.indexOf('+') === 0 || (isConflictedFile && formattedStr.indexOf('+') === 1)) {
-                    formattedStr = '<span class="line-added">' + formattedStr + '</span>'
-                }
-                else if (formattedStr.indexOf('-') === 0 || (isConflictedFile && formattedStr.indexOf('-') === 1)) {
-                    formattedStr = '<span class="line-removed">' + formattedStr + '</span>';
-                }
-                else if (formattedStr.indexOf('@') === 0 || formattedStr.indexOf('\\') === 0) {
-                    formattedStr = '<span class="line-special">' + formattedStr + '</span>';
+            return diffArr.map(function(line, idx) {
+                if(idx < 4) {
+                    return {
+                        line: line,
+                        type: 'header'
+                    };
                 }
 
-                formattedLines.push(formattedStr);
-            }
-
-            return $sce.trustAsHtml(diff[0] + '\n' + formattedLines.join('\n'));
-
+                switch(true) {
+                    case (line.indexOf('+') === 0 || (isConflictedFile && line.indexOf('+') === 1)): {
+                        return {
+                            line: line,
+                            type: 'added'
+                        };
+                    }
+                    case (line.indexOf('-') === 0 || (isConflictedFile && line.indexOf('-') === 1)): {
+                        return {
+                            line: line,
+                            type: 'removed'
+                        };
+                    }
+                    case (line.indexOf('@') === 0 || line.indexOf('\\') === 0): {
+                        return {
+                            line: line,
+                            type: 'special'
+                        };
+                    }
+                    case (line.indexOf(' ') === 0): {
+                        return {
+                            line: line,
+                            type: 'nochange'
+                        };
+                    }
+                }                
+            });
         }
     }]);
 })();

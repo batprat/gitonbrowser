@@ -46,6 +46,8 @@
             ctrl.getKeyboardShortcuts = getKeyboardShortcuts;
             ctrl.onResetUnstaged = onRefreshLocalChanges;
             ctrl.onResetAll = onRefreshLocalChanges;
+            ctrl.stageOrUnstageSelectedLines = stageOrUnstageSelectedLines;
+            ctrl.resetFiles = resetFiles;
 
             staticSelectedFile.onSelectedFileChange('commit-modal-diff', function(file, filesListId) {
                 ctrl.selectedFile = file;
@@ -53,6 +55,45 @@
 
             $element.find('.keyboard-shortcuts').popover();
             return;
+
+            function stageOrUnstageSelectedLines(stage) {
+                var file = staticSelectedFile.get('commit-modal-diff');
+
+                if(!file || file.length > 1) {
+                    // no file selected or too many files selected. do nothing.
+                    return;
+                }
+
+                file = file[0];
+
+                if(stage && file.tags.indexOf('unstaged') == -1) {
+                    // selected file is not unstaged in the first place.
+                    return;
+                }
+                else if(!stage && file.tags.indexOf('staged') == -1) {
+                    // selected file is not staged in the first place.
+                    return;
+                }
+
+                if(!file.selectedDiffLines || file.selectedDiffLines.length == 0) {
+                    return;
+                }
+
+                var selectedLinesIndices = [];
+                
+                for(var i = 0; i < file.selectedDiffLines.length; i++) {
+                    if(file.selectedDiffLines[i]) {
+                        selectedLinesIndices.push(i);
+                    }
+                }
+
+                if(stage) {
+                    gitfunctions.stageSelectedLines(file.diff, selectedLinesIndices).then(onRefreshLocalChanges);
+                }
+                else {
+                    gitfunctions.unstageSelectedLines(file.diff, selectedLinesIndices).then(onRefreshLocalChanges);
+                }
+            }
 
             function getKeyboardShortcuts(type) {
                 switch(type) {
@@ -72,8 +113,8 @@
                 }
             }
 
-            function resetFiles() {
-                var selectedFiles = staticSelectedFile.get('commit-modal-diff');
+            function resetFiles(selectedFiles) {
+                selectedFiles = selectedFiles || staticSelectedFile.get('commit-modal-diff');
                 if(!selectedFiles || selectedFiles.length == 0) {
                     return;
                 }
@@ -99,6 +140,8 @@
                         // those are the o/p of the reset files and the reset untracked files respectively
                         onRefreshLocalChanges();
                     });
+                }).catch(function() {
+                    // do nothing.
                 });
             }
 

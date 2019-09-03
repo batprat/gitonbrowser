@@ -3,15 +3,14 @@
 . Handle passwords for pushing - use socket.io
 . Handle passwords for pulling - use socket.io
 . Make searching faster - use socket.io
-. Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
-. Checkout commit
+- Make show commit faster
+. Checkout commit (detached head mode)
 . Prevent CSRF attacks.
 . Handle CRLF errors.
 . Implement searching for branch name
 .[bug] Show untracked files in stash
 .[bug] If a conflict happens when doing git pull --rebase, the conflict button doesnt show up. A page refresh makes it show up.
 . Git bisect
-. Show popover on the commit, push buttons about details on the numbers.
 . Refactor code.
  . Use angular-ui
  . Make common components
@@ -25,7 +24,7 @@
  . unmerged, both added
 . Continuous output for clone, pull - use socket.io
 . Toggle whitespace while showing diff
-. Stage selected lines
+. Stage selected lines - Ideas - `git add -e` or `git apply` Implement gmail mail selector like line selector (with checkboxes and shift + click option)
 . unstage selected lines
 . revert selected lines
 . Add shortcuts for stash - stash save and stash pop
@@ -34,6 +33,11 @@
 . Handle case when we fetch commits above the checked out commit. Then color the checked out commits and show the commits above with a disabled look.
 . Update without focusing - sockets
 . Preload diffs on commit modal
+
+Nice to Haves:
+- Close the conflict modal when all conflicts are resolved.
+. Show popover on the commit, push buttons about details on the numbers.
+. Create a modal showing quick actions/shortcuts like pull, commit, push, fetch, simple rebase, squash, etc.
 
 DONE:
 -. Reset all changes

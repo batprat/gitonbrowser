@@ -266,4 +266,16 @@ router.get('/:id/getunpushedcommits', (req, res) => {
     git.getUnpushedCommits({ repo, req, res });
 });
 
+router.post('/:id/stageselectedlines', (req, res) => {
+    let repo = req.params.id;
+
+    git.stageSelectedLines({ repo, req, res });
+});
+
+router.post('/:id/unstageselectedlines', (req, res) => {
+    let repo = req.params.id;
+
+    git.unstageSelectedLines({ repo, req, res });
+});
+
 module.exports = router;

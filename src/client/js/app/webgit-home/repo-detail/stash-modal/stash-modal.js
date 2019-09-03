@@ -127,7 +127,7 @@
                 }
 
                 return gitfunctions.selectStash(stash).then(function (op) {
-                    if(!op) {
+                    if(!op || !op.output || !op.output.length) {
                         return;
                     }
                     ctrl.selectedStash.diffDetails = UtilsService.parseMultipleDiffs(op.output.join(''));

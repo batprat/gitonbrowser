@@ -1,4 +1,12 @@
 <div class="height100">
     <div class="panel-name">Diff</div>
-    <div ng-bind-html="$ctrl.safeDiff" class="diff"></div>
+    <div class="diff">
+        <div ng-repeat="line in $ctrl.safeDiff">
+            <div ng-if="line.type == 'header'" class="formatted-diff-line line-header-container"><span class="diff-line line-header">{{line.line}}</span></div>
+            <div ng-if="line.type == 'added'" class="formatted-diff-line line-added-container"><span ng-if="$ctrl.linesSelectable" class="diff-line-checkbox-container"><input type="checkbox" class="diff-line-checkbox" ng-model="$ctrl.selectedDiffLines[$index]" ng-click="$ctrl.onCheckboxClick($event, $index)" /></span><span class="diff-line line-added">{{line.line}}</span></div>
+            <div ng-if="line.type == 'removed'" class="formatted-diff-line line-removed-container"><span ng-if="$ctrl.linesSelectable" class="diff-line-checkbox-container"><input type="checkbox" class="diff-line-checkbox" ng-model="$ctrl.selectedDiffLines[$index]" ng-click="$ctrl.onCheckboxClick($event, $index)" /></span><span class="diff-line line-removed">{{line.line}}</span></div>
+            <div ng-if="line.type == 'special'" class="formatted-diff-line line-special-container"><span ng-if="$ctrl.linesSelectable" class="diff-line-checkbox-container"><input type="checkbox" class="diff-line-checkbox" ng-model="$ctrl.selectedDiffLines[$index]" ng-click="$ctrl.onCheckboxClick($event, $index)" /></span><span class="diff-line line-special">{{line.line}}</span></div>
+            <div ng-if="line.type == 'nochange'" class="formatted-diff-line line-nochange-container"><span ng-if="$ctrl.linesSelectable" class="diff-line-checkbox-container"><input type="checkbox" class="diff-line-checkbox" ng-model="$ctrl.selectedDiffLines[$index]" ng-click="$ctrl.onCheckboxClick($event, $index)" /></span><span class="diff-line line-nochange">{{line.line}}</span></div>
+        </div>
+    </div>
 </div>

@@ -4,7 +4,7 @@ const commandExists = require('command-exists');
 const { stat } = require('fs');
 const moment = require('moment');
 
-let showAllLogs = false;
+let showAllLogs = true;
 // let logCommits = [];
 let gitExecutablePath = 'git';
 
@@ -53,12 +53,312 @@ let git = {
     deleteLocalBranch,
     revertCommit,
     getFileHistory,
-    getUnpushedCommits
+    getUnpushedCommits,
+    stageSelectedLines,
+    unstageSelectedLines
 };
 
 module.exports = git;
 
 return;
+
+function unstageSelectedLines({req, res, repo}) {
+    handleStagingOrUnstagingPatches(true, req, res, repo);
+}
+
+function stageSelectedLines({req, res, repo}) {
+    handleStagingOrUnstagingPatches(false, req, res, repo);
+}
+
+function handleStagingOrUnstagingPatches(isStaged, req, res, repo) {
+    let diff = req.body.diff,
+        selectedLineNumbers = req.body.lineNumbers;
+
+    let [selectedChunks, header] = getSelectedChunks(diff, selectedLineNumbers);
+    
+    if(selectedChunks.length == 0) {
+        // nothing selected, do nothing.
+        return res.sendStatus(200);
+    }
+
+    let patch = getPatchFromSelectedChunks(selectedChunks, header, isStaged);
+
+    const buffer = Buffer.alloc(patch.length, patch);
+
+    let options = ['apply', '--cached', '--whitespace=nowarn'];
+
+    if(isStaged) {
+        options.push('--reverse');
+    }
+
+    const child = spawnGitProcessWithInput(repo, options);
+    child.stdin.write(buffer);
+    child.stdin.end();
+    redirectIO(child, req, res);
+}
+
+function getPatchFromSelectedChunks(selectedChunks, header, isStaged) {
+    // Some motivation from https://github.com/gitextensions/gitextensions
+    let patch = [];
+
+    let currSelectedChunk = null;
+    let currSubchunk = null;
+    let chunkPatch = null;
+    let addPart = null,
+        removePart = null,
+        prePart = null,
+        postPart = null,
+        inPostPart = false,
+        selectedLastRemovedLine = false,
+        selectedLastAddedLine = false;
+
+    for(let i = 0; i < selectedChunks.length; i++) {
+        // all maal masala is in the subchunks!
+        currSelectedChunk = selectedChunks[i];
+        chunkPatch = [];
+
+        for(let j = 0; j < currSelectedChunk.subchunks.length; j++) {
+            addPart = [];
+            removePart = [];
+            prePart = [];
+            postPart = [];
+            inPostPart = false;
+            selectedLastRemovedLine = false;
+            selectedLastAddedLine = false;
+    
+            currSubchunk = currSelectedChunk.subchunks[j];
+
+            // join all precontext;
+            if(currSubchunk.preContext.length) {
+                Array.prototype.push.apply(chunkPatch, currSubchunk.preContext.map((l) => { return l.text; }));
+            }
+
+            currSubchunk.removedLines.forEach((removedLine, idx) => {
+                selectedLastAddedLine = removedLine.selected;
+                if(removedLine.selected) {
+                    inPostPart = true;
+                    removePart.push(removedLine.text);
+                }
+                else if(!isStaged) {
+                    if(inPostPart) {
+                        removePart.push(' ' + removedLine.text.substring(1));
+                    }
+                    else {
+                        prePart.push(' ' + removedLine.text.substring(1));
+                    }
+                }
+            });
+
+            currSubchunk.addedLines.forEach((addedLine, idx) => {
+                selectedLastRemovedLine = addedLine.selected;
+                if(addedLine.selected) {
+                    inPostPart = true;
+                    addPart.push(addedLine.text);
+                }
+                else if(isStaged) {
+                    if(inPostPart) {
+                        postPart.push(' ' + addedLine.text.substring(1));
+                    }
+                    else {
+                        prePart.push(' ' + addedLine.text.substring(1));
+                    }
+                }
+            });
+
+            Array.prototype.push.apply(chunkPatch, prePart);
+            Array.prototype.push.apply(chunkPatch, removePart);
+
+            if(currSubchunk.olderNoNewLineAtEnd && currSubchunk.postContext.length == 0 && (selectedLastRemovedLine || !isStaged)) {
+                chunkPatch.push(currSubchunk.olderNoNewLineAtEnd.text);
+            }
+            
+            Array.prototype.push.apply(chunkPatch, addPart);
+            Array.prototype.push.apply(chunkPatch, postPart);
+
+            // join all postcontext;
+            if(currSubchunk.postContext.length) {
+                Array.prototype.push.apply(chunkPatch, currSubchunk.postContext.map((l) => { return l.text; }));
+            }
+
+            if(currSubchunk.newerNoNewLineAtEnd && currSubchunk.postContext.length == 0 && (selectedLastAddedLine || isStaged)) {
+                chunkPatch.push(currSubchunk.newerNoNewLineAtEnd.text);
+            }
+
+            if(currSubchunk.olderNoNewLineAtEnd && currSubchunk.postContext.length) {
+                chunkPatch.push(currSubchunk.olderNoNewLineAtEnd.text);
+            }
+        }
+
+        let removedLinesCount = chunkPatch.filter((l) => { return l[0] == '-' || l[0] == ' '; }).length;
+        let addedLinesCount = chunkPatch.filter((l) => { return l[0] == '+' || l[0] == ' '; }).length;
+
+        // add the header back.
+        chunkPatch.splice(0, 0, currSelectedChunk.header.replace(/(@@\s\-\d+)(,?\d*)(\s\+\d+)(,?\d*)(\s@@)/g, '$1,'+ removedLinesCount +'$3,' + addedLinesCount + '$5'));
+        Array.prototype.push.apply(patch, chunkPatch);
+    }
+
+    patch.splice(0, 0, header);
+    return (patch.join('\n') + '\n');
+}
+
+function getSelectedChunks(diff, selectedLineNumbers) {
+    let header = null;
+    let allChunks = null;
+
+    // divide the entire diff into header and chunks.
+    let headerAndChunks = diff.split(/\n\r?(?=@@)/g);
+
+    header = headerAndChunks[0];
+    allChunks = headerAndChunks.slice(1);
+
+    // go through each chunk.
+
+    // divide each chunk into chunklets.
+
+    let currentLineNumber = header.split(/\n/g).length,
+        currentChunk = null,
+        chunkLines = null;
+
+    let selectedChunks = [];
+
+    let chunkContainsSelectedLine = false;
+
+    for(let chunkNumber = 0; chunkNumber < allChunks.length; chunkNumber++) {
+        currentChunk = allChunks[chunkNumber];
+        chunkLines = currentChunk.split(/\n\r?/g);
+
+        // if no line in selectedLineNumbers is present in this chunk, skip it.
+        // starts with currentLineNumber and ends at currentLineNumber + chunkLines.length
+
+        chunkContainsSelectedLine = false;
+
+        for(let i = currentLineNumber; i < currentLineNumber + chunkLines.length; i++) {
+            if(selectedLineNumbers.indexOf(i) > -1) {
+                chunkContainsSelectedLine = true;
+                break;
+            }
+        }
+
+        // you don't wanna stage anything from this chunk, lets skip it.
+        if(!chunkContainsSelectedLine) {
+            currentLineNumber += chunkLines.length;
+            continue;
+        }
+
+        let lineText = null;
+
+        let chunk = {
+            subchunks: [], // each subchunk is an add and/or remove section (modified red/green lines) separated by context (non modified, white) lines
+            header: null
+        };
+
+        let subchunk = {
+            preContext: [],
+            postContext: [],
+            removedLines: [],
+            addedLines: [],
+            newerNoNewLineAtEnd: null,
+            olderNoNewLineAtEnd: null
+        };
+
+        // chunkPointer can be 1, 2 or 3. 1 means above the added/removed part; 2 means in the added/removed part; 3 means below the added/removed part
+        // if chunkPointer == 1, the current line is a precontext line.
+        // if we come across an add/remove, check chunkPointer. if it is 1, make it 2; if it is 2, keep it 2; if it is 3, start a new subchunk and change it to 2;
+        let chunkPointer = 1;
+        let currChunkLine = null;
+
+        for(let chunkLineNumber = 0; chunkLineNumber < chunkLines.length; chunkLineNumber++, currentLineNumber++) {
+            // go through each chunkLine.
+            lineText = chunkLines[chunkLineNumber];
+            currChunkLine = {
+                text: lineText,
+                selected: selectedLineNumbers.indexOf(currentLineNumber) > -1
+            }
+
+            switch(lineText[0]) {
+                case '@': {
+                    // the first line of the chunk - the header of the chunk.
+                    chunk.header = lineText;
+                    break;
+                }
+                case ' ': {
+                    if(chunkPointer == 1) {
+                        subchunk.preContext.push(currChunkLine);
+                    }
+                    else if(chunkPointer == 2) {
+                        chunkPointer = 3;
+                        subchunk.postContext.push(currChunkLine);
+                    }
+                    else if(chunkPointer == 3) {
+                        subchunk.postContext.push(currChunkLine);
+                    }
+                    break;
+                }
+                case '+': {
+                    if(chunkPointer == 3) {
+                        // start new subchunk.
+                        if(subchunk.addedLines.filter((l) => { return l.selected }).length || subchunk.removedLines.filter((l) => { return l.selected }).length) {
+                            chunk.subchunks.push(subchunk);
+                        }
+                        subchunk = {
+                            preContext: [],
+                            postContext: [],
+                            removedLines: [],
+                            addedLines: [],
+                            newerNoNewLineAtEnd: null,
+                            olderNoNewLineAtEnd: null
+                        };
+                    }
+                    chunkPointer = 2;
+                    subchunk.addedLines.push(currChunkLine);
+                    break;
+                }
+                case '-': {
+                    if(chunkPointer == 3) {
+                        // start new subchunk.
+                        if(subchunk.addedLines.filter((l) => { return l.selected }).length || subchunk.removedLines.filter((l) => { return l.selected }).length) {
+                            chunk.subchunks.push(subchunk);
+                        }
+                        subchunk = {
+                            preContext: [],
+                            postContext: [],
+                            removedLines: [],
+                            addedLines: [],
+                            newerNoNewLineAtEnd: null,
+                            olderNoNewLineAtEnd: null
+                        };
+                    }
+                    chunkPointer = 2;
+                    subchunk.removedLines.push(currChunkLine);
+                    break;
+                }
+                case '\\': {
+                    // whenever something near the end of a file is changed, there's a couple of lines `\ No newline at the end of file`
+                    // one is the old one near the removed lines and another is the new one near the added lines.
+                    // if only one copy exists, its the older one.
+                    if(subchunk.addedLines.length > 0 && subchunk.postContext.length == 0) {
+                        subchunk.newerNoNewLineAtEnd = currChunkLine;
+                    }
+                    else {
+                        subchunk.olderNoNewLineAtEnd = currChunkLine;
+                    }
+                    break;
+                }
+            }
+        }
+        // this is a real subchunk only if it has added/remove lines.
+        if(subchunk.addedLines.filter((l) => { return l.selected }).length || subchunk.removedLines.filter((l) => { return l.selected }).length) {
+            chunk.subchunks.push(subchunk);
+        }
+
+        // this is a real chunk only if it has subchunks.
+        if(chunk.subchunks.length) {
+            selectedChunks.push(chunk);
+        }
+    }
+
+    return [selectedChunks, header];
+}
 
 function getUnpushedCommits({ req, res, repo }) {
     return logRepo({
@@ -830,6 +1130,16 @@ function spawnGitProcess(repo, processOptions) {
     return spawn(gitExecutablePath, processOptions, {
         cwd: _getCwd(repo),
         stdio: [0, 'pipe', 'pipe']
+    });
+}
+
+function spawnGitProcessWithInput(repo, processOptions) {
+    if (showAllLogs) {
+        console.log('git arguments', processOptions);
+    }
+    return spawn(gitExecutablePath, processOptions, {
+        cwd: _getCwd(repo),
+        stdio: ['pipe', 'pipe', 'pipe']
     });
 }
 

@@ -20,7 +20,8 @@
                                         files="$ctrl.localStatus"
                                         diff-view-id="'commit-modal-diff'"
                                         files-list-id="'unstaged-files-list'"
-                                        multi-select="true">
+                                        multi-select="true"
+                                        reset-callback="$ctrl.resetFiles(selectedFiles)">
                                     </files-list>
                                 </div>
                             </div>
@@ -51,8 +52,15 @@
                             <div class="row">
                                 <div class="col-sm-12" id="commit-dialog-diff">
                                     <diff-view
-                                        diff-view-id="'commit-modal-diff'">
+                                        diff-view-id="'commit-modal-diff'"
+                                        lines-selectable="true">
                                     </diff-view>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col commit-dialog-partial-staging-container">
+                                    <button class="btn btn-sm btn-outline-secondary" ng-click="$ctrl.stageOrUnstageSelectedLines(true)">Stage Selected Lines</button>
+                                    <button class="btn btn-sm btn-outline-secondary pull-right" ng-click="$ctrl.stageOrUnstageSelectedLines(false)">Unstage Selected Lines</button>
                                 </div>
                             </div>
                             <div class="row commit-dialog-action-container">

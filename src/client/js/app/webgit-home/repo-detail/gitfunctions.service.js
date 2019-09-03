@@ -34,8 +34,22 @@
             getCommit: getCommit,
             getCommitDetails: getCommitDetails,
             getDiff: getDiff,
-            getUnpushedCommits: getUnpushedCommits
+            getUnpushedCommits: getUnpushedCommits,
+            stageSelectedLines: stageSelectedLines,
+            unstageSelectedLines: unstageSelectedLines
         };
+
+        function stageSelectedLines(diff, lineNumbers) {
+            return $http.post('/repo/' + repoName + '/stageselectedlines', {diff: diff, lineNumbers: lineNumbers}).then(function(res) {
+                return res.data;
+            });
+        }
+
+        function unstageSelectedLines(diff, lineNumbers) {
+            return $http.post('/repo/' + repoName + '/unstageselectedlines', {diff: diff, lineNumbers: lineNumbers}).then(function(res) {
+                return res.data;
+            });
+        }
 
         function getUnpushedCommits() {
             return $http.get('/repo/' + repoName + '/getunpushedcommits').then(function(res) {

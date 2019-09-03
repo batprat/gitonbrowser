@@ -7,6 +7,9 @@ diff-view {
     height: calc(100% - 18px);
     overflow: auto;
     background: #fff;
+}
+
+.formatted-diff-line {
     white-space: pre;
     font-family: monospace;
 }
@@ -21,4 +24,8 @@ diff-view {
 
 .line-special {
     background: #d3d3d3;
+}
+
+.diff-line-checkbox-container, .diff-line-checkbox, .diff-line {
+    vertical-align: middle;
 }

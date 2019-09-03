@@ -11,7 +11,8 @@
             badgeText: '&',
             keyboardShortcuts: '&',
             diffViewId: '<',
-            filesListId: '<'
+            filesListId: '<',
+            resetCallback: '&'
         },
         controller: ['$scope', '$element', 'UtilsService', 'staticSelectedFile', '$fileHistoryModalService', function FilesListController($scope, $element, UtilsService, staticSelectedFile, $fileHistoryModalService) {
             var ctrl = this;
@@ -121,7 +122,7 @@
                                 var innerKey = key;
                                 return function(keyCode, $idx) {
                                     if(keyCode == innerKey.toUpperCase().charCodeAt(0)) {
-                                        keyboardShortcuts[innerKey](ctrl.filteredFiles[$idx]);
+                                        keyboardShortcuts[innerKey]([ctrl.filteredFiles[$idx]]);
                                     }
                                 }
                             })();
@@ -189,6 +190,15 @@
                                 }
                             }
                         };
+
+                        if(ctrl.resetCallback) {
+                            options.items.reset = {
+                                name: 'Reset (r)',
+                                callback: function() {
+                                    ctrl.resetCallback({selectedFiles: [file]});
+                                }
+                            };
+                        }
 
                         return options;
                     }
