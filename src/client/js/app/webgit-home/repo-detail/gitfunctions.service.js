@@ -338,11 +338,11 @@
                     return;
                 }
                 if (!res.data.errorCode) {
-                    return res.data.output.join('\n');
+                    return res.data.output.join('');
                 }
                 else if(res.data.output){
                     // TODO: Handle CRLF errors here.
-                    return res.data.output.join('\n');
+                    return res.data.output.join('');
                 }
                 return res.data;
             });

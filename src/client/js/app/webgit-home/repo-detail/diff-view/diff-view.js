@@ -42,7 +42,7 @@
                     if(!file.diff) {
                         gitfunctions.getFileDiff(file.name, file.tags).then(function (diff) {
                             if (typeof diff == 'object') {
-                                diff = diff.output.join('\n').trim();
+                                diff = diff.output.join('').trim();
                                 // TODO: Handle errors here.. probably CRLF errors.
                             }
                             file.diff = diff;
