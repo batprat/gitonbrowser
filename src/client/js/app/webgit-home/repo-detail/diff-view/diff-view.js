@@ -12,9 +12,11 @@
             var lastLineClicked = null;
 
             ctrl.linesSelectable = ctrl.linesSelectable || false;
+            
             ctrl.selectedDiffLines = [];
 
             ctrl.$onInit = function() {
+                ctrl.linesSelectable = false;
                 var diffViewLinesSelectable = ctrl.linesSelectable || false;        // lets keep a backup of this for future use.
                 var setSafeDiff = function(file) {
                     if(!file.safeDiff) {
