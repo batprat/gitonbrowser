@@ -117,12 +117,13 @@
                     var keyboardShortcuts = ctrl.keyboardShortcuts({tag: ctrl.tagToFilter});
 
                     if(keyboardShortcuts) {
+                        var keyupCallback;
                         for(var key in keyboardShortcuts) {
                             keyupCallback = (function() {
                                 var innerKey = key;
                                 return function(keyCode, $idx) {
                                     if(keyCode == innerKey.toUpperCase().charCodeAt(0)) {
-                                        keyboardShortcuts[innerKey]([ctrl.filteredFiles[$idx]]);
+                                        keyboardShortcuts[innerKey]();
                                     }
                                 }
                             })();
