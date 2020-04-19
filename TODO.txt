@@ -1,3 +1,4 @@
+. Handle setting up global settings like user email and password.
 . Delete remote branch
 . Handle passwords for cloning - use socket.io
 . Handle passwords for pushing - use socket.io

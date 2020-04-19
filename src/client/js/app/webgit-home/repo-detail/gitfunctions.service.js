@@ -132,6 +132,7 @@
                         }
 
                         // all other branches. viz. `  branch-x` (local branch), `  remotes/origin/branch-x` (remote branch)
+                        // TODO: The following regexp kills firefox. change it.
                         var branchName = branch.match(/(?:\s\s)?(?:remotes\/)?(?<branch>.+)/);
                         branchName = branchName.groups.branch;
 
